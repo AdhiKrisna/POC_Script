@@ -1745,108 +1745,83 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
     }
 
     public func exportAsPlainText() -> String {
+        let origIata = missionContext.originAirport.iata ?? missionContext.originAirport.icao
+        let destIata = missionContext.destinationAirport.iata ?? missionContext.destinationAirport.icao
+        let lvlTitle = level?.title ?? "Level \(level?.rawValue ?? 1)"
+
         var output = """
-        ================================================================================
-        HERMES RADIOTELEPHONY SIMULATION FLIGHT SCRIPT
-        Level: \(level?.title ?? "Custom Route")
-        Mode: \(mode.rawValue) | Role: \(role.rawValue) | Seed: \(seed)
-        Total Turns: \(totalExchanges) | Estimated Duration: \(String(format: "%.1f", totalEstimatedDurationMinutes)) mins
-        ================================================================================
+        FLIGHT SCRIPT: \(origIata) → \(destIata) (\(lvlTitle))
+        Callsign: \(callsign) | Aircraft: \(missionContext.aircraftType) | Squawk: \(missionContext.squawkCode)
+        Seed: \(seed) | Total Turns: \(totalExchanges) | Durasi: ~\(String(format: "%.1f", totalEstimatedDurationMinutes)) menit
 
-        --------------------------------------------------------------------------------
-        📋 1. OPERATIONAL FLIGHT PLAN (OFP / ICAO FLIGHT PLAN)
-        --------------------------------------------------------------------------------
-        Callsign           : \(callsign)
-        Aircraft Type      : \(missionContext.aircraftType)
-        Departure (Origin) : \(missionContext.originAirport.icao) (\(missionContext.originAirport.name))
-        Parking Stand      : \(missionContext.standOrigin)
-        Destination        : \(missionContext.destinationAirport.icao) (\(missionContext.destinationAirport.name))
-        Planned Cruising   : \(missionContext.cruisingLevel)
-        Initial Altitude   : \(missionContext.initialAlt)
-        Assigned Routing   : SID \(missionContext.sidProcedure) | STAR \(missionContext.starProcedure)
-        Assigned Squawk    : \(missionContext.squawkCode)
-        Planned Dep Runway : Runway \(missionContext.depRunway.designator) (Assigned by Departure ATIS)
-        Expected Arr Runway: Runway \(missionContext.arrRunway.designator) (Assigned by Arrival ATIS)
-        Destination Stand  : \(missionContext.standDestination)
+        [OPERATIONAL FLIGHT PLAN (OFP)]
+        • Departure: \(missionContext.originAirport.icao) (\(missionContext.originAirport.name)) | Stand: \(missionContext.standOrigin) | Dep RWY: \(missionContext.depRunway.designator)
+        • Destination: \(missionContext.destinationAirport.icao) (\(missionContext.destinationAirport.name)) | Stand: \(missionContext.standDestination) | Arr RWY: \(missionContext.arrRunway.designator)
+        • Cruising: \(missionContext.cruisingLevel) | Initial: \(missionContext.initialAlt)
+        • Routing: SID \(missionContext.sidProcedure) | STAR \(missionContext.starProcedure)
 
-        --------------------------------------------------------------------------------
-        📻 2. DEPARTURE ATIS (AUTOMATIC TERMINAL INFORMATION SERVICE)
-        --------------------------------------------------------------------------------
-        Station            : \(missionContext.originAirport.name) (\(missionContext.originAirport.icao))
-        ATIS Identification: Information \(missionContext.depAtisId) (Issued 0120 UTC)
-        Runway in Use      : Runway \(missionContext.depRunway.designator)
-        Surface Wind       : \(String(format: "%03d", missionContext.depWeather.windDirection))° / \(String(format: "%02d", missionContext.depWeather.windSpeed)) knots
-        Visibility         : Greater than 10 km (CAVOK)
-        Altimeter (QNH)    : \(missionContext.depWeather.qnh) hPa
-        Temperature / Dew  : 30°C / 25°C
+        [DEPARTURE ATIS - \(missionContext.originAirport.icao)]
+        Information \(missionContext.depAtisId) | RWY \(missionContext.depRunway.designator) in use | Wind: \(String(format: "%03d", missionContext.depWeather.windDirection))°/\(String(format: "%02d", missionContext.depWeather.windSpeed))kt | QNH \(missionContext.depWeather.qnh) hPa | CAVOK
 
-        [VOICE ATIS BROADCAST TRANSCRIPT (VHF COMM-2)]:
-        "\(missionContext.depAtisBroadcastText)"
-        (Prosedur Resmi: Pilot memantau ATIS secara pasif di radio COMM-2 sebelum transmisi awal; pilot menyatakan kode pengenal '\(missionContext.depAtisId)' pada initial call ke ATC).
-
-        [DIGITAL D-ATIS (ACARS / COCKPIT MCDU READOUT)]:
-        \(missionContext.depDATISText)
-
-        --------------------------------------------------------------------------------
-        📻 3. ARRIVAL ATIS (DESTINATION ADVISORY - EN-ROUTE / DESCENT PREPARATION)
-        --------------------------------------------------------------------------------
-        Station            : \(missionContext.destinationAirport.name) (\(missionContext.destinationAirport.icao))
-        ATIS Identification: Information \(missionContext.arrAtisId) (Issued 0150 UTC)
-        Expected Runway    : Runway \(missionContext.arrRunway.designator) in use
-        Approach Procedure : ILS DME Runway \(missionContext.arrRunway.designator)
-        Surface Wind       : \(String(format: "%03d", missionContext.arrWeather.windDirection))° / \(String(format: "%02d", missionContext.arrWeather.windSpeed)) knots
-        Visibility         : Greater than 10 km (CAVOK)
-        Altimeter (QNH)    : \(missionContext.arrWeather.qnh) hPa
-
-        [VOICE ATIS BROADCAST TRANSCRIPT (VHF COMM-2)]:
-        "\(missionContext.arrAtisBroadcastText)"
-        (Prosedur Resmi: Pilot menyatakan kode pengenal '\(missionContext.arrAtisId)' pada initial contact ke Approach saat descent).
-
-        [DIGITAL D-ATIS (ACARS / COCKPIT MCDU READOUT)]:
-        \(missionContext.arrDATISText)
-        ================================================================================
+        [ARRIVAL ATIS - \(missionContext.destinationAirport.icao)]
+        Information \(missionContext.arrAtisId) | RWY \(missionContext.arrRunway.designator) in use | Approach: ILS DME RWY \(missionContext.arrRunway.designator) | Wind: \(String(format: "%03d", missionContext.arrWeather.windDirection))°/\(String(format: "%02d", missionContext.arrWeather.windSpeed))kt | QNH \(missionContext.arrWeather.qnh) hPa
         """
 
         if !contingencies.isEmpty {
-            for (idx, cont) in contingencies.enumerated() {
-                let numStr = contingencies.count > 1 ? " #\(idx + 1)" : ""
-                output += """
-
-                ⚠️ INJECTED CONTINGENCY EVENT\(numStr): [\(cont.severity.rawValue)] \(cont.title)
-                Phase Trigger: \(cont.triggerPhase.rawValue)
-                Situation: \(cont.summary)
-                Downstream Impact: \(cont.downstreamEffect)
-                ================================================================================
-                """
+            output += "\n\n[SKENARIO KONTINJENSI]"
+            for cont in contingencies {
+                output += "\n⚠️ [\(cont.severity.rawValue)] \(cont.title)"
+                output += "\n  Kondisi: \(cont.summary)"
+                output += "\n  Dampak: \(cont.downstreamEffect)"
             }
         }
 
-        output += "\n"
+        output += "\n\n--- DIALOGUE SCRIPT ---\n"
 
         for phaseScript in phaseScripts {
-            output += """
-
-            ================================================================================
-            \(phaseScript.title.uppercased())
-            Goal: \(phaseScript.educationalGoal)
-            Turns: \(phaseScript.turnCount) (~ \(String(format: "%.1f", phaseScript.estimatedDurationMinutes)) minutes)
-            --------------------------------------------------------------------------------
-
-            """
+            output += "\n[\(phaseScript.title.uppercased())]\n"
+            output += "Goal: \(phaseScript.educationalGoal)\n\n"
 
             for ex in phaseScript.exchanges {
-                var speakerLabel = ex.isUserTurn ? "\(ex.speaker) [USER TURN]" : ex.speaker
+                var speakerLabel = ex.isUserTurn ? "\(ex.speaker) [USER]" : ex.speaker
                 if ex.severity != .normal, let tag = ex.eventTag {
-                    speakerLabel += " [\(ex.severity.rawValue): \(tag)]"
+                    speakerLabel += " [\(tag)]"
                 }
                 output += "Turn \(ex.turn) | \(speakerLabel):\n"
-                if let obj = ex.objective, ex.isUserTurn {
-                    output += "  Objective: \(obj)\n"
+
+                if ex.isUserTurn {
+                    if let fourSlot = ex.fourSlotPayload, level == .level1 {
+                        output += "  [4-Slot] Stasiun: \(fourSlot.station) | Callsign: \(fourSlot.callsign) | Posisi: \(fourSlot.position) | Aksi: \(fourSlot.action)\n"
+                    }
+                    if let cloze = ex.clozePayload, level == .level2 {
+                        output += "  [Cloze Prompt] \"\(cloze.displayTemplate)\"\n"
+                    }
+                    if let intent = ex.intentPayload, level == .level3 {
+                        output += "  [Intensi] \"\(intent.primaryIntent)\"\n"
+                    } else if let obj = ex.objective {
+                        output += "  [Intensi] \"\(obj)\"\n"
+                    }
+                    if let hud = ex.hudPayload, level == .level4 || level == .level5 {
+                        var hudItems: [String] = []
+                        if let hdg = hud.headingDeg { hudItems.append("HDG: \(String(format: "%03d", hdg))") }
+                        if let alt = hud.altitudeFt { hudItems.append("ALT: \(alt) ft") }
+                        if let spd = hud.airspeedKt { hudItems.append("SPD: \(spd) kt") }
+                        if let fix = hud.waypointOrFix { hudItems.append("NAV: \(fix)") }
+                        if let comm = hud.comm1Freq { hudItems.append("COMM: \(comm)") }
+                        if !hudItems.isEmpty {
+                            output += "  [Scratchpad HUD] [\(hudItems.joined(separator: " | "))]\n"
+                        }
+                    }
+                    if let haz = ex.hazardPayload {
+                        output += "  ⚠️ [Hazard Alert] \(haz.hazardDescription) | Tindakan: \(haz.expectedPilotReaction)\n"
+                    }
                 }
-                output += "\"\(ex.text)\"\n"
+
+                output += "  \"\(ex.text)\"\n"
+
                 if !ex.criticalSlots.isEmpty {
                     let items = ex.criticalSlots.map { "\($0.slot): '\($0.expectedValue)'" }.joined(separator: ", ")
-                    output += "  >> Mandatory Readback: [\(items)]\n"
+                    output += "  >> Readback Wajib: [\(items)]\n"
                 }
                 output += "\n"
             }
@@ -1854,32 +1829,21 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
 
         if let diag = diagnosticReport {
             output += """
-
-            ================================================================================
-            DIAGNOSTIC & PERFORMANCE EVALUATION (POST-SESSION REPORT)
-            Status: \(diag.isPassed ? "PASSED (SCORE >= 80%)" : "NEEDS IMPROVEMENT (SCORE < 80%)")
-            Overall Score: \(diag.overallScore)%
-            - Safety-Critical Readback Accuracy: \(diag.readbackAccuracyPercent)%
-            - Standard ICAO Phraseology Compliance: \(diag.phraseologyScorePercent)%
-            - Transmission Discipline & Latency: \(diag.disciplineScorePercent)%
-
-            Summary:
-            \(diag.summaryFeedback)
-
-            Key Improvement Areas:
+            --- HASIL EVALUASI & DIAGNOSTIK ---
+            Skor: \(diag.overallScore)% | Status: \(diag.isPassed ? "LULUS" : "PERLU LATIHAN ULANG")
+            • Akurasi Readback: \(diag.readbackAccuracyPercent)%
+            • Kepatuhan Fraseologi ICAO: \(diag.phraseologyScorePercent)%
+            • Ketepatan Disiplin Radio & Latensi: \(diag.disciplineScorePercent)%
+            • Ringkasan: \(diag.summaryFeedback)
             """
-            for area in diag.improvementAreas {
-                output += "\n• \(area)"
+            if !diag.improvementAreas.isEmpty {
+                output += "\n• Catatan Perbaikan:"
+                for area in diag.improvementAreas {
+                    output += "\n  - \(area)"
+                }
             }
-            output += "\n"
         }
 
-        output += """
-
-        ================================================================================
-        END OF SIMULATION SCRIPT — HERMES TECHNICAL SECOND BRAIN
-        ================================================================================
-        """
         return output
     }
 }
@@ -2033,42 +1997,33 @@ public struct ATCSessionScript: Identifiable, Equatable, Sendable {
 
     public func exportAsPlainText() -> String {
         var output = """
-        ================================================================================
-        HERMES ATC RADIOTELEPHONY SESSION SCRIPT
-        Aerodrome: \(aerodrome.icao) (\(aerodrome.name))
-        Level: Level \(level.rawValue) — \(level.levelCategory)
-        Runways: \(aerodrome.runwaySummary) | Frequency: \(aerodrome.primaryFreq)
-        Seed: \(seed) | Total Traffic: \(trafficEntries.count) aircraft
-        Total Exchanges: \(totalExchanges) | Estimated Duration: \(String(format: "%.0f", estimatedDurationMinutes)) mins
-        ================================================================================
+        ATC SESSION SCRIPT: \(aerodrome.icao) (\(aerodrome.name))
+        Level \(level.rawValue): \(level.levelCategory) | Frekuensi: \(aerodrome.primaryFreq)
+        Seed: \(seed) | Trafik: \(trafficEntries.count) pesawat | Total Turns: \(totalExchanges) | Durasi: ~\(String(format: "%.0f", estimatedDurationMinutes)) menit
         """
         for traffic in trafficEntries {
             output += """
 
-            --------------------------------------------------------------------------------
-            TRAFFIC [\(traffic.trafficID)]: \(traffic.callsign) (\(traffic.aircraftType)) — \(traffic.trafficType.rawValue)
-            Babak: \(traffic.act.title)
-            --------------------------------------------------------------------------------
+            \n[TRAFIK \(traffic.trafficID): \(traffic.callsign) (\(traffic.aircraftType)) — \(traffic.trafficType.rawValue)]
+            Fase: \(traffic.act.title)
             """
             for ex in traffic.exchanges {
-                let speakerLabel = ex.isUserTurn ? "\(ex.speaker) [USER TURN]" : ex.speaker
+                let speakerLabel = ex.isUserTurn ? "\(ex.speaker) [USER]" : ex.speaker
                 output += "\nTurn \(ex.turn) | \(speakerLabel):\n"
                 if let obj = ex.objective {
-                    output += "  🎯 Objective: \(obj)\n"
+                    output += "  [Intensi] \(obj)\n"
                 }
-                output += "\"\(ex.text)\"\n"
+                output += "  \"\(ex.text)\"\n"
             }
         }
         if let diag = diagnosticReport {
             output += """
 
-            ================================================================================
-            POST-SESSION DIAGNOSTIC EVALUATION (ICAO DOC 4444)
-            Overall Score: \(diag.overallScore)% (Passed: \(diag.isPassed))
-            - Readback Accuracy: \(diag.readbackAccuracyPercent)%
-            - Phraseology Compliance: \(diag.phraseologyScorePercent)%
-            - Transmission Discipline: \(diag.disciplineScorePercent)%
-            ================================================================================
+            \n--- HASIL EVALUASI ATC ---
+            Skor: \(diag.overallScore)% | Status: \(diag.isPassed ? "LULUS" : "PERLU LATIHAN")
+            • Akurasi Readback: \(diag.readbackAccuracyPercent)%
+            • Kepatuhan Fraseologi: \(diag.phraseologyScorePercent)%
+            • Disiplin Transmisi: \(diag.disciplineScorePercent)%
             """
         }
         return output

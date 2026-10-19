@@ -73,6 +73,37 @@ struct CurriculumHubView: View {
                         .foregroundColor(.secondary)
                 }
 
+                // Interactive UI Prototype Showcase (Mid-Fi & High-Fi)
+                NavigationLink(destination: PrototypeShowcaseView()) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "paintpalette.fill")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("Interactive UI Prototype")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Text("Mid-Fi & High-Fi")
+                                    .font(.caption2.weight(.bold))
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue.opacity(0.12))
+                                    .foregroundColor(.blue)
+                                    .cornerRadius(4)
+                            }
+                            Text("Simulasi 3-layar wireframe & avionics cockpit dark mode (Lv 1–5).")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(12)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+
                 Picker("Level", selection: $selectedLevel) {
                     ForEach(CurriculumLevel.allCases) { level in
                         Text("L\(level.rawValue)").tag(level)

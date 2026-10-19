@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HERMES RTF — Mid & High Fidelity Prototype Showcase</title>
+  <style>
+    :root {
+      /* Shared Tokens */
+      --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+      --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* THEME 1: MID-FIDELITY WIREFRAME (Pencil Sketch & Technical Blueprint Style) */
+    body.theme-midfid {
+      --bg-page: #F7F7F5;
+      --bg-dot: #D6D6D0;
+      --bg-device: #FFFFFF;
+      --border-wire: #2C3038;
+      --border-wire-light: #8E929B;
+      --text-main: #1A1D20;
+      --text-muted: #626772;
+      --card-bg: #FFFFFF;
+      --card-bg-subtle: #F3F3F0;
+      --accent-color: #2F54EB;
+      --accent-green: #389E0D;
+      --accent-red: #CF1322;
+      --accent-orange: #D46B08;
+      --ptt-bg: #FFFFFF;
+      --ptt-border: #1A1D20;
+      --ptt-text: #1A1D20;
+      --shadow-wire: 3px 3px 0px rgba(0,0,0,0.85);
+      --badge-radius: 4px;
+      --card-radius: 8px;
+      --button-radius: 8px;
+    }
+
+    /* THEME 2: HIGH-FIDELITY AVIONICS DARK (Ambient Spotlight Glow & OLED Cockpit Style) */
+    body.theme-hifid {
+      --bg-page: #07090E;
+      --bg-dot: rgba(0, 229, 255, 0.04);
+      --bg-device: #0D111A;
+      --border-wire: rgba(255, 255, 255, 0.12);
+      --border-wire-light: rgba(255, 255, 255, 0.08);
+      --text-main: #F2F5FA;
+      --text-muted: #8E9BAE;
+      --card-bg: rgba(19, 25, 38, 0.85);
+      --card-bg-subtle: rgba(27, 36, 54, 0.6);
+      --accent-color: #00E5FF;
+      --accent-green: #00FF88;
+      --accent-red: #FF3B30;
+      --accent-orange: #FF9F0A;
+      --ptt-bg: radial-gradient(circle, #1E293B 0%, #0F172A 100%);
+      --ptt-border: #00E5FF;
+      --ptt-text: #00E5FF;
+      --shadow-wire: 0 12px 36px rgba(0, 229, 255, 0.15);
+      --badge-radius: 12px;
+      --card-radius: 16px;
+      --button-radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: var(--font-system);
+      background-color: var(--bg-page);
+      background-image: radial-gradient(var(--bg-dot) 1px, transparent 1px);
+      background-size: 16px 16px;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 60px 16px;
+      transition: var(--transition-smooth);
+    }
+
+    /* Top Control Bar */
+    .top-toolbar {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-wire);
+      padding: 12px 20px;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow-wire);
+      transition: var(--transition-smooth);
+    }
+
+    .toolbar-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .toolbar-title span.badge {
+      padding: 2px 8px;
+      border-radius: var(--badge-radius);
+      font-size: 11px;
+      background: var(--accent-color);
+      color: #000;
+      font-weight: 700;
+    }
+
+    body.theme-midfid .toolbar-title span.badge {
+      background: #1A1D20;
+      color: #FFF;
+    }
+
+    .theme-switcher, .screen-switcher {
+      display: flex;
+      background: var(--card-bg-subtle);
+      padding: 4px;
+      border-radius: var(--button-radius);
+      border: 1px solid var(--border-wire-light);
+      gap: 4px;
+    }
+
+    .switch-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: calc(var(--button-radius) - 2px);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .switch-btn.active {
+      background: var(--card-bg);
+      color: var(--text-main);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      border: 1px solid var(--border-wire);
+    }
+
+    /* Main Showcase Stage */
+    .showcase-stage {
+      display: flex;
+      gap: 28px;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* Phone Mockup Frame */
+    .phone-frame {
+      width: 380px;
+      min-height: 740px;
+      background: var(--bg-device);
+      border: 2px solid var(--border-wire);
+      border-radius: 36px;
+      box-shadow: var(--shadow-wire);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    body.theme-hifid .phone-frame {
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 229, 255, 0.12);
+    }
+
+    /* Dynamic Island / Speaker Notch */
+    .phone-notch {
+      width: 110px;
+      height: 24px;
+      background: var(--border-wire);
+      border-radius: 12px;
+      margin: 10px auto 4px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .phone-notch-camera {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #000;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Screen View Container */
+    .screen-view {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      padding: 16px 16px 20px 16px;
+      overflow-y: auto;
+      max-height: 680px;
+    }
+
+    .screen-view.active-screen {
+      display: flex;
+    }
+
+    /* Header in Device */
+    .device-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-wire-light);
+    }
+
+    .nav-back-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-wire);
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--text-main);
+    }
+
+    .device-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .device-header-right {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Cards in Wireframe / Design */
+    .wire-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-wire);
+      border-radius: var(--card-radius);
+      padding: 14px;
+      margin-bottom: 12px;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+
+    body.theme-midfid .wire-card {
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.7);
+    }
+
+    body.theme-hifid .wire-card {
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-wire);
+    }
+
+    .wire-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      border-bottom: 1px dashed var(--border-wire-light);
+      padding-bottom: 6px;
+    }
+
+    .wire-card-title {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .wire-card-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--badge-radius);
+      background: var(--card-bg-subtle);
+      border: 1px solid var(--border-wire-light);
+    }
+
+    /* Key-Value Param Row */
+    .param-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 12px;
+      font-size: 12px;
+    }
+
+    .param-full {
+      grid-column: span 2;
+    }
+
+    .param-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .param-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .param-value {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    body.theme-hifid .param-value {
+      color: var(--accent-color);
+    }
+
+    /* Goals / Annotation Banner */
+    .annotation-banner {
+      background: var(--card-bg-subtle);
+      border: 1px dashed var(--border-wire);
+      border-radius: var(--card-radius);
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-style: italic;
+    }
+
+    /* Bottom Button / Primary Action */
+    .primary-cta-btn {
+      width: 100%;
+      background: var(--text-main);
+      color: var(--bg-device);
+      border: 2px solid var(--border-wire);
+      padding: 13px;
+      border-radius: var(--button-radius);
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: auto;
+      box-shadow: var(--shadow-wire);
+      transition: var(--transition-smooth);
+    }
+
+    body.theme-hifid .primary-cta-btn {
+      background: linear-gradient(135deg, #00E5FF, #0077FF);
+      color: #000;
+      border: none;
+      box-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
+    }
+
+    .primary-cta-btn:active {
+      transform: translateY(2px);
+    }
+
+    /* ======================================================== */
+    /* SCREEN 2: SIMULATION & COCKPIT RADIO COMM PANEL          */
+    /* ======================================================== */
+
+    /* Level Selector Pill Bar */
+    .level-pills {
+      display: flex;
+      gap: 4px;
+      background: var(--card-bg-subtle);
+      padding: 3px;
+      border-radius: var(--button-radius);
+      border: 1px solid var(--border-wire-light);
+      margin-bottom: 12px;
+    }
+
+    .level-pill {
+      flex: 1;
+      text-align: center;
+      padding: 5px 0;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: calc(var(--button-radius) - 3px);
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: var(--transition-smooth);
+    }
+
+    .level-pill.active {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-wire);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    body.theme-hifid .level-pill.active {
+      background: var(--accent-color);
+      color: #000;
+      border: none;
+      font-weight: 800;
+    }
+
+    /* Radio Comm Avionics Box */
+    .radio-comm-box {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-wire);
+      border-radius: var(--card-radius);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    body.theme-midfid .radio-comm-box {
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.7);
+    }
+
+    body.theme-hifid .radio-comm-box {
+      background: linear-gradient(180deg, #121824 0%, #0B0E14 100%);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      box-shadow: 0 4px 18px rgba(0, 229, 255, 0.12);
+    }
+
+    .comm-side {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .comm-tag {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .comm-tag.active-tag {
+      color: var(--accent-green);
+    }
+
+    .comm-tag.stby-tag {
+      color: var(--text-muted);
+    }
+
+    .comm-freq {
+      font-family: var(--font-mono);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+
+    body.theme-hifid .comm-freq.active-freq {
+      color: #00FF88;
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    }
+
+    .comm-station {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .comm-swap-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-wire);
+      background: var(--card-bg-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text-main);
+      transition: var(--transition-smooth);
+    }
+
+    .comm-swap-btn:hover {
+      transform: rotate(180deg);
+    }
+
+    body.theme-hifid .comm-swap-btn {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.3);
+    }
+
+    /* Workspace Content Card per Level */
+    .sim-workspace-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-wire);
+      border-radius: var(--card-radius);
+      padding: 12px;
+      margin-bottom: 12px;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    body.theme-midfid .sim-workspace-card {
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.7);
+    }
+
+    /* Level 1: 4-Slot Breakdown */
+    .four-slot-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .slot-pill {
+      border: 1px solid var(--border-wire);
+      border-radius: var(--badge-radius);
+      padding: 5px 8px;
+      font-size: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slot-pill-lbl {
+      font-size: 8px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .slot-pill-val {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* Level 2: Cloze sentence */
+    .cloze-box {
+      font-size: 13px;
+      line-height: 1.5;
+      font-weight: 600;
+      padding: 8px 10px;
+      background: var(--card-bg-subtle);
+      border: 1px dashed var(--border-wire);
+      border-radius: var(--badge-radius);
+    }
+
+    .cloze-blank {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-wire);
+      border-radius: var(--badge-radius);
+      font-family: var(--font-mono);
+      font-weight: 800;
+      color: var(--accent-color);
+    }
+
+    /* Level 3: Objective Prompt */
+    .objective-prompt {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .objective-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #FA8C16;
+      text-transform: uppercase;
+    }
+
+    .objective-text {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    /* Level 4: Cockpit Scratchpad */
+    .scratchpad-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .scratchpad-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 8px;
+      background: var(--card-bg-subtle);
+      border: 1px solid var(--border-wire-light);
+      border-radius: var(--badge-radius);
+      font-size: 11px;
+    }
+
+    .scratchpad-val {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent-color);
+    }
+
+    /* Level 5: Emergency Warning Alert */
+    .emergency-alert-box {
+      border: 2px solid var(--accent-red);
+      background: rgba(255, 59, 48, 0.1);
+      border-radius: var(--card-radius);
+      padding: 10px;
+      text-align: center;
+      animation: alertPulse 1.5s infinite;
+    }
+
+    @keyframes alertPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    .emergency-title {
+      color: var(--accent-red);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .emergency-desc {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* ATC Message Bubble */
+    .atc-prompt-bubble {
+      background: var(--card-bg-subtle);
+      border-left: 3px solid var(--accent-color);
+      padding: 8px 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .atc-label {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    /* Speech-To-Text Box */
+    .stt-box {
+      background: var(--card-bg);
+      border: 1.5px dashed var(--border-wire);
+      border-radius: var(--card-radius);
+      padding: 12px;
+      margin-bottom: 14px;
+      min-height: 72px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    .stt-placeholder {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+    }
+
+    .stt-transcript {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--text-main);
+      display: none;
+    }
+
+    body.theme-hifid .stt-transcript {
+      color: #00FF88;
+    }
+
+    .waveform-bar-container {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 18px;
+      margin-top: 6px;
+    }
+
+    .wave-bar {
+      width: 3px;
+      height: 6px;
+      background: var(--accent-color);
+      border-radius: 2px;
+      animation: waveAnim 0.6s infinite alternate;
+    }
+
+    .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.2s; }
+
+    @keyframes waveAnim {
+      0% { height: 4px; }
+      100% { height: 18px; }
+    }
+
+    /* Push To Talk Button (Iconic Circle) */
+    .ptt-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    .ptt-button {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: var(--ptt-bg);
+      border: 3px solid var(--ptt-border);
+      color: var(--ptt-text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      box-shadow: var(--shadow-wire);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      user-select: none;
+    }
+
+    .ptt-button:active, .ptt-button.active-pressed {
+      transform: scale(0.92);
+      background: var(--accent-color);
+      color: #000;
+    }
+
+    body.theme-hifid .ptt-button {
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.4);
+    }
+
+    .ptt-icon {
+      font-size: 24px;
+    }
+
+    .ptt-label {
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    /* ======================================================== */
+    /* SCREEN 3: OVERALL SUMMARY & DIAGNOSTIC REVIEW            */
+    /* ======================================================== */
+
+    .score-circle-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 10px 0 16px 0;
+    }
+
+    .score-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 6px solid var(--accent-green);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    body.theme-midfid .score-circle {
+      border: 4px solid var(--border-wire);
+      box-shadow: 3px 3px 0px rgba(0,0,0,0.8);
+    }
+
+    .score-num {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .score-verdict {
+      font-size: 14px;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+
+    .score-subtext {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 2px;
+      max-width: 240px;
+    }
+
+    /* KPI Rows */
+    .kpi-table {
+      background: var(--card-bg-subtle);
+      border: 1px solid var(--border-wire-light);
+      border-radius: var(--card-radius);
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .kpi-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    .kpi-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--badge-radius);
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--accent-green);
+    }
+
+    /* Diagnostic Error Items */
+    .diag-item {
+      border: 1px solid var(--border-wire);
+      border-radius: var(--card-radius);
+      padding: 10px;
+      margin-bottom: 8px;
+      background: var(--card-bg);
+      font-size: 12px;
+    }
+
+    .diag-tag-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      font-weight: 700;
+      font-size: 11px;
+      color: var(--accent-red);
+    }
+
+    .diag-quote-box {
+      background: var(--card-bg-subtle);
+      border-left: 2px solid var(--accent-red);
+      padding: 6px 8px;
+      border-radius: 4px;
+      margin: 4px 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .diag-citation {
+      font-size: 10px;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 2px;
+      display: inline-block;
+    }
+
+    /* Interactive Side-By-Side Spec Notes */
+    .side-notes {
+      flex: 1;
+      max-width: 480px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border-wire);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      box-shadow: var(--shadow-wire);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .side-notes h3 {
+      font-size: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .side-notes ul {
+      margin-left: 18px;
+      margin-bottom: 14px;
+    }
+
+    .side-notes li {
+      margin-bottom: 6px;
+    }
+
+    .side-notes code {
+      font-family: var(--font-mono);
+      background: var(--card-bg-subtle);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    /* Modal Popup */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      border: 2px solid var(--border-wire);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .modal-close-btn {
+      float: right;
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    @media (max-width: 860px) {
+      .showcase-stage {
+        flex-direction: column;
+        align-items: center;
+      }
+      .side-notes {
+        width: 100%;
+        max-width: 380px;
+      }
+    }
+  </style>
+</head>
+<body class="theme-midfid">
+
+  <!-- TOP CONTROL TOOLBAR -->
+  <div class="top-toolbar">
+    <div class="toolbar-title">
+      <span>HERMES RTF Prototype</span>
+      <span class="badge" id="current-theme-label">Mid-Fidelity Wireframe</span>
+    </div>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <!-- Theme Switcher -->
+      <div class="theme-switcher">
+        <button class="switch-btn active" id="btn-theme-mid" onclick="setTheme('midfid')">
+          ✏️ Mid-Fi Wireframe
+        </button>
+        <button class="switch-btn" id="btn-theme-hi" onclick="setTheme('hifid')">
+          ✨ High-Fi Avionics
+        </button>
+      </div>
+
+      <!-- Screen Step Switcher -->
+      <div class="screen-switcher">
+        <button class="switch-btn active" id="btn-screen-1" onclick="showScreen(1)">
+          1. Prep Context
+        </button>
+        <button class="switch-btn" id="btn-screen-2" onclick="showScreen(2)">
+          2. Simulation
+        </button>
+        <button class="switch-btn" id="btn-screen-3" onclick="showScreen(3)">
+          3. Summary
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHOWCASE STAGE -->
+  <div class="showcase-stage">
+
+    <!-- IPHONE DEVICE CONTAINER -->
+    <div class="phone-frame">
+      <div class="phone-notch">
+        <div class="phone-notch-camera"></div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 1: PREPARATION CONTEXT                  -->
+      <!-- ============================================== -->
+      <div class="screen-view active-screen" id="screen-1">
+        <div class="device-header">
+          <div class="nav-back-btn">&lt;</div>
+          <div class="device-title">Preparation Context</div>
+          <div class="device-header-right">M-201</div>
+        </div>
+
+        <!-- OFP CARD -->
+        <div class="wire-card">
+          <div class="wire-card-header">
+            <span class="wire-card-title">📋 Operational Flight Plan (OFP)</span>
+            <span class="wire-card-tag">ICAO FPL</span>
+          </div>
+          <div class="param-grid">
+            <div class="param-item">
+              <span class="param-label">Callsign</span>
+              <span class="param-value" id="ofp-callsign">WGN 502</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Aircraft</span>
+              <span class="param-value" id="ofp-aircraft">B737-800</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Departure</span>
+              <span class="param-value">WAHI (YIA)</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Parking Stand</span>
+              <span class="param-value">STAND GA-4</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Destination</span>
+              <span class="param-value">WADL (LOP)</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Assigned Squawk</span>
+              <span class="param-value">SSR 4287</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Planned Cruising</span>
+              <span class="param-value">FL250</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Initial Altitude</span>
+              <span class="param-value">4,000 FT</span>
+            </div>
+            <div class="param-item param-full">
+              <span class="param-label">Assigned Routing</span>
+              <span class="param-value" style="font-size: 11px;">SID JOG 1C | STAR RWY 13</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATIS CARD -->
+        <div class="wire-card">
+          <div class="wire-card-header">
+            <span class="wire-card-title">📻 Departure ATIS</span>
+            <span class="wire-card-tag">VHF COMM-2</span>
+          </div>
+          <div class="param-grid">
+            <div class="param-item">
+              <span class="param-label">Station</span>
+              <span class="param-value">WAHI / YIA</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">ATIS Ident.</span>
+              <span class="param-value" style="color: #FA8C16;">Info November</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Runway in Use</span>
+              <span class="param-value">RWY 11</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Surface Wind</span>
+              <span class="param-value">086° / 12 KT</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Visibility</span>
+              <span class="param-value">CAVOK (&gt;10KM)</span>
+            </div>
+            <div class="param-item">
+              <span class="param-label">Altimeter (QNH)</span>
+              <span class="param-value">1011 hPa</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTINGENCY CARD (Collapsible Preview) -->
+        <div class="wire-card" style="border-left: 3px solid #FA8C16;">
+          <div class="wire-card-header">
+            <span class="wire-card-title" style="color: #FA8C16;">⚠️ Injected Contingency</span>
+            <span class="wire-card-tag">Urgency</span>
+          </div>
+          <p style="font-size: 11px; line-height: 1.4; color: var(--text-main);">
+            <strong>Pushback Delay (Traffic Behind):</strong> Lalu lintas melintas di belakang stand. Menahan pushback dengan instruksi <em>"Hold position, expect three minutes delay"</em>.
+          </p>
+        </div>
+
+        <div class="annotation-banner">
+          🎯 Goals: To give flight telemetry &amp; environmental context before starting the mission.
+        </div>
+
+        <button class="primary-cta-btn" onclick="showScreen(2)">
+          <span>START MISSION</span>
+          <span>➔</span>
+        </button>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 2: INTERACTIVE SIMULATION VIEW          -->
+      <!-- ============================================== -->
+      <div class="screen-view" id="screen-2">
+        <div class="device-header">
+          <div class="nav-back-btn" onclick="showScreen(1)">&lt;</div>
+          <div class="device-title" id="sim-screen-title">View Lv. 1 (Beginner)</div>
+          <div class="device-header-right" id="sim-freq-tag">COMM 1</div>
+        </div>
+
+        <!-- LEVEL TABS FOR SCAFFOLDING DEMO -->
+        <div class="level-pills">
+          <div class="level-pill active" onclick="switchLevelScaffold(1)">Lv. 1</div>
+          <div class="level-pill" onclick="switchLevelScaffold(2)">Lv. 2</div>
+          <div class="level-pill" onclick="switchLevelScaffold(3)">Lv. 3</div>
+          <div class="level-pill" onclick="switchLevelScaffold(4)">Lv. 4</div>
+          <div class="level-pill" onclick="switchLevelScaffold(5)">Lv. 5</div>
+        </div>
+
+        <!-- AVIONICS RADIO COMM BOX -->
+        <div class="radio-comm-box">
+          <div class="comm-side">
+            <span class="comm-tag active-tag">ACTIVE comm 1</span>
+            <span class="comm-freq active-freq" id="comm-active">RX 121.90</span>
+            <span class="comm-station" id="comm-active-station">(TOWER)</span>
+          </div>
+
+          <button class="comm-swap-btn" title="Ganti Sinyal Frekuensi" onclick="toggleFrequency()">
+            ⇅
+          </button>
+
+          <div class="comm-side" style="text-align: right;">
+            <span class="comm-tag stby-tag">[STBY] comm 2</span>
+            <span class="comm-freq" id="comm-stby" style="color: var(--text-muted);">118.70</span>
+            <span class="comm-station" id="comm-stby-station">(GROUND)</span>
+          </div>
+        </div>
+
+        <!-- DYNAMIC WORKSPACE (EVOLVES PER LEVEL) -->
+        <div class="sim-workspace-card" id="workspace-card">
+
+          <!-- LEVEL 1: FULL CHEAT SHEET + 4-SLOT -->
+          <div id="content-lv-1">
+            <div class="param-grid" style="margin-bottom: 8px;">
+              <div class="param-item">
+                <span class="param-label">Callsign</span>
+                <span class="param-value">WGN 502</span>
+              </div>
+              <div class="param-item">
+                <span class="param-label">QNH</span>
+                <span class="param-value">1011 hPa</span>
+              </div>
+            </div>
+
+            <div class="atc-prompt-bubble">
+              <div class="atc-label">ATC Transmission (Prompt)</div>
+              "WGN 502, TAXI TO RUNWAY 18 VIA ALPHA"
+            </div>
+
+            <div class="four-slot-container">
+              <div class="slot-pill" style="border-color: #2F54EB;">
+                <span class="slot-pill-lbl" style="color: #2F54EB;">1. Station</span>
+                <span class="slot-pill-val">Tower</span>
+              </div>
+              <div class="slot-pill" style="border-color: #722ED1;">
+                <span class="slot-pill-lbl" style="color: #722ED1;">2. Callsign</span>
+                <span class="slot-pill-val">WGN 502</span>
+              </div>
+              <div class="slot-pill" style="border-color: #FA8C16;">
+                <span class="slot-pill-lbl" style="color: #FA8C16;">3. Position</span>
+                <span class="slot-pill-val">Holding A</span>
+              </div>
+              <div class="slot-pill" style="border-color: #52C41A;">
+                <span class="slot-pill-lbl" style="color: #52C41A;">4. Action</span>
+                <span class="slot-pill-val">Taxi to RWY 18</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- LEVEL 2: CLOZE TEXT (RUMPANG) -->
+          <div id="content-lv-2" style="display: none;">
+            <div class="atc-label">Prompt Teks Rumpang (Cloze Test)</div>
+            <div class="cloze-box">
+              "Turn left heading <span class="cloze-blank">[ 060 ]</span>, Maintain FL <span class="cloze-blank">[ 150 ]</span>, QNH <span class="cloze-blank">[ 1015 ]</span>, Supergreen 426"
+            </div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 6px;">
+              ⏱️ PTT Timer: ≤ 8 detik (Memory Decay Prevention)
+            </div>
+          </div>
+
+          <!-- LEVEL 3: INTENTION / OBJECTIVE ONLY -->
+          <div id="content-lv-3" style="display: none;">
+            <div class="objective-prompt">
+              <div class="objective-badge">🎯 Objective Operasional</div>
+              <div class="objective-text">
+                "Lakukan readback instruksi backtrack 180° di Runway 13 dan line up and wait. Jangan sebut kata ROGER!"
+              </div>
+              <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+                💡 Dikasih Objectivenya aja (No English Script cheat) | PTT ≤ 5s
+              </div>
+            </div>
+          </div>
+
+          <!-- LEVEL 4: COCKPIT SCRATCHPAD HUD (AUDIO FIRST) -->
+          <div id="content-lv-4" style="display: none;">
+            <div class="wire-card-header" style="margin-bottom: 6px; padding-bottom: 3px;">
+              <span class="wire-card-title">📟 Cockpit Scratchpad (Audio HUD)</span>
+              <span class="wire-card-tag">Audio-Only</span>
+            </div>
+            <div class="scratchpad-grid">
+              <div class="scratchpad-item"><span>HDG</span><span class="scratchpad-val">[ 280° ] &gt;</span></div>
+              <div class="scratchpad-item"><span>ALT</span><span class="scratchpad-val">[ 6000 ft ] &gt;</span></div>
+              <div class="scratchpad-item"><span>SPD</span><span class="scratchpad-val">[ 250 kt ] &gt;</span></div>
+              <div class="scratchpad-item"><span>LOC</span><span class="scratchpad-val">[ 15 NM ] &gt;</span></div>
+              <div class="scratchpad-item"><span>NAV</span><span class="scratchpad-val">[ SLOP 1R ] &gt;</span></div>
+              <div class="scratchpad-item"><span>ILS</span><span class="scratchpad-val">[ RWY 10 ] &gt;</span></div>
+            </div>
+          </div>
+
+          <!-- LEVEL 5: EMERGENCY VALLEY HUD + GPWS -->
+          <div id="content-lv-5" style="display: none;">
+            <div class="emergency-alert-box">
+              <div class="emergency-title">⚠️ GPWS TERRAIN ALERT</div>
+              <div class="emergency-desc">
+                Vektor ATC 250° membahayakan pesawat menabrak tebing.<br>
+                <strong>Tolak instruksi:</strong> <em>"UNABLE heading 250 due terrain, climbing 8000 ft!"</em>
+              </div>
+            </div>
+            <div style="font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 6px;">
+              📻 VHF Partyline Chatter: Active (25% vol, ducking 10%)
+            </div>
+          </div>
+
+        </div>
+
+        <!-- SPEECH-TO-TEXT TRANSCRIPTION BOX -->
+        <div class="stt-box" id="stt-box">
+          <div class="stt-placeholder" id="stt-hint">
+            🎙️ Tekan &amp; Tahan Push-To-Talk untuk bicara...
+          </div>
+          <div class="stt-transcript" id="stt-result">
+            "Tower, Taxiing to RWY 18 VIA ALPHA, WGN 502"
+          </div>
+          <div class="waveform-bar-container" id="waveform">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+        </div>
+
+        <!-- PTT BUTTON -->
+        <div class="ptt-section">
+          <button class="ptt-button" id="ptt-btn"
+            onmousedown="startPtt()" onmouseup="stopPtt()"
+            ontouchstart="startPtt()" ontouchend="stopPtt()">
+            <span class="ptt-icon">🎙️</span>
+            <span class="ptt-label">Push To Talk</span>
+          </button>
+          <span style="font-size: 10px; color: var(--text-muted);">
+            Klik/tahan untuk simulasi bicara
+          </span>
+        </div>
+
+        <button class="primary-cta-btn" style="margin-top: 14px;" onclick="showScreen(3)">
+          <span>EVALUATE &amp; SUMMARY</span>
+          <span>➔</span>
+        </button>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 3: OVERALL SUMMARY & DIAGNOSTIC REVIEW  -->
+      <!-- ============================================== -->
+      <div class="screen-view" id="screen-3">
+        <div class="device-header">
+          <div class="nav-back-btn" onclick="showScreen(2)">&lt;</div>
+          <div class="device-title">Overall Summary</div>
+          <div class="device-header-right">Score Card</div>
+        </div>
+
+        <!-- CIRCULAR SCORE GAUGE -->
+        <div class="score-circle-wrapper">
+          <div class="score-circle">
+            <span class="score-num">98%</span>
+          </div>
+          <div class="score-verdict">Great Job!</div>
+          <div class="score-subtext">
+            A little bit more improvement and you are ready to go.
+          </div>
+        </div>
+
+        <!-- METRICS TABLE -->
+        <div class="kpi-table">
+          <div class="kpi-row">
+            <span>Filler word : 0 times</span>
+            <span class="kpi-tag">Lancar</span>
+          </div>
+          <div class="kpi-row">
+            <span>Clearability phraseology : 98%</span>
+            <span class="kpi-tag">Clear</span>
+          </div>
+          <div class="kpi-row">
+            <span>PTT Reflex : 315 ms</span>
+            <span class="kpi-tag">Responsive</span>
+          </div>
+        </div>
+
+        <!-- REVIEW DIAGNOSTIC LIST -->
+        <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">
+          Review Diagnostic
+        </div>
+
+        <!-- Error Card 1 -->
+        <div class="diag-item">
+          <div class="diag-tag-row">
+            <span>⚠️ Wrong Phraseology at Turn 6</span>
+          </div>
+          <div class="diag-quote-box">
+            "PK-ABC, Pushback approve, <span style="text-decoration: underline; color: var(--accent-red); font-weight: 900;">ROGER</span>"
+          </div>
+          <span class="diag-citation" onclick="openModal('roger-modal')">
+            ℹ️ Reference: ICAO Doc 4444 §8.3 &amp; Doc 9432 §2.6 (Klik detail)
+          </span>
+        </div>
+
+        <!-- Error Card 2 -->
+        <div class="diag-item">
+          <div class="diag-tag-row" style="color: #FA8C16;">
+            <span>⚠️ Missing: Your Callsign at Turn 10</span>
+          </div>
+          <div class="diag-quote-box">
+            "BWX Tower, <span style="color: #FA8C16;">[CALLSIGN]</span> ready to pushback"
+          </div>
+          <div style="font-size: 10px; color: var(--text-muted);">
+            Sesuai Doc 9432 §2.8.3, callsign wajib diletakkan di akhir readback.
+          </div>
+        </div>
+
+        <button class="primary-cta-btn" onclick="showScreen(1)">
+          <span>NEXT / RETRY MISSION</span>
+          <span>➔</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- SPEC & RATIONALE SIDE NOTES (DESKTOP REVIEW) -->
+    <div class="side-notes">
+      <h3>📘 Design Rationale &amp; Scaffolding</h3>
+      <p style="margin-bottom: 10px;">
+        Prototipe ini memvalidasi evolusi antarmuka dari sketsa tangan low-fidelity menjadi sistem desain responsif yang mematuhi teori <em>Cognitive Load Theory (Sweller)</em> dan standar evaluasi <em>ICAO Doc 9835</em>:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Screen 1 (Preparation Context):</strong> Mengunci data operasional OFP, Departure ATIS, dan briefing skenario agar pilot memiliki <em>situational awareness</em> sebelum transmisi awal.
+        </li>
+        <li>
+          <strong>Screen 2 (Simulation Scaffolding Fading):</strong>
+          <ul>
+            <li><code>Level 1</code>: Bantuan teks lengkap (4-Slot Card: Stasiun, Callsign, Posisi, Aksi).</li>
+            <li><code>Level 2</code>: Cloze Masked (Teks rumpang angka kunci).</li>
+            <li><code>Level 3</code>: Kartu Intensi Bahasa Indonesia murni (Anti-teleprompter).</li>
+            <li><code>Level 4</code>: Cockpit Scratchpad (Audio-only + instrumen pesawat).</li>
+            <li><code>Level 5</code>: GPWS Terrain Warning + Partyline Audio VHF.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Screen 3 (Diagnostic &amp; Scoring):</strong> Menampilkan skor kuantitatif persentase akurasi, waktu refleks PTT, dan koreksi kesalahan kata kunci yang terhubung langsung ke sitasi resmi ICAO.
+        </li>
+      </ul>
+
+      <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-wire-light); font-size: 11px; color: var(--text-muted);">
+        💡 <strong>Tips Interaktif:</strong> Gunakan tombol <em>"Mid-Fi Wireframe"</em> dan <em>"High-Fi Avionics"</em> di toolbar atas untuk melihat transformasi visual dari gaya sketsa pensil ke mode cockpit dark OLED.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL CITATION POPUP -->
+  <div class="modal-overlay" id="roger-modal" onclick="closeModal('roger-modal')">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeModal('roger-modal')">&times;</button>
+      <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--accent-red);">
+        🚫 Larangan Kata "ROGER" untuk Clearance
+      </h3>
+      <p style="font-size: 12px; line-height: 1.5; color: var(--text-main); margin-bottom: 10px;">
+        <strong>ICAO Doc 9432 Bab 2.6:</strong><br>
+        <em>"ROGER under no circumstances to be used in reply to a question requiring READ BACK or a direct answer in the affirmative (AFFIRM) or negative (NEGATIVE)."</em>
+      </p>
+      <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+        Kata "ROGER" hanya berarti transmisi telah terdengar, bukan persetujuan atau konfirmasi angka navigasi keselamatan. Pilot wajib melakukan <strong>full readback</strong> nomor runway/ketinggian atau menggunakan <strong>WILCO</strong>.
+      </p>
+      <button class="primary-cta-btn" style="margin-top: 14px; padding: 10px;" onclick="closeModal('roger-modal')">
+        TUTUP
+      </button>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    function setTheme(theme) {
+      document.body.className = theme === 'hifid' ? 'theme-hifid' : 'theme-midfid';
+      document.getElementById('btn-theme-mid').classList.toggle('active', theme === 'midfid');
+      document.getElementById('btn-theme-hi').classList.toggle('active', theme === 'hifid');
+      document.getElementById('current-theme-label').innerText = theme === 'hifid' ? 'High-Fi Avionics' : 'Mid-Fi Wireframe';
+    }
+
+    function showScreen(screenNum) {
+      document.querySelectorAll('.screen-view').forEach(s => s.classList.remove('active-screen'));
+      document.getElementById('screen-' + screenNum).classList.add('active-screen');
+      document.querySelectorAll('.screen-switcher .switch-btn').forEach((b, idx) => {
+        b.classList.toggle('active', idx + 1 === screenNum);
+      });
+    }
+
+    function switchLevelScaffold(lvl) {
+      document.querySelectorAll('.level-pill').forEach((p, idx) => {
+        p.classList.toggle('active', idx + 1 === lvl);
+      });
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById('content-lv-' + i);
+        if (el) el.style.display = (i === lvl) ? 'block' : 'none';
+      }
+
+      const titles = [
+        "View Lv. 1 (Beginner Full Scaffolding)",
+        "View Lv. 2 (Cloze Masked Text)",
+        "View Lv. 3 (Objective / Intention Only)",
+        "View Lv. 4 (Audio HUD Scratchpad)",
+        "View Lv. 5 (Extreme Terrain & GPWS)"
+      ];
+      document.getElementById('sim-screen-title').innerText = titles[lvl - 1];
+
+      // Update STT expected preview
+      const sttTexts = [
+        '"Tower, Taxiing to RWY 18 VIA ALPHA, WGN 502"',
+        '"Turn left heading zero six zero, maintain flight level one five zero, Supergreen four two six"',
+        '"Backtrack runway one three, line up and wait, Lion Air seven five zero"',
+        '"Reduce speed one eight zero knots, turn heading zero niner zero, cleared ILS runway one zero, Garuda two eight three Heavy"',
+        '"UNABLE heading two five zero due terrain, climbing altitude eight thousand feet, Asian One three six four!"'
+      ];
+      document.getElementById('stt-result').innerText = sttTexts[lvl - 1];
+    }
+
+    let isSwapped = false;
+    function toggleFrequency() {
+      isSwapped = !isSwapped;
+      const act = document.getElementById('comm-active');
+      const actStation = document.getElementById('comm-active-station');
+      const stby = document.getElementById('comm-stby');
+      const stbyStation = document.getElementById('comm-stby-station');
+
+      if (isSwapped) {
+        act.innerText = "RX 118.70";
+        actStation.innerText = "(GROUND)";
+        stby.innerText = "121.90";
+        stbyStation.innerText = "(TOWER)";
+      } else {
+        act.innerText = "RX 121.90";
+        actStation.innerText = "(TOWER)";
+        stby.innerText = "118.70";
+        stbyStation.innerText = "(GROUND)";
+      }
+    }
+
+    let pttTimer = null;
+    function startPtt() {
+      const btn = document.getElementById('ptt-btn');
+      btn.classList.add('active-pressed');
+      document.getElementById('stt-hint').style.display = 'none';
+      document.getElementById('waveform').style.display = 'flex';
+      document.getElementById('stt-result').style.display = 'none';
+    }
+
+    function stopPtt() {
+      const btn = document.getElementById('ptt-btn');
+      btn.classList.remove('active-pressed');
+      document.getElementById('waveform').style.display = 'none';
+      document.getElementById('stt-result').style.display = 'block';
+    }
+
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+  </script>
+</body>
+</html>
