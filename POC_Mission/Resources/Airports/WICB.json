@@ -1,0 +1,117 @@
+{
+  "level": 1,
+  "icao": "WICB",
+  "iata": "CURUG",
+  "name": "Budiarto Airport",
+  "city": "Curug, Tangerang",
+  "elevation_ft": 151,
+  "profile": "VFR_LOCAL",
+  "runways": [
+    {
+      "pair": [
+        "12",
+        "30"
+      ],
+      "designator": "12",
+      "reciprocal": "30",
+      "heading_degT": 122.0,
+      "holdingPoints": [
+        "B1",
+        "B2",
+        "B3"
+      ]
+    },
+    {
+      "pair": [
+        "04",
+        "22"
+      ],
+      "designator": "04",
+      "reciprocal": "22",
+      "heading_degT": 42.0,
+      "holdingPoints": [
+        "A1",
+        "A2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Budiarto Ground",
+      "frequency": "121.700"
+    },
+    "tower": {
+      "callsign": "Budiarto Tower",
+      "frequency": "118.300"
+    },
+    "approach": {
+      "callsign": "Curug Approach",
+      "frequency": "119.700"
+    },
+    "departure": null,
+    "center": null,
+    "atis": null
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    },
+    {
+      "id": "Charlie",
+      "spoken": "Charlie"
+    }
+  ],
+  "stands": [
+    {
+      "id": "1",
+      "spoken": "stand one"
+    },
+    {
+      "id": "2",
+      "spoken": "stand two"
+    },
+    {
+      "id": "3",
+      "spoken": "stand three"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "CRG1A",
+        "name": "Curug One Alfa",
+        "runway": "12",
+        "initialAltFt": 2500
+      }
+    ],
+    "stars": [
+      {
+        "id": "CRG1B",
+        "name": "Curug One Bravo",
+        "runway": "12"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "VIS12",
+        "type": "VISUAL",
+        "runway": "12",
+        "missedApproachAltFt": 2000
+      }
+    ],
+    "holdings": []
+  },
+  "_meta": {
+    "curriculumLevel": 1,
+    "curriculumCategory": "Flight School & Local Training",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

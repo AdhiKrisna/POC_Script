@@ -1,0 +1,117 @@
+{
+  "level": 2,
+  "icao": "WADL",
+  "iata": "LOP",
+  "name": "Lombok International Airport (ZAM)",
+  "city": "Praya, Lombok",
+  "elevation_ft": 319,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "13",
+        "31"
+      ],
+      "designator": "13",
+      "reciprocal": "31",
+      "heading_degT": 132.0,
+      "holdingPoints": [
+        "A1",
+        "A2",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": {
+      "callsign": "Lombok Delivery",
+      "frequency": "121.600"
+    },
+    "apron": null,
+    "ground": {
+      "callsign": "Lombok Ground",
+      "frequency": "121.700"
+    },
+    "tower": {
+      "callsign": "Lombok Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Lombok Approach",
+      "frequency": "120.700"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Lombok Information",
+      "frequency": "126.400"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    },
+    {
+      "id": "Charlie",
+      "spoken": "Charlie"
+    }
+  ],
+  "stands": [
+    {
+      "id": "3",
+      "spoken": "stand three"
+    },
+    {
+      "id": "4",
+      "spoken": "stand four"
+    },
+    {
+      "id": "5",
+      "spoken": "stand five"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "PRA1A",
+        "name": "Praya One Alfa Departure",
+        "runway": "13",
+        "initialAltFt": 5000
+      }
+    ],
+    "stars": [
+      {
+        "id": "PRA1B",
+        "name": "Praya One Bravo",
+        "runway": "13"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS13",
+        "type": "ILS",
+        "runway": "13",
+        "missedApproachAltFt": 4000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "LOP",
+        "inboundTrack": 130,
+        "turns": "right",
+        "altFt": 5000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 2,
+    "curriculumCategory": "Regional Controlled (Basic Instrument)",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

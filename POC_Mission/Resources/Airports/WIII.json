@@ -1,0 +1,149 @@
+{
+  "level": 4,
+  "icao": "WIII",
+  "iata": "CGK",
+  "name": "Soekarno-Hatta International Airport",
+  "city": "Tangerang, Banten / Jakarta",
+  "elevation_ft": 34,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "07L",
+        "25R"
+      ],
+      "designator": "25R",
+      "reciprocal": "07L",
+      "heading_degT": 248.0,
+      "holdingPoints": [
+        "NP1",
+        "NP2",
+        "NP3"
+      ]
+    },
+    {
+      "pair": [
+        "07R",
+        "25L"
+      ],
+      "designator": "25L",
+      "reciprocal": "07R",
+      "heading_degT": 248.0,
+      "holdingPoints": [
+        "SP1",
+        "SP2",
+        "SP3"
+      ]
+    },
+    {
+      "pair": [
+        "06",
+        "24"
+      ],
+      "designator": "24",
+      "reciprocal": "06",
+      "heading_degT": 238.0,
+      "holdingPoints": [
+        "C1",
+        "C2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": {
+      "callsign": "Jakarta Clearance Delivery",
+      "frequency": "121.800"
+    },
+    "apron": {
+      "callsign": "Jakarta Apron",
+      "frequency": "121.650"
+    },
+    "ground": {
+      "callsign": "Jakarta Ground",
+      "frequency": "121.600"
+    },
+    "tower": {
+      "callsign": "Jakarta Tower",
+      "frequency": "118.200"
+    },
+    "approach": {
+      "callsign": "Jakarta Director",
+      "frequency": "124.350"
+    },
+    "departure": {
+      "callsign": "Jakarta Departure",
+      "frequency": "119.750"
+    },
+    "center": {
+      "callsign": "Jakarta Upper Control",
+      "frequency": "134.400"
+    },
+    "atis": {
+      "callsign": "Soekarno Information",
+      "frequency": "126.850"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "November",
+      "spoken": "November"
+    },
+    {
+      "id": "Papa",
+      "spoken": "Papa"
+    },
+    {
+      "id": "Sierra",
+      "spoken": "Sierra"
+    }
+  ],
+  "stands": [
+    {
+      "id": "F22",
+      "spoken": "gate Foxtrot two two"
+    },
+    {
+      "id": "E15",
+      "spoken": "gate Echo one five"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "CA2A",
+        "name": "Cengkareng Two Alfa Departure",
+        "runway": "25R",
+        "initialAltFt": 8000
+      }
+    ],
+    "stars": [
+      {
+        "id": "DOLTA1A",
+        "name": "DOLTA One Alfa",
+        "runway": "25R"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS25R",
+        "type": "ILS",
+        "runway": "25R",
+        "missedApproachAltFt": 4000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "DOLTA",
+        "inboundTrack": 248,
+        "turns": "right",
+        "altFt": 7000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 4,
+    "curriculumCategory": "Major Metropolitan Hub",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

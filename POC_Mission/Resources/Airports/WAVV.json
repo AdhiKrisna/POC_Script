@@ -1,0 +1,102 @@
+{
+  "level": 5,
+  "icao": "WAVV",
+  "iata": "WMX",
+  "name": "Wamena Airport",
+  "city": "Wamena, Papua Pegunungan",
+  "elevation_ft": 5435,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "15",
+        "33"
+      ],
+      "designator": "15",
+      "reciprocal": "33",
+      "heading_degT": 150.0,
+      "holdingPoints": [
+        "A1",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": null,
+    "tower": {
+      "callsign": "Wamena Tower",
+      "frequency": "122.200"
+    },
+    "approach": {
+      "callsign": "Wamena Information",
+      "frequency": "122.800"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Wamena Information",
+      "frequency": "126.800"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "1",
+      "spoken": "stand one"
+    },
+    {
+      "id": "2",
+      "spoken": "stand two"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "WMX1A",
+        "name": "Baliem Valley One Departure",
+        "runway": "15",
+        "initialAltFt": 9000
+      }
+    ],
+    "stars": [
+      {
+        "id": "WMX1B",
+        "name": "Baliem Pass One Arrival",
+        "runway": "15"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "RNP15",
+        "type": "RNP",
+        "runway": "15",
+        "missedApproachAltFt": 8500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "BALIEM",
+        "inboundTrack": 150,
+        "turns": "right",
+        "altFt": 10000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 5,
+    "curriculumCategory": "High-Risk Valley & Extreme Terrain",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

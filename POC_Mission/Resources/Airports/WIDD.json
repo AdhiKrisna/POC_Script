@@ -1,0 +1,109 @@
+{
+  "level": 3,
+  "icao": "WIDD",
+  "iata": "BTH",
+  "name": "Hang Nadim International Airport",
+  "city": "Batam",
+  "elevation_ft": 126,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "04",
+        "22"
+      ],
+      "designator": "04",
+      "reciprocal": "22",
+      "heading_degT": 42.0,
+      "holdingPoints": [
+        "A1",
+        "A2",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": {
+      "callsign": "Batam Delivery",
+      "frequency": "121.800"
+    },
+    "apron": null,
+    "ground": {
+      "callsign": "Batam Ground",
+      "frequency": "121.800"
+    },
+    "tower": {
+      "callsign": "Batam Tower",
+      "frequency": "118.700"
+    },
+    "approach": {
+      "callsign": "Tanjung Pinang Approach",
+      "frequency": "125.100"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Batam Information",
+      "frequency": "127.600"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "5",
+      "spoken": "stand five"
+    },
+    {
+      "id": "6",
+      "spoken": "stand six"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "BTH1A",
+        "name": "Batam One Alfa",
+        "runway": "04",
+        "initialAltFt": 5000
+      }
+    ],
+    "stars": [
+      {
+        "id": "BTH1B",
+        "name": "Batam One Bravo",
+        "runway": "04"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS04",
+        "type": "ILS",
+        "runway": "04",
+        "missedApproachAltFt": 3000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "BTH",
+        "inboundTrack": 40,
+        "turns": "right",
+        "altFt": 4000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 3,
+    "curriculumCategory": "Busy Single-Runway & Backtrack",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

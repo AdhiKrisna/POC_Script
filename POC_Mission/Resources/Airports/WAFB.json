@@ -1,0 +1,98 @@
+{
+  "level": 5,
+  "icao": "WAFB",
+  "iata": "TRT",
+  "name": "Toraja Airport",
+  "city": "Tana Toraja, South Sulawesi",
+  "elevation_ft": 2884,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "04",
+        "22"
+      ],
+      "designator": "04",
+      "reciprocal": "22",
+      "heading_degT": 40.0,
+      "holdingPoints": [
+        "A1",
+        "A2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": null,
+    "tower": {
+      "callsign": "Toraja Tower",
+      "frequency": "122.400"
+    },
+    "approach": {
+      "callsign": "Makassar Control",
+      "frequency": "123.600"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Toraja Information",
+      "frequency": "127.000"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    }
+  ],
+  "stands": [
+    {
+      "id": "1",
+      "spoken": "stand one"
+    },
+    {
+      "id": "2",
+      "spoken": "stand two"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "TRT1A",
+        "name": "Rante One Alfa",
+        "runway": "04",
+        "initialAltFt": 7000
+      }
+    ],
+    "stars": [
+      {
+        "id": "TRT1B",
+        "name": "Toraja Ridge One",
+        "runway": "04"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "RNP04",
+        "type": "RNP",
+        "runway": "04",
+        "missedApproachAltFt": 6500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "TRT",
+        "inboundTrack": 40,
+        "turns": "right",
+        "altFt": 8000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 5,
+    "curriculumCategory": "High-Risk Valley & Extreme Terrain",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

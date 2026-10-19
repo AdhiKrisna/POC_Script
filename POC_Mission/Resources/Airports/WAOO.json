@@ -1,0 +1,105 @@
+{
+  "level": 2,
+  "icao": "WAOO",
+  "iata": "BDJ",
+  "name": "Syamsudin Noor International Airport",
+  "city": "Banjarmasin",
+  "elevation_ft": 66,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "10",
+        "28"
+      ],
+      "designator": "10",
+      "reciprocal": "28",
+      "heading_degT": 98.0,
+      "holdingPoints": [
+        "A1",
+        "A2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Banjarmasin Ground",
+      "frequency": "121.900"
+    },
+    "tower": {
+      "callsign": "Banjarmasin Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Banjarmasin Approach",
+      "frequency": "121.100"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Banjarmasin Information",
+      "frequency": "126.800"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "2",
+      "spoken": "stand two"
+    },
+    {
+      "id": "3",
+      "spoken": "stand three"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "BDJ1A",
+        "name": "Martapura One Alfa",
+        "runway": "10",
+        "initialAltFt": 4000
+      }
+    ],
+    "stars": [
+      {
+        "id": "BDJ1B",
+        "name": "Martapura One Bravo",
+        "runway": "10"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS10",
+        "type": "ILS",
+        "runway": "10",
+        "missedApproachAltFt": 3500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "BDJ",
+        "inboundTrack": 100,
+        "turns": "right",
+        "altFt": 4500
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 2,
+    "curriculumCategory": "Regional Controlled (Basic Instrument)",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

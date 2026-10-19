@@ -1,0 +1,105 @@
+{
+  "level": 3,
+  "icao": "WIPT",
+  "iata": "PDG",
+  "name": "Minangkabau International Airport",
+  "city": "Padang",
+  "elevation_ft": 18,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "15",
+        "33"
+      ],
+      "designator": "15",
+      "reciprocal": "33",
+      "heading_degT": 150.0,
+      "holdingPoints": [
+        "A1",
+        "A2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Padang Ground",
+      "frequency": "121.600"
+    },
+    "tower": {
+      "callsign": "Padang Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Padang Approach",
+      "frequency": "120.300"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Padang Information",
+      "frequency": "126.400"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "3",
+      "spoken": "stand three"
+    },
+    {
+      "id": "4",
+      "spoken": "stand four"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "PDG1A",
+        "name": "Padang One Alfa",
+        "runway": "15",
+        "initialAltFt": 4500
+      }
+    ],
+    "stars": [
+      {
+        "id": "PDG1B",
+        "name": "Padang One Bravo",
+        "runway": "15"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS15",
+        "type": "ILS",
+        "runway": "15",
+        "missedApproachAltFt": 3500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "PDG",
+        "inboundTrack": 150,
+        "turns": "left",
+        "altFt": 5000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 3,
+    "curriculumCategory": "Busy Single-Runway & Backtrack",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

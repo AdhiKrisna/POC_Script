@@ -1,0 +1,117 @@
+{
+  "level": 2,
+  "icao": "WAHI",
+  "iata": "YIA",
+  "name": "Yogyakarta International Airport",
+  "city": "Kulon Progo, Yogyakarta",
+  "elevation_ft": 24,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "11",
+        "29"
+      ],
+      "designator": "11",
+      "reciprocal": "29",
+      "heading_degT": 107.0,
+      "holdingPoints": [
+        "F1",
+        "F2",
+        "F3"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": {
+      "callsign": "Yogyakarta Delivery",
+      "frequency": "121.650"
+    },
+    "apron": null,
+    "ground": {
+      "callsign": "Yogyakarta Ground",
+      "frequency": "121.800"
+    },
+    "tower": {
+      "callsign": "Yogyakarta Tower",
+      "frequency": "118.400"
+    },
+    "approach": {
+      "callsign": "Yogyakarta Approach",
+      "frequency": "120.400"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Yogyakarta Information",
+      "frequency": "127.400"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Foxtrot",
+      "spoken": "Foxtrot"
+    },
+    {
+      "id": "Golf",
+      "spoken": "Golf"
+    },
+    {
+      "id": "Hotel",
+      "spoken": "Hotel"
+    }
+  ],
+  "stands": [
+    {
+      "id": "11",
+      "spoken": "gate one one"
+    },
+    {
+      "id": "12",
+      "spoken": "gate one two"
+    },
+    {
+      "id": "14",
+      "spoken": "gate one four"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "BL2",
+        "name": "Bantul Two Departure",
+        "runway": "11",
+        "initialAltFt": 5000
+      }
+    ],
+    "stars": [
+      {
+        "id": "BL1A",
+        "name": "Bantul One Alfa",
+        "runway": "11"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS11",
+        "type": "ILS",
+        "runway": "11",
+        "missedApproachAltFt": 4000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "KLP",
+        "inboundTrack": 110,
+        "turns": "right",
+        "altFt": 6000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 2,
+    "curriculumCategory": "Regional Controlled (Basic Instrument)",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

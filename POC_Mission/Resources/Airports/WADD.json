@@ -1,0 +1,114 @@
+{
+  "level": 3,
+  "icao": "WADD",
+  "iata": "DPS",
+  "name": "I Gusti Ngurah Rai International Airport",
+  "city": "Denpasar, Bali",
+  "elevation_ft": 14,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "09",
+        "27"
+      ],
+      "designator": "09",
+      "reciprocal": "27",
+      "heading_degT": 92.0,
+      "holdingPoints": [
+        "E1",
+        "E2",
+        "W1",
+        "W2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": {
+      "callsign": "Ngurah Delivery",
+      "frequency": "121.950"
+    },
+    "apron": null,
+    "ground": {
+      "callsign": "Ngurah Ground",
+      "frequency": "121.700"
+    },
+    "tower": {
+      "callsign": "Ngurah Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Bali Approach",
+      "frequency": "120.900"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Ngurah Information",
+      "frequency": "126.200"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Echo",
+      "spoken": "Echo"
+    },
+    {
+      "id": "Whiskey",
+      "spoken": "Whiskey"
+    },
+    {
+      "id": "Golf",
+      "spoken": "Golf"
+    }
+  ],
+  "stands": [
+    {
+      "id": "B12",
+      "spoken": "gate Bravo one two"
+    },
+    {
+      "id": "B14",
+      "spoken": "gate Bravo one four"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "BLI1D",
+        "name": "Bali One Delta Departure",
+        "runway": "09",
+        "initialAltFt": 6000
+      }
+    ],
+    "stars": [
+      {
+        "id": "LAKU1A",
+        "name": "LAKUP One Alfa",
+        "runway": "09"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS09",
+        "type": "ILS",
+        "runway": "09",
+        "missedApproachAltFt": 4000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "LAKUP",
+        "inboundTrack": 90,
+        "turns": "right",
+        "altFt": 6000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 3,
+    "curriculumCategory": "Busy Single-Runway & Backtrack",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

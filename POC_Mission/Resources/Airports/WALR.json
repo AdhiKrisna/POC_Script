@@ -1,0 +1,105 @@
+{
+  "level": 5,
+  "icao": "WALR",
+  "iata": "TRK",
+  "name": "Juwata International Airport",
+  "city": "Tarakan, North Kalimantan",
+  "elevation_ft": 23,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "06",
+        "24"
+      ],
+      "designator": "06",
+      "reciprocal": "24",
+      "heading_degT": 58.0,
+      "holdingPoints": [
+        "A1",
+        "A2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Tarakan Ground",
+      "frequency": "121.800"
+    },
+    "tower": {
+      "callsign": "Juwata Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Tarakan Approach",
+      "frequency": "120.400"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Tarakan Information",
+      "frequency": "126.200"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "2",
+      "spoken": "stand two"
+    },
+    {
+      "id": "3",
+      "spoken": "stand three"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "TRK1A",
+        "name": "Juwata One Alfa",
+        "runway": "06",
+        "initialAltFt": 5000
+      }
+    ],
+    "stars": [
+      {
+        "id": "TRK1B",
+        "name": "Border One Bravo",
+        "runway": "06"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS06",
+        "type": "ILS",
+        "runway": "06",
+        "missedApproachAltFt": 3500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "TRK",
+        "inboundTrack": 58,
+        "turns": "right",
+        "altFt": 5000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 5,
+    "curriculumCategory": "High-Risk Valley & Extreme Terrain",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}
