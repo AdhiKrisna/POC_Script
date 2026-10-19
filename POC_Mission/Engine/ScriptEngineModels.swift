@@ -585,6 +585,15 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         if t.contains("ATC HEARBACK CORRECTION") {
             return "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan sebutkan variabel yang benar (Doc 9432 §2.8.3.9)."
         }
+        if t.contains("GPWS") || t.contains("TERRAIN") || lower.contains("due terrain") || lower.contains("unable heading") {
+            return "Tolak instruksi penurunan ATC karena bahaya tebing di depan (Authority Breaker), dan minta izin tanjak ke ketinggian aman."
+        }
+        if t.contains("WIND SHEAR") || lower.contains("wind shear") {
+            return "Laporkan manuver lolos dari wind shear microburst (WIND SHEAR ESCAPE) dan tanjak tenaga penuh."
+        }
+        if t.contains("GOING AROUND") || t.contains("GO-AROUND") || lower.contains("going around") {
+            return "Laporkan pembatalan pendaratan (going around) akibat rintangan di landasan pacu."
+        }
         if t.contains("CALLSIGN CONFUSION CORRECTION") {
             return "Intersepsi kerancuan callsign (similar callsign confusion): tegur pesawat yang salah ambil izin dengan NEGATIVE dan instruksikan hold position (Doc 9432 §4.3.2)."
         }
@@ -1790,18 +1799,16 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                 output += "Turn \(ex.turn) | \(speakerLabel):\n"
 
                 if ex.isUserTurn {
+                    let obj = ex.objective ?? (ex.intentPayload?.primaryIntent ?? "Lakukan transmisi komunikasi radio standar ICAO.")
+                    output += "  Objective: \(obj)\n"
+
                     if let fourSlot = ex.fourSlotPayload, level == .level1 {
-                        output += "  [4-Slot] Stasiun: \(fourSlot.station) | Callsign: \(fourSlot.callsign) | Posisi: \(fourSlot.position) | Aksi: \(fourSlot.action)\n"
+                        output += "  [4-Slot Helper] Stasiun: \(fourSlot.station) | Callsign: \(fourSlot.callsign) | Posisi: \(fourSlot.position) | Aksi: \(fourSlot.action)\n"
                     }
                     if let cloze = ex.clozePayload, level == .level2 {
-                        output += "  [Cloze Prompt] \"\(cloze.displayTemplate)\"\n"
+                        output += "  [Cloze Template] \"\(cloze.displayTemplate)\"\n"
                     }
-                    if let intent = ex.intentPayload, level == .level3 {
-                        output += "  [Intensi] \"\(intent.primaryIntent)\"\n"
-                    } else if let obj = ex.objective {
-                        output += "  [Intensi] \"\(obj)\"\n"
-                    }
-                    if let hud = ex.hudPayload, level == .level4 || level == .level5 {
+                    if let hud = ex.hudPayload, level == .level4 {
                         var hudItems: [String] = []
                         if let hdg = hud.headingDeg { hudItems.append("HDG: \(String(format: "%03d", hdg))") }
                         if let alt = hud.altitudeFt { hudItems.append("ALT: \(alt) ft") }
@@ -1809,11 +1816,15 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                         if let fix = hud.waypointOrFix { hudItems.append("NAV: \(fix)") }
                         if let comm = hud.comm1Freq { hudItems.append("COMM: \(comm)") }
                         if !hudItems.isEmpty {
-                            output += "  [Scratchpad HUD] [\(hudItems.joined(separator: " | "))]\n"
+                            output += "  [Cockpit Scratchpad] [\(hudItems.joined(separator: " | "))]\n"
                         }
                     }
-                    if let haz = ex.hazardPayload {
-                        output += "  ⚠️ [Hazard Alert] \(haz.hazardDescription) | Tindakan: \(haz.expectedPilotReaction)\n"
+                    if level == .level5 {
+                        if let haz = ex.hazardPayload {
+                            output += "  [Cockpit Alert] ⚠️ \(haz.hazardDescription)\n"
+                        } else {
+                            output += "  [Status] Cockpit Mountain HUD | VHF Partyline Active\n"
+                        }
                     }
                 }
 

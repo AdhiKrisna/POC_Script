@@ -448,7 +448,19 @@ public struct PrototypeShowcaseView: View {
             }
 
             VStack(alignment: .leading, spacing: 3) {
-                Text("ATC PROMPT (CONTEKAN RESPON UNTUK DIJAWAB):")
+                Text("🎯 OBJECTIVE OPERASIONAL:")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(.blue)
+                Text("Minta izin taksi ke holding point Runway 18.")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(themeTextMain)
+            }
+            .padding(8)
+            .background(Color.blue.opacity(0.08))
+            .cornerRadius(6)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("ATC TRANSMISSION:")
                     .font(.system(size: 9, weight: .black))
                     .foregroundColor(themeAccent)
                 Text("\"WGN 502, TAXI TO RUNWAY 18 VIA ALPHA\"")
@@ -471,11 +483,23 @@ public struct PrototypeShowcaseView: View {
     // Level 2: Cloze Text
     private var level2Content: some View {
         VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text("🎯 OBJECTIVE OPERASIONAL:")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(.orange)
+                Text("Dengarkan instruksi radar ATC dan lengkapi angka heading dan flight level yang hilang.")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(themeTextMain)
+            }
+            .padding(8)
+            .background(Color.orange.opacity(0.08))
+            .cornerRadius(6)
+
             Text("PROMPT TEKS RUMPANG (CLOZE TEST):")
                 .font(.system(size: 9, weight: .black))
                 .foregroundColor(themeAccent)
 
-            Text("Turn left heading [ 060 ], Maintain FL [ 150 ], QNH [ 1015 ], Supergreen 426")
+            Text("Turn left heading [ ___ ], Maintain FL [ ___ ], QNH [ ___ ], Supergreen 426")
                 .font(.system(size: 13, weight: .bold, design: .monospaced))
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -499,7 +523,7 @@ public struct PrototypeShowcaseView: View {
                     .foregroundColor(.orange)
             }
 
-            Text("\"Lakukan readback instruksi backtrack 180° di Runway 13 dan line up and wait. Jangan sebut kata ROGER!\"")
+            Text("\"Lakukan readback instruksi backtrack 180° di Runway 13 dan masuk posisi menahan (Line Up and Wait).\"")
                 .font(.system(size: 13, weight: .bold))
                 .foregroundColor(themeTextMain)
                 .padding(10)
@@ -516,6 +540,18 @@ public struct PrototypeShowcaseView: View {
     // Level 4: Cockpit Scratchpad
     private var level4Content: some View {
         VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text("🎯 OBJECTIVE OPERASIONAL:")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(themeAccent)
+                Text("Dengarkan radio ATC, sesuaikan kecepatan dan intercept localizer ILS RWY 10.")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(themeTextMain)
+            }
+            .padding(8)
+            .background(themeAccent.opacity(0.08))
+            .cornerRadius(6)
+
             HStack {
                 Text("COCKPIT SCRATCHPAD (AUDIO-ONLY HUD)")
                     .font(.system(size: 9, weight: .black))
@@ -548,13 +584,27 @@ public struct PrototypeShowcaseView: View {
                     .foregroundColor(.red)
             }
 
-            Text("Vektor ATC 250° membahayakan pesawat menabrak tebing. Tindakan: Tolak izin dengan kata 'UNABLE' dan tanjak ke 8,000 ft!")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundColor(themeTextMain)
-                .padding(10)
-                .background(Color.red.opacity(0.12))
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Vektor ATC 250° membahayakan pesawat menabrak tebing.")
+                    .font(.caption)
+                    .foregroundColor(themeTextMain)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("🎯 OBJECTIVE OPERASIONAL:")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.red)
+                    Text("Tolak instruksi penurunan ATC karena ada tebing (Authority Breaker), dan minta izin tanjak ke ketinggian aman.")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(themeTextMain)
+                }
+                .padding(8)
+                .background(Color.black.opacity(0.2))
                 .cornerRadius(6)
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.red.opacity(0.4), lineWidth: 1))
+            }
+            .padding(10)
+            .background(Color.red.opacity(0.12))
+            .cornerRadius(6)
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.red.opacity(0.4), lineWidth: 1))
 
             Text("📻 VHF Partyline Chatter: Active (25% vol, 10% ducking)")
                 .font(.caption2)

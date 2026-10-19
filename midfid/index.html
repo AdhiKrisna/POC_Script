@@ -1193,8 +1193,13 @@
               </div>
             </div>
 
+            <div style="background: rgba(47, 84, 235, 0.08); border-left: 3px solid #2F54EB; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
+              <div style="font-size: 9px; font-weight: 800; color: #2F54EB; text-transform: uppercase;">🎯 Objective Operasional:</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Minta izin taksi ke holding point Runway 18.</div>
+            </div>
+
             <div class="atc-prompt-bubble">
-              <div class="atc-label">ATC Transmission (Prompt)</div>
+              <div class="atc-label">ATC Transmission:</div>
               "WGN 502, TAXI TO RUNWAY 18 VIA ALPHA"
             </div>
 
@@ -1220,12 +1225,16 @@
 
           <!-- LEVEL 2: CLOZE TEXT (RUMPANG) -->
           <div id="content-lv-2" style="display: none;">
+            <div style="background: rgba(250, 140, 22, 0.08); border-left: 3px solid #FA8C16; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
+              <div style="font-size: 9px; font-weight: 800; color: #FA8C16; text-transform: uppercase;">🎯 Objective Operasional:</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Dengarkan instruksi radar ATC dan lengkapi angka heading dan flight level yang hilang.</div>
+            </div>
             <div class="atc-label">Prompt Teks Rumpang (Cloze Test)</div>
             <div class="cloze-box">
-              "Turn left heading <span class="cloze-blank">[ 060 ]</span>, Maintain FL <span class="cloze-blank">[ 150 ]</span>, QNH <span class="cloze-blank">[ 1015 ]</span>, Supergreen 426"
+              "Turn left heading <span class="cloze-blank">[ ___ ]</span>, Maintain FL <span class="cloze-blank">[ ___ ]</span>, QNH <span class="cloze-blank">[ ___ ]</span>, Supergreen 426"
             </div>
             <div style="font-size: 10px; color: var(--text-muted); margin-top: 6px;">
-              ⏱️ PTT Timer: ≤ 8 detik (Memory Decay Prevention)
+              ⏱️ PTT Timer: ≤ 8 detik (Melatih working memory)
             </div>
           </div>
 
@@ -1234,7 +1243,7 @@
             <div class="objective-prompt">
               <div class="objective-badge">🎯 Objective Operasional</div>
               <div class="objective-text">
-                "Lakukan readback instruksi backtrack 180° di Runway 13 dan line up and wait. Jangan sebut kata ROGER!"
+                "Lakukan readback instruksi backtrack 180° di Runway 13 dan masuk posisi menahan (Line Up and Wait)."
               </div>
               <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">
                 💡 Dikasih Objectivenya aja (No English Script cheat) | PTT ≤ 5s
@@ -1244,6 +1253,10 @@
 
           <!-- LEVEL 4: COCKPIT SCRATCHPAD HUD (AUDIO FIRST) -->
           <div id="content-lv-4" style="display: none;">
+            <div style="background: rgba(0, 229, 255, 0.08); border-left: 3px solid var(--accent-color); padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
+              <div style="font-size: 9px; font-weight: 800; color: var(--accent-color); text-transform: uppercase;">🎯 Objective Operasional:</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Dengarkan radio ATC, sesuaikan kecepatan dan intercept localizer ILS RWY 10.</div>
+            </div>
             <div class="wire-card-header" style="margin-bottom: 6px; padding-bottom: 3px;">
               <span class="wire-card-title">📟 Cockpit Scratchpad (Audio HUD)</span>
               <span class="wire-card-tag">Audio-Only</span>
@@ -1262,9 +1275,14 @@
           <div id="content-lv-5" style="display: none;">
             <div class="emergency-alert-box">
               <div class="emergency-title">⚠️ GPWS TERRAIN ALERT</div>
-              <div class="emergency-desc">
-                Vektor ATC 250° membahayakan pesawat menabrak tebing.<br>
-                <strong>Tolak instruksi:</strong> <em>"UNABLE heading 250 due terrain, climbing 8000 ft!"</em>
+              <div class="emergency-desc" style="margin-bottom: 6px;">
+                Vektor ATC 250° membahayakan pesawat menabrak tebing.
+              </div>
+              <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 6px 8px; text-align: left;">
+                <div class="objective-badge" style="color: #FF4D4F; font-size: 10px;">🎯 OBJECTIVE OPERASIONAL:</div>
+                <div style="font-size: 12px; font-weight: 700; color: var(--text-main); margin-top: 2px;">
+                  Tolak instruksi penurunan ATC karena ada tebing (Authority Breaker), dan minta izin tanjak ke ketinggian aman.
+                </div>
               </div>
             </div>
             <div style="font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 6px;">
@@ -1277,10 +1295,10 @@
         <!-- SPEECH-TO-TEXT TRANSCRIPTION BOX -->
         <div class="stt-box" id="stt-box">
           <div class="stt-placeholder" id="stt-hint">
-            🎙️ Tekan &amp; Tahan Push-To-Talk untuk bicara...
+            🎙️ Tekan &amp; Tahan Push-To-Talk untuk bicara sesuai objective...
           </div>
-          <div class="stt-transcript" id="stt-result">
-            "Tower, Taxiing to RWY 18 VIA ALPHA, WGN 502"
+          <div class="stt-transcript" id="stt-result" style="display: none;">
+            ""
           </div>
           <div class="waveform-bar-container" id="waveform">
             <div class="wave-bar"></div>
@@ -1456,7 +1474,17 @@
       });
     }
 
+    let currentSimLevel = 1;
+    const sttTexts = [
+      '"Tower, Taxiing to RWY 18 VIA ALPHA, WGN 502"',
+      '"Turn left heading zero six zero, maintain flight level one five zero, Supergreen four two six"',
+      '"Backtrack runway one three, line up and wait, Lion Air seven five zero"',
+      '"Reduce speed one eight zero knots, turn heading zero niner zero, cleared ILS runway one zero, Garuda two eight three Heavy"',
+      '"UNABLE heading two five zero due terrain, climbing altitude eight thousand feet, Asian One three six four!"'
+    ];
+
     function switchLevelScaffold(lvl) {
+      currentSimLevel = lvl;
       document.querySelectorAll('.level-pill').forEach((p, idx) => {
         p.classList.toggle('active', idx + 1 === lvl);
       });
@@ -1474,15 +1502,11 @@
       ];
       document.getElementById('sim-screen-title').innerText = titles[lvl - 1];
 
-      // Update STT expected preview
-      const sttTexts = [
-        '"Tower, Taxiing to RWY 18 VIA ALPHA, WGN 502"',
-        '"Turn left heading zero six zero, maintain flight level one five zero, Supergreen four two six"',
-        '"Backtrack runway one three, line up and wait, Lion Air seven five zero"',
-        '"Reduce speed one eight zero knots, turn heading zero niner zero, cleared ILS runway one zero, Garuda two eight three Heavy"',
-        '"UNABLE heading two five zero due terrain, climbing altitude eight thousand feet, Asian One three six four!"'
-      ];
-      document.getElementById('stt-result').innerText = sttTexts[lvl - 1];
+      // Anti-teleprompter rule: reset STT transcription box so no green cheat script is visible!
+      document.getElementById('stt-hint').style.display = 'block';
+      document.getElementById('stt-result').style.display = 'none';
+      document.getElementById('stt-result').innerText = '';
+      document.getElementById('waveform').style.display = 'none';
     }
 
     let isSwapped = false;
@@ -1519,7 +1543,9 @@
       const btn = document.getElementById('ptt-btn');
       btn.classList.remove('active-pressed');
       document.getElementById('waveform').style.display = 'none';
+      document.getElementById('stt-hint').style.display = 'none';
       document.getElementById('stt-result').style.display = 'block';
+      document.getElementById('stt-result').innerText = sttTexts[currentSimLevel - 1];
     }
 
     function openModal(id) {

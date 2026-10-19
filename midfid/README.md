@@ -31,7 +31,20 @@ Prototipe interaktif dapat langsung diakses di berkas:
 
 ---
 
-## 3. Matriks Scaffolding Berjenjang (Level 1 – 5)
+## 3. Prinsip Mutlak: Anti-Teleprompter & Objective-Driven Prompting
+
+Salah satu prinsip pedagogis paling krusial dalam perancangan HERMES RTF Simulator adalah **Anti-Teleprompter**:
+1. **Dilarang Menampilkan Naskah Contekan (No Script Cheat):**
+   * Layar **bukan** tempat menyontek kalimat lengkap bahasa Inggris sebelum atau saat berbicara. Menampilkan kalimat lengkap (terlebih dengan warna hijau mencolok) mereduksi latihan kognitif menjadi sekadar membaca teks (*reading aloud*), bukan menyusun pesan dari ingatan (*mental model*).
+2. **Cukup Tampilkan Objective Operasional:**
+   * Di Level 3, 4, dan 5, layar hanya menampilkan **Objective / Intensi Tindakan** (misal: *"Tolak instruksi penurunan ATC karena tebing di depan, minta tanjak ke ketinggian aman"*). Siswa wajib memikirkan, memilih fraseologi standar ICAO (`"UNABLE..."`), dan mengucapkannya secara mandiri melalui tombol PTT.
+3. **Speech-to-Text Box Bersih Tanpa Bocoran:**
+   * Kotak transkripsi suara pilot di bawah layar awalnya berstatus kosong (*"Tekan Push-To-Talk untuk bicara sesuai objective..."*).
+   * Teks transkripsi suara hanya muncul setelah taruna selesai berbicara dan melepaskan tombol PTT sebagai sarana verifikasi umpan balik motorik.
+
+---
+
+## 4. Matriks Scaffolding Berjenjang (Level 1 – 5)
 
 Sesuai prinsip *Cognitive Load Theory (Sweller)* dan *ICAO Doc 9835*, antarmuka secara bertahap memangkas bantuan teks visual (*faded scaffolding*) agar taruna membangun *muscle memory* dan refleks bicara mandiri:
 
