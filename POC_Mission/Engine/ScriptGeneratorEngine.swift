@@ -941,7 +941,8 @@ public final class ScriptGeneratorEngine {
         let depWeather = WeatherEngine.alignedWeather(
             runway: originAirport.runways.first?.designator ?? "08",
             heading: originAirport.runways.first?.headingDegT ?? 80,
-            seed: chosenSeed
+            seed: chosenSeed,
+            level: level
         )
         let depRwyDesignator = WeatherEngine.bestRunway(
             pair: depRwyPair,
@@ -957,7 +958,8 @@ public final class ScriptGeneratorEngine {
         let arrWeather = WeatherEngine.alignedWeather(
             runway: destinationAirport.runways.first?.designator ?? "09",
             heading: destinationAirport.runways.first?.headingDegT ?? 90,
-            seed: chosenSeed + 101
+            seed: chosenSeed + 101,
+            level: level
         )
         let arrRwyDesignator = WeatherEngine.bestRunway(
             pair: arrRwyPair,
@@ -971,26 +973,9 @@ public final class ScriptGeneratorEngine {
         let arrAtisId = ATISGenerator.letter(seed: chosenSeed + 5)
         let depHeading = Int(depRunway.headingDegT)
 
-        // Level-specific Flight Level & Procedures
-        let cruisingLevel: String
-        let initialAlt: String
-        switch level {
-        case .level1:
-            cruisingLevel = "three thousand feet"
-            initialAlt = "two thousand five hundred feet"
-        case .level2:
-            cruisingLevel = "flight level zero eight zero"
-            initialAlt = "altitude four thousand feet"
-        case .level3:
-            cruisingLevel = "flight level two four zero"
-            initialAlt = "flight level one zero zero"
-        case .level4:
-            cruisingLevel = "flight level two eight zero"
-            initialAlt = "flight level one zero zero"
-        case .level5:
-            cruisingLevel = "flight level three six zero"
-            initialAlt = "flight level one zero zero"
-        }
+        // Level-specific Flight Level & Procedures (VARIABEL_DINAMIS_KURIKULUM_LEVEL_1_5.pdf)
+        let cruisingLevel = FlightLevelGenerator.cruisingLevel(level: level, headingTrack: depHeading, seed: chosenSeed)
+        let initialAlt = FlightLevelGenerator.initialAltitude(level: level, seed: chosenSeed)
 
         let procs = Self.resolveProcedures(originICAO: originAirport.icao, destinationICAO: destinationAirport.icao, level: level)
         let sidName = procs.sid
@@ -1267,6 +1252,73 @@ public final class ScriptGeneratorEngine {
             phaseScripts: phaseScripts,
             diagnosticReport: report,
             contingencies: uniqueExecuted
+        )
+    }
+
+    // MARK: - Dedicated Exam Mission Generator (VARIABEL_DINAMIS_KURIKULUM_LEVEL_1_5.pdf)
+    public func generateExamMission(
+        level: CurriculumLevel,
+        role: UserRole = .pilot,
+        seed: Int? = nil
+    ) throws -> FlightMissionScript {
+        let chosenSeed = seed ?? Int.random(in: 1000...9999)
+        let absSeed = abs(chosenSeed)
+        let originICAO: String
+        let destinationICAO: String
+
+        switch level {
+        case .level1:
+            // Basis: WADY (Banyuwangi), WICB (Curug), WADE (Buleleng)
+            // 1 Putaran VFR Sirkuit Penuh (One-shot, local circuit full stop)
+            let l1Airports = ["WADY", "WICB", "WADE"]
+            originICAO = l1Airports[absSeed % l1Airports.count]
+            destinationICAO = originICAO
+
+        case .level2:
+            // Basis: WAHI (YIA), WADL (Lombok), WAOO (Banjarmasin), WIPP (Palembang)
+            let l2Airports = ["WAHI", "WADL", "WAOO", "WIPP"]
+            let oIdx = absSeed % l2Airports.count
+            originICAO = l2Airports[oIdx]
+            let remaining = l2Airports.filter { $0 != originICAO }
+            destinationICAO = remaining[abs(chosenSeed / 4) % remaining.count]
+
+        case .level3:
+            // Basis: WARS (Semarang), WADD (Bali), WIDD (Batam), WIPT (Padang), WARQ (Solo), WALL (Balikpapan)
+            let l3Airports = ["WARS", "WADD", "WIDD", "WIPT", "WARQ", "WALL"]
+            let oIdx = absSeed % l3Airports.count
+            originICAO = l3Airports[oIdx]
+            let remaining = l3Airports.filter { $0 != originICAO }
+            destinationICAO = remaining[abs(chosenSeed / 6) % remaining.count]
+
+        case .level4:
+            // Basis: WIII (Cengkareng), WARR (Surabaya), WAAA (Makassar), WIMM (Medan), WIHH (Halim)
+            let l4Airports = ["WIII", "WARR", "WAAA", "WIMM", "WIHH"]
+            let oIdx = absSeed % l4Airports.count
+            originICAO = l4Airports[oIdx]
+            let remaining = l4Airports.filter { $0 != originICAO }
+            destinationICAO = remaining[abs(chosenSeed / 5) % remaining.count]
+
+        case .level5:
+            // Basis: WAVV (Wamena), WICC (Bandung), WAFB (Toraja), WABP (Timika), WALR (Tarakan)
+            // Mountain / High-Risk Valley realistic operational routes:
+            let l5Pairs: [(origin: String, dest: String)] = [
+                ("WAVV", "WABP"), // Wamena -> Timika (Papua Valley & Ridge)
+                ("WABP", "WAVV"), // Timika -> Wamena (Papua Return)
+                ("WICC", "WIHH"), // Bandung Husein -> Jakarta Halim (Priangan Basin)
+                ("WAFB", "WAAA"), // Toraja Buntu Kunik -> Makassar (Sulawesi Ridge)
+                ("WALR", "WALL")  // Tarakan Juwata -> Balikpapan (Kalimantan Ridge)
+            ]
+            let pair = l5Pairs[absSeed % l5Pairs.count]
+            originICAO = pair.origin
+            destinationICAO = pair.dest
+        }
+
+        return try generateDynamicMission(
+            originICAO: originICAO,
+            destinationICAO: destinationICAO,
+            role: role,
+            mode: .exam,
+            seed: chosenSeed
         )
     }
 
@@ -1898,26 +1950,43 @@ public final class ScriptGeneratorEngine {
 
             case .level4:
                 // Level 4 Exam: 2-Stage Captaincy Checkride (Ground CTOT/Crossing/Confusion + Upper/Terminal)
-                let groundPool: [ContingencySelection] = [.ctotSlotManagement, .holdShortCrossing, .callsignConfusion]
-                let upperPool: [ContingencySelection] = [.slopOceanic, .tcasRA, .passengerMedicalEmergency, .blownTireLanding]
-                let gChoice = groundPool[abs(seed) % groundPool.count]
-                let uChoice = upperPool[abs(seed / 3) % upperPool.count]
-                examRolled.append(gChoice)
-                examRolled.append(uChoice)
+                // Exam 4A (Spot RTO) + Exam 4B (3 Darat x 4 Udara = 12 Variasi Gate-to-Gate)
+                let isSpotRTO = (abs(seed) % 5 == 0)
+                if isSpotRTO {
+                    examRolled.append(.abortTakeoff)
+                } else {
+                    let groundPool: [ContingencySelection] = [.ctotSlotManagement, .holdShortCrossing, .callsignConfusion]
+                    let upperPool: [ContingencySelection] = [.slopOceanic, .tcasRA, .passengerMedicalEmergency, .blownTireLanding]
+                    let gChoice = groundPool[abs(seed) % groundPool.count]
+                    let uChoice = upperPool[abs(seed / 3) % upperPool.count]
+                    examRolled.append(gChoice)
+                    examRolled.append(uChoice)
+                }
 
             case .level5:
                 // Level 5 Exam: 100% Kedaruratan Mutlak 3 Pola Trajektori (11 Variasi)
+                // 1 Abort + 4 Diversion (2x2) + 6 Recovery (3x2) = 11 Variasi
                 let trajectory = abs(seed) % 3
                 switch trajectory {
-                case 0: // Pola 1: Immediate Abort (EFATO Air-Turn-Back + Excursion ARFF)
+                case 0:
+                    // Pola 1: Immediate Abort (1 variasi: EFATO Air-Turn-Back + Excursion ARFF)
                     examRolled.append(.efato)
                     examRolled.append(.runwayExcursionARFF)
-                case 1: // Pola 2: In-Flight Diversion (Decompression FL170 or MAYDAY FUEL)
+                case 1:
+                    // Pola 2: In-Flight Diversion (4 variasi: 2 primary x 2 secondary)
                     let divChoices: [ContingencySelection] = [.emergencyDescentDecompression, .fuelEmergencyMayday]
-                    examRolled.append(divChoices[abs(seed / 3) % divChoices.count])
-                default: // Pola 3: Tactical Recovery (GPWS Terrain, Wind Shear, or Go-Around)
+                    let primary = divChoices[abs(seed / 3) % divChoices.count]
+                    examRolled.append(primary)
+                    let secondary = (abs(seed / 5) % 2 == 0) ? ContingencySelection.volcanicAshAvoidance : ContingencySelection.impositionOfSilence
+                    examRolled.append(secondary)
+                default:
+                    // Pola 3: Tactical Recovery (6 variasi: 3 primary x 2 tactical complications)
                     let recChoices: [ContingencySelection] = [.gpwsTerrainAvoidance, .windShearMicroburst, .pilotInitiatedGoAround]
-                    examRolled.append(recChoices[abs(seed / 3) % recChoices.count])
+                    let primary = recChoices[abs(seed / 3) % recChoices.count]
+                    examRolled.append(primary)
+                    if (abs(seed / 7) % 2 == 0) {
+                        examRolled.append(.impositionOfSilence)
+                    }
                 }
             }
             return sanitizeRolledContingencies(examRolled)
@@ -2013,7 +2082,13 @@ public final class ScriptGeneratorEngine {
                 return (rank[a] ?? 0) > (rank[b] ?? 0)
             }.first!
             // When an abort on ground occurs, flight NEVER proceeds en-route or to destination!
-            return [resolveSingleContingency(option: prioritizedAbort)].compactMap { $0 }
+            var abortResult = [resolveSingleContingency(option: prioritizedAbort)].compactMap { $0 }
+            if rolled.contains(.runwayExcursionARFF) {
+                if let ex = resolveSingleContingency(option: .runwayExcursionARFF) {
+                    abortResult.append(ex)
+                }
+            }
+            return abortResult
         }
 
         // 2. Bird Hazard Mutual Exclusion:

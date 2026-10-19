@@ -180,6 +180,7 @@ struct MissionSimulatorView: View {
     @State private var activeActFilter: ActFilter = .all
     @State private var missionScript: FlightMissionScript?
     @State private var errorMessage: String?
+    @State private var currentSeed: Int = Int.random(in: 1000...9999)
     @State private var showDiagnosticModal: Bool = false
     @State private var showBriefingSheet: Bool = false
     @State private var showContingencyDetailSheet: Bool = false
@@ -278,6 +279,7 @@ struct MissionSimulatorView: View {
                     onNextLevel: nil,
                     onRegenerate: {
                         showDiagnosticModal = false
+                        currentSeed = Int.random(in: 1000...9999)
                         generateMission()
                     },
                     onRetryAct: { targetAct in
@@ -307,6 +309,14 @@ struct MissionSimulatorView: View {
     }
 
     private var navigationTitleText: String {
+        if let mission = missionScript {
+            let origIata = mission.originAirport.iata ?? mission.originAirport.icao
+            let destIata = mission.destinationAirport.iata ?? mission.destinationAirport.icao
+            if selectedMode == .exam {
+                return "Exam L\(level.rawValue): \(origIata)"
+            }
+            return "\(origIata) → \(destIata)"
+        }
         if let c = canonicalMission {
             return "\(c.code) · L\(level.rawValue)"
         }
@@ -323,6 +333,11 @@ struct MissionSimulatorView: View {
             return "\(c.code): \(c.title)"
         }
         if selectedMode == .exam {
+            if let mission = missionScript {
+                let origIata = mission.originAirport.iata ?? mission.originAirport.icao
+                let name = mission.originAirport.name
+                return "Exam L\(level.rawValue): \(origIata) (\(name))"
+            }
             return "Exam Checkride Level \(level.rawValue)"
         }
         let orig = AirportCurriculumRegistry.airport(for: originICAO)?.iata ?? originICAO
@@ -580,7 +595,10 @@ struct MissionSimulatorView: View {
     @ToolbarContentBuilder
     private var toolbarItems: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
-            Button(action: { generateMission() }) {
+            Button(action: {
+                currentSeed = Int.random(in: 1000...9999)
+                generateMission()
+            }) {
                 Image(systemName: "arrow.clockwise")
             }
         }
@@ -605,7 +623,13 @@ struct MissionSimulatorView: View {
                     mission: cMission,
                     role: role,
                     mode: selectedMode,
-                    seed: Int.random(in: 1000...9999)
+                    seed: currentSeed
+                )
+            } else if selectedMode == .exam {
+                missionScript = try engine.generateExamMission(
+                    level: level,
+                    role: role,
+                    seed: currentSeed
                 )
             } else {
                 missionScript = try engine.generateDynamicMission(
@@ -613,7 +637,7 @@ struct MissionSimulatorView: View {
                     destinationICAO: destinationICAO,
                     role: role,
                     mode: selectedMode,
-                    seed: Int.random(in: 1000...9999),
+                    seed: currentSeed,
                     selectedContingencies: selectedContingencies,
                     retryAct: targetAct
                 )

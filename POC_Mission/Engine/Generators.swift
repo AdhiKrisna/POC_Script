@@ -68,8 +68,8 @@ public enum CallsignGenerator {
             }
 
         case .level5:
-            // Trigana [200-299], Smart [100-199], Batik [400-499], Asian One [300-399]
-            let choice = absSeed % 4
+            // Trigana [200-299], Smart [100-199], Wings Air [1850-1899], Batik [400-499], Asian One [300-399]
+            let choice = absSeed % 5
             if choice == 0 {
                 let num = 200 + (absSeed % 100)
                 return "Trigana \(SpokenFormFormatter.digitWords(String(num)))"
@@ -77,6 +77,9 @@ public enum CallsignGenerator {
                 let num = 100 + (absSeed % 100)
                 return "Smart \(SpokenFormFormatter.digitWords(String(num)))"
             } else if choice == 2 {
+                let num = 1850 + (absSeed % 50)
+                return "Wings Air \(SpokenFormFormatter.digitWords(String(num)))"
+            } else if choice == 3 {
                 let num = 400 + (absSeed % 100)
                 return "Batik \(SpokenFormFormatter.digitWords(String(num)))"
             } else {
@@ -219,11 +222,62 @@ public enum FlightLevelGenerator {
         "flight level three eight zero"
     ]
 
+    public static func cruisingLevel(level: CurriculumLevel, headingTrack: Int, seed: Int) -> String {
+        let absSeed = abs(seed)
+        let isEastbound = (headingTrack >= 0 && headingTrack < 180)
+
+        switch level {
+        case .level1:
+            // 1.000 s/d 1.500 ft AGL local circuit
+            return (absSeed % 2 == 0) ? "one thousand feet" : "one thousand five hundred feet"
+
+        case .level2:
+            // FL140 s/d FL180 (Regional turboprop)
+            let fls = isEastbound ? ["flight level one five zero", "flight level one seven zero"]
+                                  : ["flight level one four zero", "flight level one six zero", "flight level one eight zero"]
+            return fls[absSeed % fls.count]
+
+        case .level3:
+            // FL240 s/d FL280 (Domestic jet)
+            let fls = isEastbound ? ["flight level two five zero", "flight level two seven zero"]
+                                  : ["flight level two four zero", "flight level two six zero", "flight level two eight zero"]
+            return fls[absSeed % fls.count]
+
+        case .level4:
+            // FL300 s/d FL380 (Heavy & metro jet)
+            let fls = isEastbound ? ["flight level three one zero", "flight level three three zero", "flight level three five zero", "flight level three seven zero"]
+                                  : ["flight level three zero zero", "flight level three two zero", "flight level three four zero", "flight level three six zero", "flight level three eight zero"]
+            return fls[absSeed % fls.count]
+
+        case .level5:
+            // FL160 s/d FL240 (Extreme terrain / mountain crossing)
+            let fls = isEastbound ? ["flight level one seven zero", "flight level one nine zero", "flight level two one zero", "flight level two three zero"]
+                                  : ["flight level one six zero", "flight level one eight zero", "flight level two zero zero", "flight level two two zero", "flight level two four zero"]
+            return fls[absSeed % fls.count]
+        }
+    }
+
     public static func cruisingLevel(headingTrack: Int, seed: Int) -> String {
         // Semicircular rule: 000-179 Eastbound (Odd FL), 180-359 Westbound (Even FL)
         let isEastbound = (headingTrack >= 0 && headingTrack < 180)
         let list = isEastbound ? eastboundFLs : westboundFLs
         return list[abs(seed) % list.count]
+    }
+
+    public static func initialAltitude(level: CurriculumLevel, seed: Int) -> String {
+        let absSeed = abs(seed)
+        switch level {
+        case .level1:
+            return (absSeed % 2 == 0) ? "one thousand feet" : "one thousand five hundred feet"
+        case .level2:
+            return (absSeed % 2 == 0) ? "altitude four thousand feet" : "altitude five thousand feet"
+        case .level3:
+            return "flight level one zero zero"
+        case .level4:
+            return (absSeed % 2 == 0) ? "flight level one zero zero" : "flight level one one zero"
+        case .level5:
+            return (absSeed % 2 == 0) ? "altitude eight thousand feet" : "flight level one zero zero"
+        }
     }
 
     public static func initialAltitude(seed: Int) -> String {

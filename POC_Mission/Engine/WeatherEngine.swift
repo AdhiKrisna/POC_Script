@@ -85,7 +85,8 @@ public enum WeatherEngine {
     public static func alignedWeather(
         runway: String,
         heading: Double,
-        seed: Int
+        seed: Int,
+        level: CurriculumLevel? = nil
     ) -> AlignedWeather {
         // Linear congruential generator for deterministic pseudo-randomness
         var state = UInt64(bitPattern: Int64(seed &* 6364136223846793005 &+ 1442695040888963407))
@@ -101,8 +102,41 @@ public enum WeatherEngine {
         let delta = nextRandom(min: -35.0, max: 35.0)
         let rawDir = (baseHeading + delta).truncatingRemainder(dividingBy: 360.0)
         let windDir = Int((rawDir + 360.0).truncatingRemainder(dividingBy: 360.0).rounded())
-        let windSpeed = Int(nextRandom(min: 7.0, max: 18.0).rounded())
-        let qnh = Int(nextRandom(min: 1008.0, max: 1016.0).rounded())
+
+        // Level-specific wind speed and QNH ranges per VARIABEL_DINAMIS_KURIKULUM_LEVEL_1_5.pdf
+        let minSpeed: Double
+        let maxSpeed: Double
+        let minQnh: Double
+        let maxQnh: Double
+
+        switch level {
+        case .level1:
+            // Angin 05–12 kt (Tenang) | QNH 1008–1016 hPa
+            minSpeed = 5.0; maxSpeed = 12.0
+            minQnh = 1008.0; maxQnh = 1016.0
+        case .level2:
+            // Angin 08–15 kt (Crosswind <= 15 kt) | QNH 1006–1018 hPa
+            minSpeed = 8.0; maxSpeed = 15.0
+            minQnh = 1006.0; maxQnh = 1018.0
+        case .level3:
+            // Angin 10–20 kt (Angin aktif) | QNH 1004–1016 hPa
+            minSpeed = 10.0; maxSpeed = 20.0
+            minQnh = 1004.0; maxQnh = 1016.0
+        case .level4:
+            // Angin 15–25 kt (Crosswind basah) | QNH 1002–1014 hPa
+            minSpeed = 15.0; maxSpeed = 25.0
+            minQnh = 1002.0; maxQnh = 1014.0
+        case .level5:
+            // Angin 15–30 kt (Gusting & Microburst) | QNH 1010–1022 hPa (Elevasi tinggi)
+            minSpeed = 15.0; maxSpeed = 30.0
+            minQnh = 1010.0; maxQnh = 1022.0
+        case .none:
+            minSpeed = 7.0; maxSpeed = 18.0
+            minQnh = 1008.0; maxQnh = 1016.0
+        }
+
+        let windSpeed = Int(nextRandom(min: minSpeed, max: maxSpeed).rounded())
+        let qnh = Int(nextRandom(min: minQnh, max: maxQnh).rounded())
 
         let (hw, xw) = windComponents(
             runwayHeading: heading,

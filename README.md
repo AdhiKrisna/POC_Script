@@ -85,13 +85,13 @@ Aplikasi menyediakan dua jalur latihan utama di `CurriculumHubView`:
 * Menyajikan ringkasan rute, profil armada, frekuensi kerja ATS, dan data bandara resmi AIP.
 
 ### B. Jalur Ujian (Exam Mode State Machine)
-* Mode evaluasi ketat untuk sertifikasi kelulusan level:
-  * **Level 1 Exam**: 100% Rutin VFR Sirkuit (evaluasi presisi struktur 4-elemen).
-  * **Level 2 Exam**: 100% Anomali Tunggal (Pushback Delay, Stop Immediately, Unable, Hold Short).
-  * **Level 3 Exam**: 100% Kompaun 2-Fase (1 Keberangkatan + 1 Kedatangan, 16 variasi kombinasi).
-  * **Level 4 Exam**: 2-Stage Captaincy Checkride (Spot Check RTO + Line Check End-to-End).
-  * **Level 5 Exam**: 100% Kedaruratan 3-Trajektori (Abort EFATO / Diversion Mayday Fuel / Recovery Windshear).
-* Kolam variabel dinamis berbasis *Seed*: nomor penerbangan, arah angin aktual, tekanan QNH, dan nomor landasan pacu diacak secara matematis.
+* Mode evaluasi ketat untuk sertifikasi kelulusan level dengan rotasi dinamis aerodrome basis:
+  * **Level 1 Exam (Cadet Checkride)**: Rotasi dinamis antara 3 bandara sekolah penerbang (**WADY** Banyuwangi, **WICB** Curug, **WADE** Buleleng). Sirkuit lokal VFR rutin 1 putaran penuh (100% normal, tanpa anomali), evaluasi kepatuhan struktur 4-elemen dasar, dan rotasi arah sirkuit (*left/right traffic*).
+  * **Level 2 Exam (Junior FO Checkride)**: Rotasi dinamis antara 4 bandara regional (**WAHI** YIA, **WADL** Lombok, **WAOO** Banjarmasin, **WIPP** Palembang). 100% anomali tunggal terdistribusi seimbang 25% (*deterministic single hook: seed % 4*): *Pushback Delay* (2–5m), *Stop Pushback Immediately*, *Unable Altitude Profile* (minta FL140), dan *Hold Short Exact*.
+  * **Level 3 Exam (Senior FO Checkride)**: Rotasi dinamis antara 6 bandara landasan tunggal (**WARS** Semarang, **WADD** Bali, **WIDD** Batam, **WIPT** Padang, **WARQ** Solo, **WALL** Balikpapan). 100% skenario kompaun 2-fase lintas rute (1 Keberangkatan: *Backtrack / Wake Turb / Conditional Line-Up / Immediate Take-off* $\times$ 1 Kedatangan: *Holding EAT / Delaying Orbit / Continue Approach / Flap Failure*).
+  * **Level 4 Exam (Captaincy Checkride)**: Rotasi dinamis antara 5 metropolitan hub (**WIII** Cengkareng, **WARR** Surabaya, **WAAA** Makassar, **WIMM** Medan, **WIHH** Halim). 2-Stage Checkride: Spot Check High-Speed RTO (*Exam 4A*) + 12 Variasi Gate-to-Gate (*Exam 4B*: 3 Darat $\times$ 4 Udara/Terminal) dengan *Bait Callsign* untuk menguji *Selective Auditory Attention*.
+  * **Level 5 Exam (Command Checkride)**: Rotasi dinamis pasangan rute medan lembah & tebing ekstrem (Wamena **WAVV** $\leftrightarrow$ Timika **WABP**, Bandung **WICC** $\rightarrow$ Halim **WIHH**, Toraja **WAFB** $\rightarrow$ Makassar **WAAA**, Tarakan **WALR** $\rightarrow$ Balikpapan **WALL**). 100% kedaruratan mutlak berbasis 3 Trajektori Penerbangan ICAO (11 Variasi: *Immediate Abort EFATO + Excursion ARFF*, *In-Flight Diversion Decompression FL170 MORA / MAYDAY FUEL*, dan *Tactical Recovery GPWS / Wind Shear / Go-Around*).
+* Kolam variabel dinamis berbasis *Seed*: nomor penerbangan, arah angin aktual, tekanan QNH, dan nomor landasan pacu diacak secara matematis sesuai rentang spesifikasi resmi `VARIABEL_DINAMIS_KURIKULUM_LEVEL_1_5.pdf`.
 
 ---
 
