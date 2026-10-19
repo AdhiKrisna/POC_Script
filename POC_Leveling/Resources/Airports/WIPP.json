@@ -1,0 +1,105 @@
+{
+  "level": 2,
+  "icao": "WIPP",
+  "iata": "PLM",
+  "name": "Sultan Mahmud Badaruddin II Airport",
+  "city": "Palembang",
+  "elevation_ft": 49,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "11",
+        "29"
+      ],
+      "designator": "11",
+      "reciprocal": "29",
+      "heading_degT": 112.0,
+      "holdingPoints": [
+        "A1",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Palembang Ground",
+      "frequency": "121.800"
+    },
+    "tower": {
+      "callsign": "Palembang Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Palembang Approach",
+      "frequency": "120.200"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Palembang Information",
+      "frequency": "126.200"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "4",
+      "spoken": "stand four"
+    },
+    {
+      "id": "5",
+      "spoken": "stand five"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "PLM1A",
+        "name": "Musi One Alfa Departure",
+        "runway": "11",
+        "initialAltFt": 4000
+      }
+    ],
+    "stars": [
+      {
+        "id": "PLM1B",
+        "name": "Musi One Bravo",
+        "runway": "11"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS11",
+        "type": "ILS",
+        "runway": "11",
+        "missedApproachAltFt": 3000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "PLM",
+        "inboundTrack": 112,
+        "turns": "left",
+        "altFt": 4000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 2,
+    "curriculumCategory": "Regional Controlled (Basic Instrument)",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

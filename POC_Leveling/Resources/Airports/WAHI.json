@@ -1,24 +1,25 @@
 {
+  "level": 2,
   "icao": "WAHI",
   "iata": "YIA",
   "name": "Yogyakarta International Airport",
   "city": "Kulon Progo, Yogyakarta",
   "elevation_ft": 24,
-  "latitude": -7.9025,
-  "longitude": 110.0578,
   "profile": "IFR_COMMERCIAL",
   "runways": [
     {
-      "pair": ["11", "29"],
+      "pair": [
+        "11",
+        "29"
+      ],
       "designator": "11",
       "reciprocal": "29",
-      "length_ft": 10663,
-      "width_ft": 148,
-      "surface": "ASP",
-      "heading_degT": 108.0,
-      "ils_available": true,
-      "holdingPoints": ["K1", "K2"],
-      "_source": "AIP WAHI AD 2.12"
+      "heading_degT": 107.0,
+      "holdingPoints": [
+        "F1",
+        "F2",
+        "F3"
+      ]
     }
   ],
   "units": {
@@ -26,10 +27,7 @@
       "callsign": "Yogyakarta Delivery",
       "frequency": "121.650"
     },
-    "apron": {
-      "callsign": "Yogyakarta Ground",
-      "frequency": "121.800"
-    },
+    "apron": null,
     "ground": {
       "callsign": "Yogyakarta Ground",
       "frequency": "121.800"
@@ -42,77 +40,55 @@
       "callsign": "Yogyakarta Approach",
       "frequency": "120.400"
     },
-    "departure": {
-      "callsign": "Yogyakarta Departure",
-      "frequency": "120.400"
-    },
-    "center": {
-      "callsign": "Jakarta Control",
-      "frequency": "127.900"
-    },
+    "departure": null,
+    "center": null,
     "atis": {
       "callsign": "Yogyakarta Information",
       "frequency": "127.400"
     }
   },
   "taxiways": [
-    { "id": "Alpha", "spoken": "Alfa", "description": "Parallel taxiway A" },
-    { "id": "Bravo", "spoken": "Bravo", "description": "Rapid exit taxiway Runway 11" },
-    { "id": "Charlie", "spoken": "Charlie", "description": "Mid-field connector" },
-    { "id": "Delta", "spoken": "Delta", "description": "Rapid exit taxiway Runway 29" },
-    { "id": "Echo", "spoken": "Echo", "description": "Holding point Runway 29" }
+    {
+      "id": "Foxtrot",
+      "spoken": "Foxtrot"
+    },
+    {
+      "id": "Golf",
+      "spoken": "Golf"
+    },
+    {
+      "id": "Hotel",
+      "spoken": "Hotel"
+    }
   ],
   "stands": [
-    { "id": "1", "spoken": "Gate One", "type": "DOMESTIC", "apron": "Terminal" },
-    { "id": "4", "spoken": "Gate Four", "type": "DOMESTIC", "apron": "Terminal" },
-    { "id": "7", "spoken": "Gate Seven", "type": "DOMESTIC", "apron": "Terminal" },
-    { "id": "B2", "spoken": "stand Bravo Two", "type": "INTERNATIONAL", "apron": "Remote" }
+    {
+      "id": "11",
+      "spoken": "gate one one"
+    },
+    {
+      "id": "12",
+      "spoken": "gate one two"
+    },
+    {
+      "id": "14",
+      "spoken": "gate one four"
+    }
   ],
   "procedures": {
     "sids": [
       {
-        "id": "JOG1C",
-        "name": "JOG One Charlie",
+        "id": "BL2",
+        "name": "Bantul Two Departure",
         "runway": "11",
-        "initialAltFt": 6000,
-        "entryFix": "JOG"
-      },
-      {
-        "id": "GANDI1B",
-        "name": "GANDI One Bravo",
-        "runway": "29",
-        "initialAltFt": 7000,
-        "entryFix": "GANDI"
-      },
-      {
-        "id": "KROYA1A",
-        "name": "KROYA One Alfa",
-        "runway": "29",
-        "initialAltFt": 6000,
-        "entryFix": "KROYA"
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
-        "id": "GANDI1A",
-        "name": "GANDI One Alfa",
-        "runway": "11",
-        "entryFix": "GANDI",
-        "initialDescentFt": 11000
-      },
-      {
-        "id": "PRAMB1A",
-        "name": "PRAMB One Alfa",
-        "runway": "29",
-        "entryFix": "PRAMB",
-        "initialDescentFt": 10000
-      },
-      {
-        "id": "JOG1A",
-        "name": "JOG One Alfa",
-        "runway": "29",
-        "entryFix": "JOG",
-        "initialDescentFt": 9000
+        "id": "BL1A",
+        "name": "Bantul One Alfa",
+        "runway": "11"
       }
     ],
     "approaches": [
@@ -120,25 +96,22 @@
         "id": "ILS11",
         "type": "ILS",
         "runway": "11",
-        "finalApproachFix": "PRAMB",
-        "fafAltFt": 3000,
-        "da_mda_ft": 224,
-        "missedApproachAltFt": 4000,
-        "missedApproachHeading": 110
+        "missedApproachAltFt": 4000
       }
     ],
     "holdings": [
       {
-        "fix": "JOG",
+        "fix": "KLP",
         "inboundTrack": 110,
         "turns": "right",
-        "altFt": 7000,
-        "published": true
+        "altFt": 6000
       }
     ]
   },
   "_meta": {
+    "curriculumLevel": 2,
+    "curriculumCategory": "Regional Controlled (Basic Instrument)",
     "datasetCycle": "2026-AIRAC",
-    "status": "verified"
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
   }
 }

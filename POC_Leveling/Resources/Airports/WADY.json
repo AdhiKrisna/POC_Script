@@ -1,24 +1,24 @@
 {
+  "level": 1,
   "icao": "WADY",
   "iata": "BWX",
   "name": "Banyuwangi Airport",
   "city": "Rogojampi, Banyuwangi",
   "elevation_ft": 47,
-  "latitude": -8.31015,
-  "longitude": 114.3401,
   "profile": "VFR_LOCAL",
   "runways": [
     {
-      "pair": ["08", "26"],
+      "pair": [
+        "08",
+        "26"
+      ],
       "designator": "08",
       "reciprocal": "26",
-      "length_ft": 7382,
-      "width_ft": 98,
-      "surface": "ASP",
-      "heading_degT": 84,
-      "ils_available": false,
-      "holdingPoints": ["A1", "A2"],
-      "_source": "AIP WADY AD 2.12 — Training Base for API Banyuwangi & BIFA"
+      "heading_degT": 84.0,
+      "holdingPoints": [
+        "A1",
+        "A2"
+      ]
     }
   ],
   "units": {
@@ -26,21 +26,15 @@
     "apron": null,
     "ground": {
       "callsign": "Banyuwangi Ground",
-      "frequency": "121.600",
-      "_source": "AIP WADY AD 2.18",
-      "_status": "verified"
+      "frequency": "121.600"
     },
     "tower": {
       "callsign": "Banyuwangi Tower",
-      "frequency": "118.100",
-      "_source": "AIP WADY AD 2.18",
-      "_status": "verified"
+      "frequency": "118.100"
     },
     "approach": {
       "callsign": "Banyuwangi Approach",
-      "frequency": "119.500",
-      "_source": "AIP WADY AD 2.18",
-      "_status": "verified"
+      "frequency": "119.500"
     },
     "departure": null,
     "center": null,
@@ -49,66 +43,57 @@
   "taxiways": [
     {
       "id": "Alpha",
-      "spoken": "Alfa",
-      "_source": "AIP WADY AD 2.24"
+      "spoken": "Alfa"
     },
     {
       "id": "Bravo",
-      "spoken": "Bravo",
-      "_source": "AIP WADY AD 2.24"
+      "spoken": "Bravo"
     }
   ],
   "stands": [
     {
-      "id": "1", "spoken": "stand one", "type": "GA", "apron": "General Aviation"
+      "id": "1",
+      "spoken": "stand one"
     },
     {
-      "id": "2", "spoken": "stand two", "type": "GA", "apron": "General Aviation"
+      "id": "2",
+      "spoken": "stand two"
     },
     {
-      "id": "3", "spoken": "stand three", "type": "GA", "apron": "General Aviation"
-    }
-  ],
-  "trainingAreas": [
-    {
-      "id": "Alpha",
-      "spoken": "Area Alfa",
-      "sector": "South",
-      "radial": 180,
-      "distance_nm": "10-20",
-      "altitude_ft_min": 2500,
-      "altitude_ft_max": 4000
-    },
-    {
-      "id": "Bravo",
-      "spoken": "Area Bravo",
-      "sector": "Southwest",
-      "radial": 220,
-      "distance_nm": "10-20",
-      "altitude_ft_min": 2500,
-      "altitude_ft_max": 4000
+      "id": "3",
+      "spoken": "stand three"
     }
   ],
   "procedures": {
-    "sids": [],
-    "stars": [],
+    "sids": [
+      {
+        "id": "BWX1A",
+        "name": "Banyuwangi One Alfa",
+        "runway": "08",
+        "initialAltFt": 3000
+      }
+    ],
+    "stars": [
+      {
+        "id": "BWX1B",
+        "name": "Banyuwangi One Bravo",
+        "runway": "08"
+      }
+    ],
     "approaches": [
       {
         "id": "VIS08",
         "type": "VISUAL",
         "runway": "08",
-        "pattern": "standard left-hand circuit",
-        "circuit_alt_ft": 1000
+        "missedApproachAltFt": 2500
       }
     ],
     "holdings": []
   },
   "_meta": {
+    "curriculumLevel": 1,
+    "curriculumCategory": "Flight School & Local Training",
     "datasetCycle": "2026-AIRAC",
-    "status": "verified",
-    "notes": [
-      "Official ICAO for Banyuwangi (BWX) is WADY (formerly Blimbingsari / Rogojampi).",
-      "Primary training aerodrome for Akademi Penerbang Indonesia (API Banyuwangi) and BIFA."
-    ]
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
   }
 }

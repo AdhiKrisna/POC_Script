@@ -1,0 +1,125 @@
+{
+  "level": 4,
+  "icao": "WAAA",
+  "iata": "UPG",
+  "name": "Sultan Hasanuddin International Airport",
+  "city": "Maros, Makassar",
+  "elevation_ft": 47,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "03",
+        "21"
+      ],
+      "designator": "03",
+      "reciprocal": "21",
+      "heading_degT": 32.0,
+      "holdingPoints": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "pair": [
+        "13",
+        "31"
+      ],
+      "designator": "13",
+      "reciprocal": "31",
+      "heading_degT": 130.0,
+      "holdingPoints": [
+        "W1",
+        "W2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": {
+      "callsign": "Makassar Delivery",
+      "frequency": "121.650"
+    },
+    "apron": null,
+    "ground": {
+      "callsign": "Makassar Ground",
+      "frequency": "121.700"
+    },
+    "tower": {
+      "callsign": "Makassar Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Makassar Approach",
+      "frequency": "119.400"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Makassar Information",
+      "frequency": "126.250"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Echo",
+      "spoken": "Echo"
+    },
+    {
+      "id": "Whiskey",
+      "spoken": "Whiskey"
+    },
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    }
+  ],
+  "stands": [
+    {
+      "id": "5",
+      "spoken": "gate five"
+    },
+    {
+      "id": "7",
+      "spoken": "gate seven"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "UPG1A",
+        "name": "Makassar One Alfa",
+        "runway": "03",
+        "initialAltFt": 6000
+      }
+    ],
+    "stars": [
+      {
+        "id": "UPG1B",
+        "name": "Makassar One Bravo",
+        "runway": "03"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS03",
+        "type": "ILS",
+        "runway": "03",
+        "missedApproachAltFt": 4000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "MKS",
+        "inboundTrack": 32,
+        "turns": "right",
+        "altFt": 6000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 4,
+    "curriculumCategory": "Major Metropolitan Hub",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

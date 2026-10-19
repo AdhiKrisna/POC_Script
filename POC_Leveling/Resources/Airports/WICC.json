@@ -1,0 +1,106 @@
+{
+  "level": 5,
+  "icao": "WICC",
+  "iata": "BDO",
+  "name": "Husein Sastranegara International Airport",
+  "city": "Bandung, West Java",
+  "elevation_ft": 2436,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "11",
+        "29"
+      ],
+      "designator": "29",
+      "reciprocal": "11",
+      "heading_degT": 290.0,
+      "holdingPoints": [
+        "A1",
+        "A2",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Bandung Ground",
+      "frequency": "121.700"
+    },
+    "tower": {
+      "callsign": "Bandung Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Bandung Approach",
+      "frequency": "120.100"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Bandung Information",
+      "frequency": "126.400"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "2",
+      "spoken": "stand two"
+    },
+    {
+      "id": "3",
+      "spoken": "stand three"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "BDO1A",
+        "name": "Tangku One Alfa Departure",
+        "runway": "29",
+        "initialAltFt": 6000
+      }
+    ],
+    "stars": [
+      {
+        "id": "BDO1B",
+        "name": "Kawah One Arrival",
+        "runway": "29"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "LOC29",
+        "type": "LOC",
+        "runway": "29",
+        "missedApproachAltFt": 5500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "BDO",
+        "inboundTrack": 290,
+        "turns": "right",
+        "altFt": 7500
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 5,
+    "curriculumCategory": "High-Risk Valley & Extreme Terrain",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

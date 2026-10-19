@@ -1,0 +1,106 @@
+{
+  "level": 4,
+  "icao": "WIHH",
+  "iata": "HLP",
+  "name": "Halim Perdanakusuma International Airport",
+  "city": "East Jakarta",
+  "elevation_ft": 84,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "06",
+        "24"
+      ],
+      "designator": "06",
+      "reciprocal": "24",
+      "heading_degT": 60.0,
+      "holdingPoints": [
+        "A1",
+        "A2",
+        "C1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Halim Ground",
+      "frequency": "121.800"
+    },
+    "tower": {
+      "callsign": "Halim Tower",
+      "frequency": "118.600"
+    },
+    "approach": {
+      "callsign": "Jakarta Director",
+      "frequency": "123.800"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Halim Information",
+      "frequency": "126.000"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Charlie",
+      "spoken": "Charlie"
+    }
+  ],
+  "stands": [
+    {
+      "id": "1",
+      "spoken": "VIP one"
+    },
+    {
+      "id": "4",
+      "spoken": "apron stand four"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "HLP1A",
+        "name": "Halim One Alfa",
+        "runway": "06",
+        "initialAltFt": 5000
+      }
+    ],
+    "stars": [
+      {
+        "id": "HLP1B",
+        "name": "Halim One Bravo",
+        "runway": "06"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS06",
+        "type": "ILS",
+        "runway": "06",
+        "missedApproachAltFt": 3500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "HLP",
+        "inboundTrack": 60,
+        "turns": "left",
+        "altFt": 5000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 4,
+    "curriculumCategory": "Major Metropolitan Hub",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

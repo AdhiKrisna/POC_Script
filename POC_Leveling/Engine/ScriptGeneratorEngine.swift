@@ -423,6 +423,15 @@ public final class ScriptGeneratorEngine {
         let activeWeather = isArrivalOrLater ? missionContext.arrWeather : missionContext.depWeather
         let activeAtis = isArrivalOrLater ? missionContext.arrAtisId : missionContext.depAtisId
 
+        let resolvedCenter = activeAirport.units.center ?? Self.resolveAreaControl(
+            originICAO: missionContext.originAirport.icao,
+            destinationICAO: missionContext.destinationAirport.icao
+        )
+
+        let resolvedDepRadar = activeAirport.units.departure
+            ?? activeAirport.units.approach
+            ?? resolvedCenter
+
         return SlotContext(
             airport: activeAirport,
             selectedRunway: activeRunway,
@@ -434,9 +443,9 @@ public final class ScriptGeneratorEngine {
             unitGround: activeAirport.units.ground,
             unitTower: activeAirport.units.tower,
             unitApproach: activeAirport.units.approach,
-            unitDeparture: activeAirport.units.departure,
+            unitDeparture: resolvedDepRadar,
             unitDelivery: activeAirport.units.delivery,
-            unitControl: activeAirport.units.center,
+            unitControl: resolvedCenter,
             stand: missionContext.standOrigin,
             aircraftType: missionContext.aircraftType,
             pob: missionContext.profile == .vfrLocal ? 2 : 168,
@@ -445,9 +454,9 @@ public final class ScriptGeneratorEngine {
             sidProcedure: missionContext.sidProcedure,
             starProcedure: missionContext.starProcedure,
             squawk: missionContext.squawkCode,
-            depFreq: SpokenFormFormatter.frequency(missionContext.originAirport.units.departure?.frequency ?? "119.550"),
+            depFreq: SpokenFormFormatter.frequency(resolvedDepRadar.frequency),
             approachFreq: SpokenFormFormatter.frequency(missionContext.destinationAirport.units.approach?.frequency ?? "119.500"),
-            controlFreq: SpokenFormFormatter.frequency(missionContext.originAirport.units.center?.frequency ?? "127.900"),
+            controlFreq: SpokenFormFormatter.frequency(resolvedCenter.frequency),
             arrRunway: SpokenFormFormatter.runway(missionContext.arrRunway.designator),
             arrAtisId: missionContext.arrAtisId,
             visibility: "eight kilometres",
@@ -531,7 +540,7 @@ public final class ScriptGeneratorEngine {
             sidProcedure: airport.procedures.sids.first?.name ?? "DOLTA One Alfa",
             starProcedure: airport.procedures.stars.first?.name ?? "ELANG One Alfa",
             squawk: "four two one five",
-            depFreq: SpokenFormFormatter.frequency(airport.units.departure?.frequency ?? "119.550"),
+            depFreq: SpokenFormFormatter.frequency(airport.units.departure?.frequency ?? airport.units.approach?.frequency ?? "119.750"),
             approachFreq: SpokenFormFormatter.frequency(airport.units.approach?.frequency ?? "119.500"),
             controlFreq: SpokenFormFormatter.frequency(airport.units.center?.frequency ?? "127.900"),
             arrRunway: SpokenFormFormatter.runway(selectedRunway.designator),
@@ -838,19 +847,91 @@ public final class ScriptGeneratorEngine {
         return holdingPoints[abs(seed) % holdingPoints.count]
     }
 
-    // MARK: - Level-Based Mission Generator (5 Progressive Curriculum Levels)
-    public func generateLevelMission(
-        level: CurriculumLevel,
+    // MARK: - Dynamic Procedures Resolver
+    public static func resolveProcedures(
+        originICAO: String,
+        destinationICAO: String,
+        level: CurriculumLevel
+    ) -> (sid: String, star: String, waypoints: (curr: String, next: String)) {
+        let sidName: String
+        let starName: String
+        let waypoints: (curr: String, next: String)
+
+        switch originICAO {
+        case "WADY":
+            sidName = (level == .level1) ? "Circuit Departure" : "Area Alpha Departure via Selat Bali"
+            waypoints = ("Point Alfa", "Point Charlie")
+        case "WICB":
+            sidName = (level == .level1) ? "Curug Visual Circuit" : "Mauk One Departure"
+            waypoints = ("CURUG", "Area Alfa")
+        case "WART":
+            sidName = (level == .level1) ? "Trunojoyo Visual Circuit" : "Madura East Departure"
+            waypoints = ("SUP VOR", "Madura South")
+        case "WAHI":
+            sidName = "JOG One Charlie (JOG 1C)"
+            waypoints = ("JOG VOR", "PRAMB")
+        case "WARR":
+            sidName = "SURABAYA One Bravo (SBY 1B)"
+            waypoints = ("SURBA", "GANDI")
+        case "WADD":
+            sidName = "BLI Two Charlie (BLI 2C)"
+            waypoints = ("POSOP", "BLI VOR")
+        case "WIII":
+            sidName = "BUNTA One Alfa (BUNTA 1A)"
+            waypoints = ("BUNTA", "DOLTA")
+        default:
+            sidName = level.sidName
+            waypoints = ("BUNTA", "DOLTA")
+        }
+
+        switch destinationICAO {
+        case "WADY":
+            starName = (level == .level1) ? "Overhead Join Pattern" : "Right Base Runway 08"
+        case "WICB":
+            starName = (level == .level1) ? "Downwind Join Runway 12" : "CR NDB Inbound Runway 30"
+        case "WART":
+            starName = (level == .level1) ? "Overhead Join Runway 12" : "Straight-in Runway 12"
+        case "WAHI":
+            starName = "GANDI One Alfa (GANDI 1A)"
+        case "WARR":
+            starName = "POSOP One Alfa (POSOP 1A)"
+        case "WADD":
+            starName = "BLI One Bravo (BLI 1B)"
+        case "WIII":
+            starName = "DOLTA One Alfa (DOLTA 1A)"
+        default:
+            starName = level.starName
+        }
+
+        return (sid: sidName, star: starName, waypoints: waypoints)
+    }
+
+    // MARK: - Dynamic Airport-Driven Mission Generator
+    public func generateDynamicMission(
+        originICAO: String,
+        destinationICAO: String? = nil,
         role: UserRole = .pilot,
         mode: SimulationMode = .practice,
         seed: Int? = nil,
-        selectedContingencies: Set<ContingencySelection>
+        selectedContingencies: Set<ContingencySelection> = [],
+        retryAct: MissionAct? = nil
     ) throws -> FlightMissionScript {
         let chosenSeed = seed ?? Int.random(in: 1000...9999)
-        let originAirport = try airportRepository.airport(icao: level.originICAO)
-        let destinationAirport = try airportRepository.airport(icao: level.destinationICAO)
+        let resolvedDestICAO: String
+        let level: CurriculumLevel
 
-        let profile = level.defaultProfile
+        if role == .pilot {
+            resolvedDestICAO = (destinationICAO == nil || destinationICAO?.isEmpty == true) ? originICAO : destinationICAO!
+            level = AirportCurriculumRegistry.effectiveLevel(origin: originICAO, destination: resolvedDestICAO)
+        } else {
+            resolvedDestICAO = originICAO
+            level = AirportCurriculumRegistry.level(for: originICAO)
+        }
+
+        let originAirport = try airportRepository.airport(icao: originICAO)
+        let destinationAirport = try airportRepository.airport(icao: resolvedDestICAO)
+
+        let profile: FlightProfile = (level == .level1) ? .vfrLocal : .ifrCommercial
         let callsign = CallsignGenerator.generate(profile: profile, seed: chosenSeed)
         let aircraftType = AircraftGenerator.generate(profile: profile, level: level, seed: chosenSeed)
 
@@ -911,8 +992,9 @@ public final class ScriptGeneratorEngine {
             initialAlt = "flight level one zero zero"
         }
 
-        let sidName = level.sidName
-        let starName = level.starName
+        let procs = Self.resolveProcedures(originICAO: originAirport.icao, destinationICAO: destinationAirport.icao, level: level)
+        let sidName = procs.sid
+        let starName = procs.star
 
         let standOrigin = StandGenerator.originStand(icao: originAirport.icao, seed: chosenSeed)
         let standDest = StandGenerator.destinationStand(icao: destinationAirport.icao, seed: chosenSeed)
@@ -932,8 +1014,9 @@ public final class ScriptGeneratorEngine {
         let squawkCode: String = profile == .vfrLocal ? "one two zero zero" : SpokenFormFormatter.digitWords(String(4200 + (abs(chosenSeed) % 500)))
 
         // Multi-Contingency Resolution with Independent 50% Dice Roll per Selected Item
+        let effectiveContingencies = selectedContingencies.isEmpty ? Set(level.allowedScenarios) : selectedContingencies
         let chosenContingencies: [InjectedContingency] = resolveMultipleContingencies(
-            selectedOptions: selectedContingencies,
+            selectedOptions: effectiveContingencies,
             level: level,
             seed: chosenSeed
         )
@@ -1072,28 +1155,92 @@ public final class ScriptGeneratorEngine {
             )
         }
 
-        // Generate Diagnostic Report
-        let diagScore = 80 + (abs(chosenSeed) % 18)
-        let readbackAcc = 85 + (abs(chosenSeed) % 15)
-        let phraseScore = 82 + (abs(chosenSeed) % 16)
-        let discScore = 80 + (abs(chosenSeed) % 17)
-        let isPass = diagScore >= 80
+        // Generate 3-Act Diagnostic Report with ICAO Checkpoints
+        let act1Score = 86 + (abs(chosenSeed) % 11)      // 86..96%
+        let act2Score = 83 + (abs(chosenSeed + 3) % 13)  // 83..95%
+        let act3Score = 81 + (abs(chosenSeed + 7) % 14)  // 81..94%
+        let overallScore = (act1Score + act2Score + act3Score) / 3
+        let isPass = overallScore >= 80
+
+        let act1Eval = ActEvaluation(
+            act: .act1Departure,
+            score: act1Score,
+            isPassed: act1Score >= 80,
+            criticalViolations: [],
+            penalties: (act1Score < 90) ? [.phoneticHesitation] : [],
+            feedback: "Kepatuhan clearance departure, verifikasi runway & hold short sesuai ICAO Doc 9432 Bab 4."
+        )
+
+        let act2Eval = ActEvaluation(
+            act: .act2EnRoute,
+            score: act2Score,
+            isPassed: act2Score >= 80,
+            criticalViolations: [],
+            penalties: (act2Score < 85) ? [.longSilence] : [],
+            feedback: "Disiplin pelaporan posisi di fix waypoint dan kepatuhan level jelajah stabil."
+        )
+
+        let act3Eval = ActEvaluation(
+            act: .act3Arrival,
+            score: act3Score,
+            isPassed: act3Score >= 80,
+            criticalViolations: [],
+            penalties: (act3Score < 85) ? [.wordOrderTransposition] : [],
+            feedback: "Prosedur kedatangan, capture ILS / visual downwind dan vacating runway sesuai Doc 4444."
+        )
+
+        let actEvals = [act1Eval, act2Eval, act3Eval]
+
+        let numbersSc = 90 + (abs(chosenSeed) % 9)
+        let phraseSc = 86 + (abs(chosenSeed) % 11)
+        let pttSc = 88 + (abs(chosenSeed) % 10)
+        let fluencySc = 92 + (abs(chosenSeed) % 7)
+        let calcOverall = Int(Double(numbersSc) * 0.40 + Double(phraseSc) * 0.25 + Double(pttSc) * 0.20 + Double(fluencySc) * 0.15)
+        let finalOverall = isPass ? max(calcOverall, 80) : min(calcOverall, 75)
 
         let report = DiagnosticReport(
-            overallScore: diagScore,
-            readbackAccuracyPercent: readbackAcc,
-            phraseologyScorePercent: phraseScore,
-            disciplineScorePercent: discScore,
+            overallScore: finalOverall,
+            readbackAccuracyPercent: numbersSc,
+            phraseologyScorePercent: phraseSc,
+            disciplineScorePercent: pttSc,
             isPassed: isPass,
             summaryFeedback: isPass
-                ? "Selamat! Anda memenuhi standar kecakapan ICAO (skor \(diagScore)%). Kelayakan prosedur navigasi dan readback keselamatan terpenuhi."
-                : "Skor Anda \(diagScore)%. Tingkatkan akurasi pembacaan kembali angka keselamatan kritis dan tempo transmisi.",
+                ? "Lulus Evaluasi Rapor Ketertiban Radio (\(finalOverall)%). Kepatuhan frasa dan verifikasi angka ICAO terpenuhi."
+                : "Evaluasi memerlukan perbaikan pada babak tertentu. Ulangi babak yang belum mencapai 80%.",
             improvementAreas: [
-                "Pastikan nomor runway selalu diucapkan di awal readback izin take-off / landing.",
+                "Pastikan nomor runway selalu diucapkan di awal/akhir readback izin take-off & landing (ICAO Doc 4444 Sec 12.2.3).",
                 "Perhatikan instruksi STOP IMMEDIATELY dan konfirmasi status 'stopping/aborting take-off' tanpa jeda.",
-                "Gunakan istilah baku ICAO tanpa penambahan filler kata santai."
-            ]
+                "Gunakan istilah baku ICAO tanpa penambahan filler kata percakapan bebas."
+            ],
+            actEvaluations: actEvals,
+            criticalViolations: [],
+            nonCriticalPenalties: actEvals.flatMap { $0.penalties },
+            numbersScore: numbersSc,
+            phraseologyScore: phraseSc,
+            pttDisciplineScore: pttSc,
+            fluencyScore: fluencySc,
+            actualWpm: level == .level1 ? 88 : 110,
+            fillerWordsCount: 0,
+            hesitationCount: 0,
+            pttLatencyMs: 315 + (abs(chosenSeed) % 120),
+            numbersAccuracyPercentVal: numbersSc
         )
+
+        var uniqueExecuted: [InjectedContingency] = []
+        for c in executedContingencies {
+            if !uniqueExecuted.contains(where: { $0.title == c.title }) {
+                uniqueExecuted.append(c)
+            }
+        }
+
+        // If not terminated early on ground, ensure all chosen contingencies are represented
+        if !isFlightTerminatedEarly {
+            for c in chosenContingencies {
+                if !uniqueExecuted.contains(where: { $0.title == c.title }) {
+                    uniqueExecuted.append(c)
+                }
+            }
+        }
 
         return FlightMissionScript(
             id: UUID(),
@@ -1109,7 +1256,34 @@ public final class ScriptGeneratorEngine {
             missionContext: missionContext,
             phaseScripts: phaseScripts,
             diagnosticReport: report,
-            contingencies: executedContingencies
+            contingencies: uniqueExecuted
+        )
+    }
+
+    // Overload: Level-based mission generator (bridges to dynamic generator)
+    // NOTE: Legacy overloads kept for backward compat with old tests only.
+    // Preferred entry point: generateDynamicMission(originICAO:destinationICAO:role:)
+    public func generateLevelMission(
+        level: CurriculumLevel,
+        role: UserRole = .pilot,
+        mode: SimulationMode = .practice,
+        seed: Int? = nil,
+        selectedContingencies: Set<ContingencySelection>
+    ) throws -> FlightMissionScript {
+        // Use first airport of that level as default origin for legacy compatibility
+        let airports = AirportCurriculumRegistry.airports(for: level)
+        let originICAO = airports.first?.icao ?? "WADY"
+        // For ATC: same aerodrome (no destination). For Pilot: pick second-level airport as dest.
+        let destLevel = level.nextLevel ?? level
+        let destAirports = AirportCurriculumRegistry.airports(for: destLevel)
+        let destICAO = (role == .atc) ? nil : (destAirports.first?.icao ?? originICAO)
+        return try generateDynamicMission(
+            originICAO: originICAO,
+            destinationICAO: destICAO,
+            role: role,
+            mode: mode,
+            seed: seed,
+            selectedContingencies: selectedContingencies
         )
     }
 
@@ -1155,6 +1329,19 @@ public final class ScriptGeneratorEngine {
         )
     }
 
+    public static func resolveAreaControl(originICAO: String, destinationICAO: String) -> ATCUnit {
+        let makassarAirports: Set<String> = [
+            "WAAA", "WAVV", "WABP", "WAFB", "WALR", "WALL", "WAOO", "WADD", "WADL", "WADE"
+        ]
+        if makassarAirports.contains(originICAO) {
+            return ATCUnit(callsign: "Makassar Control", frequency: "123.600")
+        } else if makassarAirports.contains(destinationICAO) {
+            return ATCUnit(callsign: "Makassar Control", frequency: "124.200")
+        } else {
+            return ATCUnit(callsign: "Jakarta Control", frequency: "134.400")
+        }
+    }
+
     private func buildMissionSlotContext(
         missionContext: FlightMissionContext,
         phase: Phase,
@@ -1171,15 +1358,26 @@ public final class ScriptGeneratorEngine {
         let activeWeather = isArrivalOrLater ? missionContext.arrWeather : (customWeather ?? missionContext.depWeather)
         let activeAtis = isArrivalOrLater ? missionContext.arrAtisId : missionContext.depAtisId
 
+        let resolvedCenter = activeAirport.units.center ?? Self.resolveAreaControl(
+            originICAO: missionContext.originAirport.icao,
+            destinationICAO: missionContext.destinationAirport.icao
+        )
+
         let waypoints: (curr: String, next: String)
         switch missionContext.originAirport.icao {
         case "WADY": waypoints = ("Point Alfa", "Point Charlie")
+        case "WICB": waypoints = ("CURUG", "Area Alfa")
+        case "WART": waypoints = ("SUP VOR", "Madura South")
         case "WADD": waypoints = ("POSOP", "BLI VOR")
         case "WARR": waypoints = ("SURBA", "GANDI")
         case "WAHI": waypoints = ("JOG VOR", "PRAMB")
         case "WIII": waypoints = ("BUNTA", "DOLTA")
         default: waypoints = ("BUNTA", "DOLTA")
         }
+
+        let resolvedDepRadar = activeAirport.units.departure
+            ?? activeAirport.units.approach
+            ?? resolvedCenter
 
         return SlotContext(
             airport: activeAirport,
@@ -1192,9 +1390,9 @@ public final class ScriptGeneratorEngine {
             unitGround: activeAirport.units.ground,
             unitTower: activeAirport.units.tower,
             unitApproach: activeAirport.units.approach,
-            unitDeparture: activeAirport.units.departure,
+            unitDeparture: resolvedDepRadar,
             unitDelivery: activeAirport.units.delivery,
-            unitControl: activeAirport.units.center,
+            unitControl: resolvedCenter,
             stand: missionContext.standOrigin,
             aircraftType: missionContext.aircraftType,
             pob: missionContext.profile == .vfrLocal ? 2 : 168,
@@ -1203,9 +1401,9 @@ public final class ScriptGeneratorEngine {
             sidProcedure: missionContext.sidProcedure,
             starProcedure: missionContext.starProcedure,
             squawk: missionContext.squawkCode,
-            depFreq: SpokenFormFormatter.frequency(missionContext.originAirport.units.departure?.frequency ?? "119.550"),
+            depFreq: SpokenFormFormatter.frequency(resolvedDepRadar.frequency),
             approachFreq: SpokenFormFormatter.frequency(missionContext.destinationAirport.units.approach?.frequency ?? "119.500"),
-            controlFreq: SpokenFormFormatter.frequency(missionContext.originAirport.units.center?.frequency ?? "127.900"),
+            controlFreq: SpokenFormFormatter.frequency(resolvedCenter.frequency),
             arrRunway: SpokenFormFormatter.runway(missionContext.arrRunway.designator),
             arrAtisId: missionContext.arrAtisId,
             visibility: "eight kilometres",
@@ -1289,6 +1487,16 @@ public final class ScriptGeneratorEngine {
                 let options = ["Sierra Six", "Sierra Seven"]
                 return (options[abs(seed) % options.count], "left")
             }
+        case "WICB":
+            if cleanRwy.contains("12") {
+                let options = ["Golf", "Hotel"]
+                return (options[abs(seed) % options.count], "left")
+            } else {
+                let options = ["Bravo", "Charlie"]
+                return (options[abs(seed) % options.count], "right")
+            }
+        case "WART":
+            return ("Bravo", "left")
         default:
             if cleanRwy.contains("08") {
                 let options = ["Bravo", "Alfa Two"]
@@ -1324,74 +1532,116 @@ public final class ScriptGeneratorEngine {
         let isUserCustomSubset = selectedOptions.count < level.allowedScenarios.count
 
         if isUserCustomSubset {
-            // When the user deliberately selects specific scenarios to practice, guarantee they trigger!
-            // If 1 scenario is chosen, trigger it 100%. If multiple are chosen, pick between them deterministically.
-            let pickedIndex = abs(seed) % optionsToEvaluate.count
-            return sanitizeRolledContingencies([optionsToEvaluate[pickedIndex]])
+            // When the user deliberately selects specific scenarios, trigger all non-conflicting ones!
+            return sanitizeRolledContingencies(optionsToEvaluate)
         }
 
-        // CASE B: DEFAULT "ALL SCENARIOS ACTIVE" — FAIR PEDAGOGICAL FLIGHT DISTRIBUTION
-        // Distribution per 10 seeds:
-        // - 40% (Seed mod 10 in 0, 1, 2, 3) : ROUTINE FLIGHT (100% normal end-to-end flight, zero contingencies)
-        // - 50% (Seed mod 10 in 4, 5, 6, 7, 8) : SINGLE FOCUSED CONTINGENCY FLIGHT (1 realistic level-appropriate scenario)
-        // - 10% (Seed mod 10 == 9)            : DUAL COHERENT CONTINGENCY FLIGHT (max 2 non-conflicting minor events)
-
-        let rollCategory = abs(seed) % 10
-
-        // 1. Routine Flight (40% Probability: End-to-End Clean Flight)
-        if rollCategory < 4 {
+        // CASE B: DEFAULT "ALL SCENARIOS ACTIVE" — PEDAGOGICAL MULTI-STAGE CONTINGENCY FLIGHT
+        // LEVEL 1: Ab-Initio Cadet (100% Prosedur Rutin Murni, zero anomalies)
+        if level == .level1 {
             return []
         }
 
-        // 2. Dual Contingency Flight (10% Probability)
-        if rollCategory == 9 {
-            let preDep = optionsToEvaluate.filter { $0.triggerPhase == .preDeparture }
-            let airborne = optionsToEvaluate.filter { $0.triggerPhase != .preDeparture && $0.triggerPhase != .departure }
+        var rolled: [ContingencySelection] = []
 
-            var dualRolled: [ContingencySelection] = []
-            if !preDep.isEmpty {
-                let idx1 = abs(seed &* 31) % preDep.count
-                dualRolled.append(preDep[idx1])
+        switch level {
+        case .level1:
+            return []
+
+        case .level2:
+            // LEVEL 2: 20% Normal, 20% each for the 4 light friction scenarios (100% total)
+            let dice = abs(seed) % 100
+            if dice < 20 {
+                return [] // 20% Normal/Routine
+            } else if dice < 40 {
+                rolled.append(.pushbackDelay) // 20%
+            } else if dice < 60 {
+                rolled.append(.stopPushback) // 20%
+            } else if dice < 80 {
+                rolled.append(.unableAltitude) // 20%
+            } else {
+                rolled.append(.holdShortExact) // 20%
             }
-            if !airborne.isEmpty {
-                let idx2 = abs(seed &* 47) % airborne.count
-                dualRolled.append(airborne[idx2])
+
+        case .level3:
+            // LEVEL 3: Rank 03 Exam Mode (10% Normal, 90% Contingency Tested, Fair & Varied)
+            let dice = abs(seed) % 100
+            if dice < 10 {
+                return [] // 10% Normal
             }
-            let fallback = [optionsToEvaluate[abs(seed) % optionsToEvaluate.count]]
-            return sanitizeRolledContingencies(dualRolled.isEmpty ? fallback : dualRolled)
+            let primaryIdx = (abs(seed / 7) + abs(seed % 17)) % optionsToEvaluate.count
+            let primary = optionsToEvaluate[primaryIdx]
+            rolled.append(primary)
+
+            // 40% chance of an additional compatible tactical contingency from another phase
+            if (abs(seed / 3) % 5 < 2) {
+                let otherPhase = optionsToEvaluate.filter { $0.triggerPhase != primary.triggerPhase && $0 != primary }
+                if !otherPhase.isEmpty {
+                    let secondary = otherPhase[abs(seed &* 31 + 13) % otherPhase.count]
+                    rolled.append(secondary)
+                }
+            }
+
+        case .level4:
+            // LEVEL 4: Rank 04 Exam Mode (5% Normal, 95% Compound Contingencies)
+            let dice = abs(seed) % 100
+            if dice < 5 {
+                return [] // 5% Normal
+            }
+            let primaryIdx = (abs(seed / 11) + abs(seed % 23)) % optionsToEvaluate.count
+            let primary = optionsToEvaluate[primaryIdx]
+            rolled.append(primary)
+
+            let otherPhase = optionsToEvaluate.filter { $0.triggerPhase != primary.triggerPhase && $0 != primary }
+            if !otherPhase.isEmpty {
+                let secondary = otherPhase[abs(seed &* 47 + 7) % otherPhase.count]
+                rolled.append(secondary)
+                let thirdPhase = otherPhase.filter { $0.triggerPhase != secondary.triggerPhase && $0 != secondary }
+                if !thirdPhase.isEmpty && (abs(seed / 5) % 2 == 0) {
+                    rolled.append(thirdPhase[abs(seed &* 71 + 19) % thirdPhase.count])
+                }
+            }
+
+        case .level5:
+            // LEVEL 5: Rank 05 Ultimate Exam (100% Injected Challenges, 0% Normal)
+            let primaryIdx = (abs(seed / 13) + abs(seed % 31)) % optionsToEvaluate.count
+            let primary = optionsToEvaluate[primaryIdx]
+            rolled.append(primary)
+
+            // If non-abort, 50% chance of secondary compatible challenge
+            let otherPhase = optionsToEvaluate.filter { $0.triggerPhase != primary.triggerPhase && $0 != primary }
+            if !otherPhase.isEmpty && (abs(seed / 2) % 2 == 0) {
+                rolled.append(otherPhase[abs(seed &* 59 + 29) % otherPhase.count])
+            }
         }
 
-        // 3. Single Focused Contingency Flight (50% Probability)
-        var pool = optionsToEvaluate
-
-        // Ensure take-off aborts don't dominate Level 1 and Level 5:
-        // Only 1 in 6 contingency seeds (approx 16%) is eligible for abort
-        let abortItems: [ContingencySelection] = [.abortTakeoff, .birdStrikeAbort, .efato]
-        let isAbortEligible = (abs(seed / 10) % 6 == 0)
-        if !isAbortEligible {
-            pool.removeAll(where: { abortItems.contains($0) })
+        if rolled.isEmpty {
+            return []
         }
 
-        if pool.isEmpty {
-            pool = optionsToEvaluate
-        }
-
-        let chosenIndex = abs(seed &* 43) % pool.count
-        return sanitizeRolledContingencies([pool[chosenIndex]])
+        return sanitizeRolledContingencies(rolled)
     }
 
     private func sanitizeRolledContingencies(_ rawRolled: [ContingencySelection]) -> [InjectedContingency] {
-        var rolled = rawRolled
+        // Deduplicate so the same contingency is never injected twice in one mission
+        var uniqueOrdered: [ContingencySelection] = []
+        for opt in rawRolled {
+            if !uniqueOrdered.contains(opt) {
+                uniqueOrdered.append(opt)
+            }
+        }
+        var rolled = uniqueOrdered
 
         // 1. Take-off Early Termination Mutual Exclusion:
         let abortOptions: [ContingencySelection] = [.birdStrikeAbort, .abortTakeoff, .efato]
         let rolledAborts = rolled.filter { abortOptions.contains($0) }
-        if rolledAborts.count > 1 {
+        if !rolledAborts.isEmpty {
             let prioritizedAbort = rolledAborts.sorted { a, b in
                 let rank: [ContingencySelection: Int] = [.birdStrikeAbort: 3, .abortTakeoff: 2, .efato: 1]
                 return (rank[a] ?? 0) > (rank[b] ?? 0)
             }.first!
-            rolled.removeAll(where: { abortOptions.contains($0) && $0 != prioritizedAbort })
+            // When an abort on ground occurs, flight NEVER proceeds en-route or to destination!
+            return [resolveSingleContingency(option: prioritizedAbort)].compactMap { $0 }
         }
 
         // 2. Bird Hazard Mutual Exclusion:
@@ -1409,14 +1659,36 @@ public final class ScriptGeneratorEngine {
             rolled.removeAll(where: { $0 == .wakeTurbulenceLineUp })
         }
 
-        // 5. Approach Emergency Mutual Exclusion:
-        let approachOptions = rolled.filter { $0.triggerPhase == .approach }
-        if approachOptions.count > 1 {
-            let prioritized = approachOptions.sorted { (a, b) -> Bool in
+        // 5. Critical In-Flight Emergency Mutual Exclusion (Realistic CRM & LOFT Event Sets):
+        // A single flight MUST NOT experience multiple disconnected catastrophic crises
+        let majorCrises: [ContingencySelection] = [
+            .midAirEngineOut,
+            .emergencyDescentDecompression,
+            .passengerMedicalEmergency,
+            .fuelEmergencyMayday,
+            .volcanicAshAvoidance,
+            .hijack7500,
+            .militaryInterception,
+            .runwayExcursionARFF,
+            .flapFailure,
+            .unsafeGear,
+            .unclearedGoAround
+        ]
+        let rolledCrises = rolled.filter { majorCrises.contains($0) }
+        if rolledCrises.count > 1 {
+            let prioritized = rolledCrises.sorted { (a, b) -> Bool in
                 let sevRank: [EventSeverity: Int] = [.distress: 3, .urgency: 2, .abnormal: 1, .normal: 0]
                 return (sevRank[a.defaultSeverity] ?? 0) > (sevRank[b.defaultSeverity] ?? 0)
             }.first!
-            rolled.removeAll(where: { $0.triggerPhase == .approach && $0 != prioritized })
+            rolled.removeAll(where: { majorCrises.contains($0) && $0 != prioritized })
+        }
+
+        // 6. Approach / Landing Conflict Prevention
+        if rolled.contains(.lowPassInspection) {
+            rolled.removeAll(where: { $0 == .continueApproachShortFinal || $0 == .flapFailure })
+        }
+        if rolled.contains(.pilotInitiatedGoAround) {
+            rolled.removeAll(where: { $0 == .continueApproachShortFinal || $0 == .runwayExcursionARFF })
         }
 
         var result: [InjectedContingency] = []
@@ -1711,6 +1983,244 @@ public final class ScriptGeneratorEngine {
                 triggerPhase: .approach,
                 summary: "Genangan air di landasan pacu menyebabkan risiko hydroplaning. ATC meneruskan laporan daya cengkeram rem buruk (braking action poor) dari pesawat sebelumnya.",
                 downstreamEffect: "Pilot mempersiapkan pengereman thrust reverser maksimum dan mengantisipasi jarak henti lebih panjang."
+            )
+
+        // MARK: - LEVEL 2 NEW CASES
+        case .pushbackDelay:
+            return InjectedContingency(
+                title: "Pushback Delay (Traffic Behind - Doc 9432 §4.3.1)",
+                severity: .urgency,
+                triggerPhase: .preDeparture,
+                summary: "Penundaan pushback karena ada lalu lintas taxi pesawat lain yang sedang melintas tepat di belakang stand parkir.",
+                downstreamEffect: "Pilot wajib menahan pushback di stand: 'Hold position, expect three minutes delay' hingga jalur apron steril."
+            )
+
+        case .stopPushback:
+            return InjectedContingency(
+                title: "Stop Pushback Immediately (Doc 9432 §4.3.3)",
+                severity: .urgency,
+                triggerPhase: .preDeparture,
+                summary: "Pembatalan pushback mendadak oleh ATC Ground karena ada pergerakan kendaraan apron liar yang memotong jalur dorong.",
+                downstreamEffect: "ATC menerbitkan: 'STOP PUSHBACK IMMEDIATELY'. Pilot mengonfirmasi rem dipasang dan pushback berhenti seketika."
+            )
+
+        case .unableAltitude:
+            return InjectedContingency(
+                title: "Unable Altitude Profile (Aircraft Performance - Doc 9432 §2.6)",
+                severity: .urgency,
+                triggerPhase: .enRoute,
+                summary: "ATC menginstruksikan percepatan laju tanjak melewati waypoint, namun pesawat dengan bobot penuh tidak sanggup memenuhi gradien tanjak.",
+                downstreamEffect: "Pilot wajib menolak izin menggunakan kata sakral: 'UNABLE FL... due performance, request maintain lower level'."
+            )
+
+        case .holdShortExact:
+            return InjectedContingency(
+                title: "Hold Short Mandatory Readback (Doc 4444 §4.5.7.5b)",
+                severity: .abnormal,
+                triggerPhase: .preDeparture,
+                summary: "Instruksi taxi menuju batas aman holding point yang mewajibkan penegasan ulang batas berhenti landasan aktif.",
+                downstreamEffect: "Pilot me-readback titik batas 'HOLD SHORT' secara presisi tanpa melanggar garis marka pembatas."
+            )
+
+        // MARK: - LEVEL 3 NEW CASES
+        case .runwayBacktrack:
+            return InjectedContingency(
+                title: "Runway Backtrack Maneuver (Doc 9432 §4.4.2)",
+                severity: .abnormal,
+                triggerPhase: .departure,
+                summary: "Bandara tanpa parallel taxiway penuh menuntut pesawat memasuki landasan dan berputar 180 derajat di turning loop ujung landasan.",
+                downstreamEffect: "Pilot melakukan backtrack dan line up and wait di ujung landasan aktif dengan disiplin waktu tinggi."
+            )
+
+        case .conditionalLineUp:
+            return InjectedContingency(
+                title: "Conditional Line-Up and Wait (Doc 9432 §4.5.7)",
+                severity: .abnormal,
+                triggerPhase: .departure,
+                summary: "Izin masuk landasan bersyarat di belakang pesawat yang sedang mendarat di short final.",
+                downstreamEffect: "Pilot mengidentifikasi pesawat pendarat sebelum meluncur masuk ke landasan pacu: 'Behind landing Boeing 737, line up and wait runway...'."
+            )
+
+        case .holdingPatternEAT:
+            return InjectedContingency(
+                title: "Holding Pattern & EAT (Doc 4444 §5.5)",
+                severity: .abnormal,
+                triggerPhase: .enRoute,
+                summary: "Kepadatan lalu lintas di bandara kedatangan memicu perintah holding di atas fix/VOR dengan estimasi waktu pendekatan (Expected Approach Time).",
+                downstreamEffect: "Pilot me-readback titik hold, inbound track, arah putaran, level, dan waktu EAT."
+            )
+
+        case .delayingVectorOrbit:
+            return InjectedContingency(
+                title: "Delaying Vector / Orbit (Doc 9432 §4.6.5)",
+                severity: .abnormal,
+                triggerPhase: .approach,
+                summary: "ATC memberikan putaran tunda 360 derajat (orbit) atau vektor radar tambahan untuk mengatur separasi kedatangan.",
+                downstreamEffect: "Pesawat melakukan 360° turn sebelum diarahkan kembali ke jalur pendekatan final."
+            )
+
+        case .continueApproachShortFinal:
+            return InjectedContingency(
+                title: "Continue Approach on Short Final (Doc 9432 §4.7.1)",
+                severity: .abnormal,
+                triggerPhase: .landing,
+                summary: "Menunda izin mendarat di short final karena pesawat di depan lambat keluar landasan.",
+                downstreamEffect: "Pilot mempertahankan pendekatan dan me-readback 'CONTINUE APPROACH' hingga izin pendaratan terbit."
+            )
+
+        case .lightGunSignals:
+            return InjectedContingency(
+                title: "Light Gun Signals (Ground Comms Failure - Doc 4444 §7.16)",
+                severity: .abnormal,
+                triggerPhase: .landing,
+                summary: "Hilang komunikasi radio di darat, pilot mengamati tembakan pistol lampu hijau/merah dari menara ATC.",
+                downstreamEffect: "Pilot mengonfirmasi izin taksi/mendarat via kilatan lampu suar kontrol menara."
+            )
+
+        // MARK: - LEVEL 4 NEW CASES
+        case .ctotSlotManagement:
+            return InjectedContingency(
+                title: "CTOT Slot Management (ATFM Delay - Doc 4444 Ch 3)",
+                severity: .abnormal,
+                triggerPhase: .preDeparture,
+                summary: "Kepatuhan slot waktu keberangkatan ATFM yang sangat ketat untuk menghindari penumpukan di koridor udara padat.",
+                downstreamEffect: "Koordinasi waktu start-up dengan toleransi slot CTOT -5 / +10 menit."
+            )
+
+        case .callsignConfusion:
+            return InjectedContingency(
+                title: "Callsign Confusion Vigilance (Doc 9432 §2.7.2)",
+                severity: .abnormal,
+                triggerPhase: .departure,
+                summary: "Dua pesawat di frekuensi yang sama memiliki nomor penerbangan mirip. Siswa harus waspada menyaring panggilan suara.",
+                downstreamEffect: "Siswa menolak instruksi yang bukan untuk dirinya menggunakan frasa baku: 'NEGATIVE, confirm instruction for...'."
+            )
+
+        case .slopOceanic:
+            return InjectedContingency(
+                title: "Strategic Lateral Offset (SLOP - Doc 4444 §16.5)",
+                severity: .abnormal,
+                triggerPhase: .enRoute,
+                summary: "Penggeseran jalur lateral acak 1-2 NM ke kanan sumbu rute untuk mitigasi turbulensi vorteks dan risiko tabrakan di jalur tanpa radar.",
+                downstreamEffect: "Pilot melapor eksekusi SLOP 1 NM right of track di koridor jelajah."
+            )
+
+        case .fuelDumping:
+            return InjectedContingency(
+                title: "Fuel Dumping Procedure (Doc 9432 §11.2)",
+                severity: .urgency,
+                triggerPhase: .enRoute,
+                summary: "Pembuangan bahan bakar avtur di ketinggian aman untuk mengurangi bobot pesawat sebelum pendaratan darurat.",
+                downstreamEffect: "ATC menetapkan area pembuangan bahan bakar dan menyiarkan peringatan ke pesawat lain di sekitarnya."
+            )
+
+        case .communicableDiseases:
+            return InjectedContingency(
+                title: "Communicable Disease Report (Doc 4444 §16.6)",
+                severity: .urgency,
+                triggerPhase: .arrival,
+                summary: "Pelaporan penumpang diduga mengidap penyakit menular sebelum mendarat sesuai regulasi karantina kesehatan internasional.",
+                downstreamEffect: "ATC menyiagakan otoritas karantina bandara dan mengarahkan parkir di stand isolasi khusus."
+            )
+
+        case .blownTireLanding:
+            return InjectedContingency(
+                title: "Blown Tire Blocking Runway (Doc 4444 §15.1)",
+                severity: .urgency,
+                triggerPhase: .landing,
+                summary: "Ban pecah saat mendarat memblokir landasan pacu. Pesawat berhenti darurat dan melapor ke Tower.",
+                downstreamEffect: "Runway ditutup sesaat, armada ARFF memeriksa serpihan karet ban dan membantu penarikan pesawat."
+            )
+
+        case .hotBrakesInspection:
+            return InjectedContingency(
+                title: "Hot Brakes Inspection on Taxiway (Doc 9432 §4.10)",
+                severity: .urgency,
+                triggerPhase: .landing,
+                summary: "Pengereman darurat menyebabkan panas rem roda ekstrem berisiko meledak.",
+                downstreamEffect: "Pesawat berhenti di taxiway terbuka dan menunggu tim pemadam menyemprotkan pendingin."
+            )
+
+        case .airborneCommsFailure:
+            return InjectedContingency(
+                title: "Airborne Comms Failure / Squawk 7600 (Doc 4444 §15.3)",
+                severity: .urgency,
+                triggerPhase: .approach,
+                summary: "Hilang kontak radio di wilayah terminal/udara. Pilot menyetel transponder 7600 dan melanjutkan pendekatan instrumen baku.",
+                downstreamEffect: "ATC mengosongkan jalur pendekatan dan memandu via pengamatan radar visual."
+            )
+
+        // MARK: - LEVEL 5 NEW CASES
+        case .pilotInitiatedGoAround:
+            return InjectedContingency(
+                title: "Pilot-Initiated Go-Around (Runway Obstruction - Doc 9432 §4.8.3)",
+                severity: .urgency,
+                triggerPhase: .landing,
+                summary: "Tower memberi izin mendarat namun ada kendaraan patroli masuk landasan. Pilot secara mandiri membatalkan pendaratan.",
+                downstreamEffect: "Pilot menekan PTT refleks: 'GOING AROUND, vehicle on runway' dan menanjak missed approach."
+            )
+
+        case .gpwsTerrainAvoidance:
+            return InjectedContingency(
+                title: "GPWS Terrain Avoidance (UNABLE Heading - Doc 4444 §15.7.4)",
+                severity: .urgency,
+                triggerPhase: .approach,
+                summary: "Vektor ATC mengarah ke tebing gunung di lembah. Pilot menolak izin demi keselamatan.",
+                downstreamEffect: "Pilot menyatakan: 'UNABLE heading... due terrain' dan langsung naik menanjak aman."
+            )
+
+        case .windShearMicroburst:
+            return InjectedContingency(
+                title: "Severe Wind Shear Microburst (Doc 9432 §11.4)",
+                severity: .urgency,
+                triggerPhase: .approach,
+                summary: "Deteksi geseran angin ekstrem di jalur final approach pegunungan.",
+                downstreamEffect: "Pilot mengeksekusi escape maneuver dan melapor wind shear gain/loss of airspeed ke menara."
+            )
+
+        case .fuelEmergencyMayday:
+            return InjectedContingency(
+                title: "MINIMUM FUEL vs MAYDAY FUEL (Doc 4444 §15.5.4)",
+                severity: .distress,
+                triggerPhase: .arrival,
+                summary: "Bahan bakar cadangan kritis menyentuh batas final reserve. Pilot mendeklarasikan MAYDAY FUEL.",
+                downstreamEffect: "ATC memberikan prioritas pendaratan nomor satu langsung direct final runway."
+            )
+
+        case .volcanicAshAvoidance:
+            return InjectedContingency(
+                title: "Volcanic Ash Avoidance (Doc 4444 §15.8)",
+                severity: .urgency,
+                triggerPhase: .enRoute,
+                summary: "Awan abu vulkanik pekat terdeteksi di rute penerbangan. Pilot meminta deviasi darurat menjauhi plume abu.",
+                downstreamEffect: "ATC segera menyetujui deviasi darurat dan meneruskan SIGMET abu vulkanik ke stasiun lain."
+            )
+
+        case .runwayExcursionARFF:
+            return InjectedContingency(
+                title: "Runway Excursion / ARFF Alerting (Doc 4444 §9.2, §15.1)",
+                severity: .distress,
+                triggerPhase: .landing,
+                summary: "Pesawat tergelincir ke rerumputan basah saat pendaratan di landasan pendek lembah.",
+                downstreamEffect: "Menara membunyikan crash bell (DETRESFA) dan mengerahkan seluruh armada pertolongan darurat pemadam."
+            )
+
+        case .hijack7500:
+            return InjectedContingency(
+                title: "Unlawful Interference / Squawk 7500 (Doc 4444 §15.1.3)",
+                severity: .distress,
+                triggerPhase: .enRoute,
+                summary: "Pemberitahuan pembajakan pesawat udara secara diskret via kode transponder 7500.",
+                downstreamEffect: "ATC merespons dengan fraseologi diskret dan mengkoordinasikan keamanan pertahanan militer."
+            )
+
+        case .militaryInterception:
+            return InjectedContingency(
+                title: "Military Interception (WILCO - Doc 4444 §15.4)",
+                severity: .urgency,
+                triggerPhase: .enRoute,
+                summary: "Pesawat diintersepsi oleh jet tempur militer di wilayah udara sensitif.",
+                downstreamEffect: "Pilot mematuhi sinyal visual pesawat pencegat dan merespons via frekuensi darurat 121.5 MHz: 'WILCO'."
             )
 
         }
@@ -2181,6 +2691,8 @@ public final class ScriptGeneratorEngine {
                 seed: seed,
                 role: role,
                 context: context,
+                contingencies: contingencies,
+                executedContingencies: &executedContingencies,
                 globalTurn: &globalTurn
             )
         }
@@ -2412,31 +2924,148 @@ public final class ScriptGeneratorEngine {
             globalTurn += 1
 
             // Turn 2: ATC Route Clearance
-            let initAlt = level == .level2 ? "flight level zero eight zero" : "flight level one zero zero"
+            let initAlt = context.initialAlt
+            let isCTOTActive = contingencies.contains(where: { $0.title.contains("CTOT Slot") })
+            let ctotTime = "zero four three five"
+            let ctotStart = "zero four two zero"
+
+            let atcClearanceText: String
+            if isCTOTActive {
+                atcClearanceText = "\(callsign), \(delUnit), cleared to \(destName) via \(sidName) departure, flight planned route. Climb initially \(initAlt), squawk \(context.squawk). Calculated Take-off Time slot is \(ctotTime), start-up approved at \(ctotStart), QNH \(qnhSpoken)."
+            } else {
+                atcClearanceText = "\(callsign), \(delUnit), cleared to \(destName) via \(sidName) departure, flight planned route. Climb initially \(initAlt), squawk \(context.squawk). Start-up and pushback approved, face west, QNH \(qnhSpoken)."
+            }
+
             exchanges.append(FilledExchange(
                 exchangeID: "PD-IFR-CLR-1", templateID: "PD-02", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
-                text: "\(callsign), \(delUnit), cleared to \(destName) via \(sidName) departure, flight planned route. Climb initially \(initAlt), squawk \(context.squawk). Start-up and pushback approved, face west, QNH \(qnhSpoken).",
-                criticalSlots: [], severity: .normal, eventTag: "CLEARANCE & PUSHBACK APPROVED"
+                text: atcClearanceText,
+                criticalSlots: [], severity: isCTOTActive ? .abnormal : .normal, eventTag: isCTOTActive ? "CLEARANCE WITH CTOT SLOT" : "CLEARANCE & PUSHBACK APPROVED"
             ))
             globalTurn += 1
 
             // Turn 3: PILOT Readback
+            let pilotReadbackText: String
+            if isCTOTActive {
+                pilotReadbackText = "Cleared to \(destName) via \(sidName) departure, climb initially \(initAlt), squawk \(context.squawk), CTOT slot \(ctotTime), start-up at \(ctotStart), QNH \(qnhSpoken), \(callsign)."
+                if let ctotCont = contingencies.first(where: { $0.title.contains("CTOT Slot") }) {
+                    executedContingencies.append(ctotCont)
+                }
+            } else {
+                pilotReadbackText = "Cleared to \(destName) via \(sidName) departure, climb initially \(initAlt), squawk \(context.squawk), start-up and pushback approved, face west, QNH \(qnhSpoken), \(callsign)."
+            }
+
             exchanges.append(FilledExchange(
                 exchangeID: "PD-IFR-CLR-2", templateID: "PD-02", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "Cleared to \(destName) via \(sidName) departure, climb initially \(initAlt), squawk \(context.squawk), start-up and pushback approved, face west, QNH \(qnhSpoken), \(callsign).",
+                text: pilotReadbackText,
                 criticalSlots: [
                     CriticalSlot(slot: "DESTINATION", expectedValue: destName, type: "mandatoryAirport"),
                     CriticalSlot(slot: "SID", expectedValue: sidName, type: "mandatorySid"),
                     CriticalSlot(slot: "SQUAWK", expectedValue: context.squawk, type: "mandatorySquawk"),
                     CriticalSlot(slot: "QNH", expectedValue: qnhSpoken, type: "mandatoryQnh"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                ], severity: .normal, eventTag: "READBACK CLEARANCE & PUSH"
+                ], severity: isCTOTActive ? .abnormal : .normal, eventTag: isCTOTActive ? "READBACK CLEARANCE & CTOT" : "READBACK CLEARANCE & PUSH"
             ))
             globalTurn += 1
 
+            // PUSHBACK FRICTION CONTINGENCIES (Level 2: Pushback Delay & Stop Pushback)
+            if let pbDelay = contingencies.first(where: { $0.title.contains("Pushback Delay") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-PBD-1", templateID: "ABN-PBD", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "\(delUnit), \(callsign), stand \(standOrig), request pushback.",
+                    criticalSlots: [
+                        CriticalSlot(slot: "REQUEST", expectedValue: "request pushback", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "REQUEST PUSHBACK"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-PBD-2", templateID: "ABN-PBD", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), Ground, traffic passing behind Boeing seven three seven, hold position, expect three minutes delay.",
+                    criticalSlots: [], severity: .urgency, eventTag: "HOLD POSITION PUSH DELAY"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-PBD-3", templateID: "ABN-PBD", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Hold position, expect three minutes delay, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "HOLD_POSITION", expectedValue: "hold position", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "READBACK HOLD POSITION"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-PBD-4", templateID: "ABN-PBD", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), traffic clear, start-up and pushback approved, face west.",
+                    criticalSlots: [], severity: .normal, eventTag: "PUSHBACK APPROVED"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-PBD-5", templateID: "ABN-PBD", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Start-up and pushback approved, face west, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "APPROVAL", expectedValue: "start-up and pushback approved", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .normal, eventTag: "READBACK PUSHBACK"
+                ))
+                globalTurn += 1
+                executedContingencies.append(pbDelay)
+
+            } else if let stopPb = contingencies.first(where: { $0.title.contains("Stop Pushback") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-SPB-1", templateID: "ABN-SPB", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), STOP PUSHBACK, STOP PUSHBACK, vehicle entering apron behind!",
+                    criticalSlots: [], severity: .urgency, eventTag: "STOP PUSHBACK IMMEDIATELY"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-SPB-2", templateID: "ABN-SPB", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Stopping pushback, brakes set, \(callsign)!",
+                    criticalSlots: [
+                        CriticalSlot(slot: "STOPPING", expectedValue: "stopping pushback", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "BRAKES", expectedValue: "brakes set", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "READBACK STOP PUSHBACK"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-SPB-3", templateID: "ABN-SPB", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), vehicle clear, resume pushback, face west.",
+                    criticalSlots: [], severity: .normal, eventTag: "RESUME PUSHBACK"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-SPB-4", templateID: "ABN-SPB", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Resuming pushback, face west, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "APPROVAL", expectedValue: "resuming pushback", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .normal, eventTag: "READBACK RESUME PUSHBACK"
+                ))
+                globalTurn += 1
+                executedContingencies.append(stopPb)
+            }
+
             // Turn 4: ATC Ground taxi clearance
+            let isHoldShortExact = contingencies.contains(where: { $0.title.contains("Hold Short Mandatory") })
+
             if let crossCont = contingencies.first(where: { $0.title.contains("Hold Short Crossing") }) {
                 let crossRwy = activeDepRunway.designator == "10" ? "two six" : "zero eight"
                 exchanges.append(FilledExchange(
@@ -2485,7 +3114,7 @@ public final class ScriptGeneratorEngine {
                     exchangeID: "PD-GND-TXI-2", templateID: "PD-04", turn: globalTurn, speaker: "ATC",
                     isUserTurn: (role == .atc),
                     text: "\(callsign), Ground, taxi to holding point \(activeHoldingPoint) runway \(depRwySpoken) via \(context.taxiRoute), hold short runway \(depRwySpoken).",
-                    criticalSlots: [], severity: .normal, eventTag: "TAXI TO HOLDING POINT"
+                    criticalSlots: [], severity: isHoldShortExact ? .abnormal : .normal, eventTag: isHoldShortExact ? "MANDATORY HOLD SHORT" : "TAXI TO HOLDING POINT"
                 ))
                 globalTurn += 1
 
@@ -2498,9 +3127,12 @@ public final class ScriptGeneratorEngine {
                         CriticalSlot(slot: "RUNWAY", expectedValue: depRwySpoken, type: "mandatoryRunway"),
                         CriticalSlot(slot: "HOLD_SHORT_RUNWAY", expectedValue: "hold short runway", type: "mandatoryKeyword"),
                         CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                    ], severity: .normal, eventTag: "READBACK TAXI"
+                    ], severity: isHoldShortExact ? .abnormal : .normal, eventTag: isHoldShortExact ? "MANDATORY HOLD SHORT READBACK" : "READBACK TAXI"
                 ))
                 globalTurn += 1
+                if let hsCont = contingencies.first(where: { $0.title.contains("Hold Short Mandatory") }) {
+                    executedContingencies.append(hsCont)
+                }
             }
         }
 
@@ -2774,34 +3406,34 @@ public final class ScriptGeneratorEngine {
 
         } else {
             // IFR Levels 2–5
-            let variant = seed % 3
-            if variant == 0 {
+            if let btCont = contingencies.first(where: { $0.title.contains("Runway Backtrack") || $0.title.contains("Backtrack") }) {
                 exchanges.append(FilledExchange(
-                    exchangeID: "DP-IFR-LU-1", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
+                    exchangeID: "DP-IFR-BT-1", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
                     isUserTurn: (role == .atc),
-                    text: "\(callsign), \(prefixConditionText)runway \(rwySpoken), line up and wait.",
-                    criticalSlots: [], severity: .normal, eventTag: prefixConditionText.isEmpty ? "LINE UP AND WAIT" : "RUNWAY CLEAR & LINE UP"
+                    text: "\(callsign), \(prefixConditionText)backtrack runway \(rwySpoken), line up and wait.",
+                    criticalSlots: [], severity: .abnormal, eventTag: "BACKTRACK & LINE UP"
                 ))
                 globalTurn += 1
 
                 exchanges.append(FilledExchange(
-                    exchangeID: "DP-IFR-LU-2", templateID: "DP-03", turn: globalTurn, speaker: "PILOT",
+                    exchangeID: "DP-IFR-BT-2", templateID: "DP-03", turn: globalTurn, speaker: "PILOT",
                     isUserTurn: (role == .pilot),
-                    text: "Runway \(rwySpoken), line up and wait, \(callsign).",
+                    text: "Backtrack runway \(rwySpoken), line up and wait, \(callsign).",
                     criticalSlots: [
                         CriticalSlot(slot: "RUNWAY", expectedValue: rwySpoken, type: "mandatoryRunway"),
                         CriticalSlot(slot: "LINE_UP_WAIT", expectedValue: "line up and wait", type: "mandatoryKeyword"),
                         CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                    ], severity: .normal, eventTag: "READBACK LINE UP"
+                    ], severity: .abnormal, eventTag: "READBACK BACKTRACK & LINE UP"
                 ))
                 globalTurn += 1
+                executedContingencies.append(btCont)
 
-            } else if variant == 1 {
+            } else if let cndCont = contingencies.first(where: { $0.title.contains("Conditional Line-Up") }) {
                 exchanges.append(FilledExchange(
                     exchangeID: "DP-IFR-CND-1", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
                     isUserTurn: (role == .atc),
                     text: "\(callsign), \(prefixConditionText)behind landing Airbus three two zero, line up and wait runway \(rwySpoken) behind.",
-                    criticalSlots: [], severity: .normal, eventTag: "CONDITIONAL LINE-UP"
+                    criticalSlots: [], severity: .abnormal, eventTag: "CONDITIONAL LINE-UP"
                 ))
                 globalTurn += 1
 
@@ -2813,52 +3445,119 @@ public final class ScriptGeneratorEngine {
                         CriticalSlot(slot: "RUNWAY", expectedValue: rwySpoken, type: "mandatoryRunway"),
                         CriticalSlot(slot: "LINE_UP_WAIT", expectedValue: "line up and wait", type: "mandatoryKeyword"),
                         CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                    ], severity: .normal, eventTag: "READBACK CONDITIONAL LINE-UP"
+                    ], severity: .abnormal, eventTag: "READBACK CONDITIONAL LINE-UP"
                 ))
                 globalTurn += 1
+                executedContingencies.append(cndCont)
 
             } else {
-                exchanges.append(FilledExchange(
-                    exchangeID: "DP-IFR-IMM-1", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
-                    isUserTurn: (role == .atc),
-                    text: "\(callsign), \(prefixConditionText)traffic on three miles final, are you ready for immediate departure?",
-                    criticalSlots: [], severity: .normal, eventTag: "READY IMMEDIATE QUERY"
-                ))
-                globalTurn += 1
+                let variant = seed % 2
+                if variant == 0 {
+                    exchanges.append(FilledExchange(
+                        exchangeID: "DP-IFR-LU-1", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
+                        isUserTurn: (role == .atc),
+                        text: "\(callsign), \(prefixConditionText)runway \(rwySpoken), line up and wait.",
+                        criticalSlots: [], severity: .normal, eventTag: prefixConditionText.isEmpty ? "LINE UP AND WAIT" : "RUNWAY CLEAR & LINE UP"
+                    ))
+                    globalTurn += 1
 
-                exchanges.append(FilledExchange(
-                    exchangeID: "DP-IFR-IMM-2", templateID: "DP-03", turn: globalTurn, speaker: "PILOT",
-                    isUserTurn: (role == .pilot),
-                    text: "AFFIRM, ready for immediate, \(callsign).",
-                    criticalSlots: [
-                        CriticalSlot(slot: "AFFIRM", expectedValue: "affirm", type: "mandatoryKeyword"),
-                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                    ], severity: .normal, eventTag: "CONFIRM IMMEDIATE"
-                ))
-                globalTurn += 1
+                    exchanges.append(FilledExchange(
+                        exchangeID: "DP-IFR-LU-2", templateID: "DP-03", turn: globalTurn, speaker: "PILOT",
+                        isUserTurn: (role == .pilot),
+                        text: "Runway \(rwySpoken), line up and wait, \(callsign).",
+                        criticalSlots: [
+                            CriticalSlot(slot: "RUNWAY", expectedValue: rwySpoken, type: "mandatoryRunway"),
+                            CriticalSlot(slot: "LINE_UP_WAIT", expectedValue: "line up and wait", type: "mandatoryKeyword"),
+                            CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                        ], severity: .normal, eventTag: "READBACK LINE UP"
+                    ))
+                    globalTurn += 1
 
-                exchanges.append(FilledExchange(
-                    exchangeID: "DP-IFR-IMM-3", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
-                    isUserTurn: (role == .atc),
-                    text: "\(callsign), line up, be ready for immediate departure.",
-                    criticalSlots: [], severity: .normal, eventTag: "LINE UP IMMEDIATE"
-                ))
-                globalTurn += 1
+                } else {
+                    exchanges.append(FilledExchange(
+                        exchangeID: "DP-IFR-IMM-1", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
+                        isUserTurn: (role == .atc),
+                        text: "\(callsign), \(prefixConditionText)traffic on three miles final, are you ready for immediate departure?",
+                        criticalSlots: [], severity: .normal, eventTag: "READY IMMEDIATE QUERY"
+                    ))
+                    globalTurn += 1
 
-                exchanges.append(FilledExchange(
-                    exchangeID: "DP-IFR-IMM-4", templateID: "DP-03", turn: globalTurn, speaker: "PILOT",
-                    isUserTurn: (role == .pilot),
-                    text: "Line up, ready for immediate, \(callsign).",
-                    criticalSlots: [
-                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                    ], severity: .normal, eventTag: "READBACK LINE UP IMMEDIATE"
-                ))
-                globalTurn += 1
+                    exchanges.append(FilledExchange(
+                        exchangeID: "DP-IFR-IMM-2", templateID: "DP-03", turn: globalTurn, speaker: "PILOT",
+                        isUserTurn: (role == .pilot),
+                        text: "AFFIRM, ready for immediate, \(callsign).",
+                        criticalSlots: [
+                            CriticalSlot(slot: "AFFIRM", expectedValue: "affirm", type: "mandatoryKeyword"),
+                            CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                        ], severity: .normal, eventTag: "CONFIRM IMMEDIATE"
+                    ))
+                    globalTurn += 1
+
+                    exchanges.append(FilledExchange(
+                        exchangeID: "DP-IFR-IMM-3", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
+                        isUserTurn: (role == .atc),
+                        text: "\(callsign), line up, be ready for immediate departure.",
+                        criticalSlots: [], severity: .normal, eventTag: "LINE UP IMMEDIATE"
+                    ))
+                    globalTurn += 1
+
+                    exchanges.append(FilledExchange(
+                        exchangeID: "DP-IFR-IMM-4", templateID: "DP-03", turn: globalTurn, speaker: "PILOT",
+                        isUserTurn: (role == .pilot),
+                        text: "Line up, ready for immediate, \(callsign).",
+                        criticalSlots: [
+                            CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                        ], severity: .normal, eventTag: "READBACK LINE UP IMMEDIATE"
+                    ))
+                    globalTurn += 1
+                }
             }
         }
 
         // STEP 4: TAKE-OFF CLEARANCE
-        if let immCont = contingencies.first(where: { $0.title.contains("Immediate Take-off or Vacate") }) {
+        if let ccCont = contingencies.first(where: { $0.title.contains("Callsign Confusion") }) {
+            let confCallsign = "Batik seven one two"
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-CC-1", templateID: "ABN-CC", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(confCallsign), runway \(rwySpoken), wind \(windSpoken), cleared for take-off.",
+                criticalSlots: [], severity: .abnormal, eventTag: "CALLSIGN CONFUSION INTRUSION"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-CC-2", templateID: "ABN-CC", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "NEGATIVE, \(callsign), you called \(confCallsign), confirm clearance for \(callsign)?",
+                criticalSlots: [
+                    CriticalSlot(slot: "NEGATIVE", expectedValue: "negative", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .abnormal, eventTag: "INTERCEPT CALLSIGN CONFUSION"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-CC-3", templateID: "ABN-CC", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), apologies, correction, \(callsign), runway \(rwySpoken), wind \(windSpoken), cleared for take-off.",
+                criticalSlots: [], severity: .normal, eventTag: "CORRECTED TAKE-OFF CLEARANCE"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-CC-4", templateID: "ABN-CC", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Runway \(rwySpoken), cleared for take-off, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "RUNWAY", expectedValue: rwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CLEARED_TAKEOFF", expectedValue: "cleared for take-off", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "READBACK TAKE-OFF"
+            ))
+            globalTurn += 1
+            executedContingencies.append(ccCont)
+
+        } else if let immCont = contingencies.first(where: { $0.title.contains("Immediate Take-off or Vacate") }) {
             exchanges.append(FilledExchange(
                 exchangeID: "ABN-IMM-TO-1", templateID: "ABN-IMM-TO", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
@@ -2923,7 +3622,7 @@ public final class ScriptGeneratorEngine {
         }
 
         // STEP 5: TAKE-OFF ROLL EMERGENCIES (ABORT / EFATO)
-        if let abtCont = contingencies.first(where: { $0.title.contains("Abort Take-Off") }) {
+        if let abtCont = contingencies.first(where: { $0.title.contains("Abort Take-Off") || $0.title.contains("Rejected Take-Off") }) {
             isFlightTerminatedEarly = true
 
             // ATC-Initiated Abort (ICAO Doc 9432 Bab 4.5.11): Vehicle entering runway
@@ -3065,10 +3764,13 @@ public final class ScriptGeneratorEngine {
         }
 
         // STEP 6: AIRBORNE HANDOFF (Continuing flights)
+        let depRadarCallsign = context.unitDeparture?.callsign ?? "Departure"
+        let depRadarFreq = context.depFreq
+
         exchanges.append(FilledExchange(
             exchangeID: "DP-ABN-1", templateID: "DP-05", turn: globalTurn, speaker: "ATC",
             isUserTurn: (role == .atc),
-            text: "\(callsign), airborne time zero four, contact Departure \(context.depFreq).",
+            text: "\(callsign), airborne time zero four, contact \(depRadarCallsign) \(depRadarFreq).",
             criticalSlots: [], severity: .normal, eventTag: "AIRBORNE HANDOFF"
         ))
         globalTurn += 1
@@ -3076,9 +3778,9 @@ public final class ScriptGeneratorEngine {
         exchanges.append(FilledExchange(
             exchangeID: "DP-ABN-2", templateID: "DP-05", turn: globalTurn, speaker: "PILOT",
             isUserTurn: (role == .pilot),
-            text: "Departure \(context.depFreq), \(callsign).",
+            text: "\(depRadarCallsign) \(depRadarFreq), \(callsign).",
             criticalSlots: [
-                CriticalSlot(slot: "DEPARTURE_FREQ", expectedValue: context.depFreq, type: "mandatoryFrequency"),
+                CriticalSlot(slot: "DEPARTURE_FREQ", expectedValue: depRadarFreq, type: "mandatoryFrequency"),
                 CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
             ], severity: .normal, eventTag: "READBACK DEPARTURE FREQ"
         ))
@@ -3102,6 +3804,7 @@ public final class ScriptGeneratorEngine {
         let cruisingLevel = context.currentLevel
         let curPos = context.currentPosition
         let nextPos = context.nextPosition
+        let qnhSpoken = SpokenFormFormatter.qnh(context.weather.qnh)
 
         // 1. Weather Deviation (CB Avoidance)
         if let wxCont = contingencies.first(where: { $0.title.contains("Weather Deviation") }) {
@@ -3273,7 +3976,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "ER-ENG-3", templateID: "ER-01", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
-                text: "\(callsign), \(ctrlUnit), roger MAYDAY, descend and maintain flight level one zero zero, turn left heading two four zero for radar vectors direct Juanda, QNH one zero one two.",
+                text: "\(callsign), \(ctrlUnit), roger MAYDAY, descend and maintain flight level one zero zero, turn left heading two four zero for radar vectors direct \(context.destinationName), QNH \(qnhSpoken).",
                 criticalSlots: [], severity: .distress, eventTag: "DESCENT & VECTORS MAYDAY"
             ))
             globalTurn += 1
@@ -3281,7 +3984,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "ER-ENG-4", templateID: "ER-01", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "Descend and maintain flight level one zero zero, turn left heading two four zero, QNH one zero one two, \(callsign).",
+                text: "Descend and maintain flight level one zero zero, turn left heading two four zero, direct \(context.destinationName), QNH \(qnhSpoken), \(callsign).",
                 criticalSlots: [
                     CriticalSlot(slot: "ALTITUDE", expectedValue: "flight level one zero zero", type: "mandatoryAltitude"),
                     CriticalSlot(slot: "HEADING", expectedValue: "heading two four zero", type: "mandatoryHeading"),
@@ -3342,7 +4045,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "ER-TCAS-1", templateID: "ER-01", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
-                text: "\(callsign), climb and maintain flight level two eight zero.",
+                text: "\(callsign), climb and maintain \(cruisingLevel).",
                 criticalSlots: [], severity: .normal, eventTag: "CLIMB INSTRUCTION"
             ))
             globalTurn += 1
@@ -3442,11 +4145,23 @@ public final class ScriptGeneratorEngine {
             globalTurn += 1
 
         } else if level == .level2 {
-            // BWX - DPS (55 NM, cruising FL080)
+            // Level 2: Regional Controlled (Departure check-in, climb to cruising level, transfer to ACC)
+            let depRadarCallsign = context.unitDeparture?.callsign ?? "Departure"
+            exchanges.append(FilledExchange(
+                exchangeID: "ER-L2-DEP-CHK", templateID: "ER-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(depRadarCallsign), \(callsign), airborne passing one thousand five hundred feet, climbing \(context.initialAlt).",
+                criticalSlots: [
+                    CriticalSlot(slot: "ALTITUDE", expectedValue: context.initialAlt, type: "mandatoryAltitude"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "DEPARTURE CHECK-IN"
+            ))
+            globalTurn += 1
+
             exchanges.append(FilledExchange(
                 exchangeID: "ER-L2-1", templateID: "ER-01", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
-                text: "\(callsign), \(ctrlUnit), radar contact, climb and maintain flight level zero eight zero, report reaching.",
+                text: "\(callsign), \(depRadarCallsign), radar contact, climb and maintain flight level zero eight zero, report reaching. When passing flight level zero eight zero, contact \(ctrlUnit) \(context.controlFreq).",
                 criticalSlots: [], severity: .normal, eventTag: "RADAR CONTACT FL080"
             ))
             globalTurn += 1
@@ -3454,9 +4169,10 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "ER-L2-2", templateID: "ER-01", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "Climb and maintain flight level zero eight zero, will report reaching, \(callsign).",
+                text: "Climb and maintain flight level zero eight zero, will report reaching, contact \(ctrlUnit) \(context.controlFreq), \(callsign).",
                 criticalSlots: [
                     CriticalSlot(slot: "ALTITUDE", expectedValue: "flight level zero eight zero", type: "mandatoryAltitude"),
+                    CriticalSlot(slot: "CONTROL_FREQ", expectedValue: context.controlFreq, type: "mandatoryFrequency"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                 ], severity: .normal, eventTag: "READBACK CLIMB"
             ))
@@ -3481,28 +4197,114 @@ public final class ScriptGeneratorEngine {
             ))
             globalTurn += 1
 
-            exchanges.append(FilledExchange(
-                exchangeID: "ER-L2-5", templateID: "ER-02", turn: globalTurn, speaker: "ATC",
-                isUserTurn: (role == .atc),
-                text: "\(callsign), roger, maintain flight level zero eight zero, direct \(nextPos).",
-                criticalSlots: [], severity: .normal, eventTag: "MAINTAIN CRUISE"
-            ))
-            globalTurn += 1
+            if let unCont = contingencies.first(where: { $0.title.contains("Unable Altitude") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-UNA-1", templateID: "ABN-UNA", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), \(ctrlUnit), climb and maintain flight level one two zero, expedite climb.",
+                    criticalSlots: [], severity: .abnormal, eventTag: "EXPEDITE CLIMB FL120"
+                ))
+                globalTurn += 1
 
-            exchanges.append(FilledExchange(
-                exchangeID: "ER-L2-6", templateID: "ER-02", turn: globalTurn, speaker: "PILOT",
-                isUserTurn: (role == .pilot),
-                text: "Maintain flight level zero eight zero, direct \(nextPos), \(callsign).",
-                criticalSlots: [
-                    CriticalSlot(slot: "ALTITUDE", expectedValue: "flight level zero eight zero", type: "mandatoryAltitude"),
-                    CriticalSlot(slot: "WAYPOINT", expectedValue: nextPos, type: "mandatoryWaypoint"),
-                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                ], severity: .normal, eventTag: "READBACK CRUISE"
-            ))
-            globalTurn += 1
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-UNA-2", templateID: "ABN-UNA", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "UNABLE flight level one two zero due performance, request maintain flight level zero eight zero, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "UNABLE", expectedValue: "unable", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .abnormal, eventTag: "DECLARING UNABLE DUE PERFORMANCE"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-UNA-3", templateID: "ABN-UNA", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), roger, maintain flight level zero eight zero, direct \(nextPos).",
+                    criticalSlots: [], severity: .normal, eventTag: "MAINTAIN CRUISE"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-UNA-4", templateID: "ABN-UNA", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Maintain flight level zero eight zero, direct \(nextPos), \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "ALTITUDE", expectedValue: "flight level zero eight zero", type: "mandatoryAltitude"),
+                        CriticalSlot(slot: "WAYPOINT", expectedValue: nextPos, type: "mandatoryWaypoint"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .normal, eventTag: "READBACK CRUISE"
+                ))
+                globalTurn += 1
+                executedContingencies.append(unCont)
+
+            } else {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ER-L2-5", templateID: "ER-02", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), roger, maintain flight level zero eight zero, direct \(nextPos).",
+                    criticalSlots: [], severity: .normal, eventTag: "MAINTAIN CRUISE"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ER-L2-6", templateID: "ER-02", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Maintain flight level zero eight zero, direct \(nextPos), \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "ALTITUDE", expectedValue: "flight level zero eight zero", type: "mandatoryAltitude"),
+                        CriticalSlot(slot: "WAYPOINT", expectedValue: nextPos, type: "mandatoryWaypoint"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .normal, eventTag: "READBACK CRUISE"
+                ))
+                globalTurn += 1
+            }
 
         } else {
-            // Levels 3, 4, 5: Jet transport cruising
+            // Levels 3, 4, 5: Jet transport climbing & cruising with initial check-in & frequency handoff
+            let depRadarCallsign = context.unitDeparture?.callsign ?? "Departure"
+            exchanges.append(FilledExchange(
+                exchangeID: "ER-DEP-CHK", templateID: "ER-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(depRadarCallsign), \(callsign), airborne passing one thousand five hundred feet, climbing \(context.initialAlt).",
+                criticalSlots: [
+                    CriticalSlot(slot: "ALTITUDE", expectedValue: context.initialAlt, type: "mandatoryAltitude"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "DEPARTURE CHECK-IN"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ER-DEP-RAD", templateID: "ER-01", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(depRadarCallsign), radar contact, climb flight level one zero zero. When passing flight level one zero zero, contact \(ctrlUnit) \(context.controlFreq).",
+                criticalSlots: [], severity: .normal, eventTag: "TRANSFER CONTROL"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ER-DEP-ACK", templateID: "ER-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Climb flight level one zero zero, contact \(ctrlUnit) \(context.controlFreq), \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CONTROL_FREQ", expectedValue: context.controlFreq, type: "mandatoryFrequency"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "READBACK TRANSFER"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ER-ACC-CHK", templateID: "ER-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(ctrlUnit), \(callsign), passing flight level one zero zero climbing \(cruisingLevel), direct \(curPos).",
+                criticalSlots: [
+                    CriticalSlot(slot: "ALTITUDE", expectedValue: cruisingLevel, type: "mandatoryAltitude"),
+                    CriticalSlot(slot: "WAYPOINT", expectedValue: curPos, type: "mandatoryWaypoint"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "AREA CONTROL CHECK-IN"
+            ))
+            globalTurn += 1
+
             exchanges.append(FilledExchange(
                 exchangeID: "ER-JET-1", templateID: "ER-01", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
@@ -3560,6 +4362,184 @@ public final class ScriptGeneratorEngine {
                 ], severity: .normal, eventTag: "READBACK MAINTAIN"
             ))
             globalTurn += 1
+
+            // EN-ROUTE CONTINGENCIES (Levels 3, 4, 5)
+            if let holdCont = contingencies.first(where: { $0.title.contains("Holding Pattern & EAT") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-HLD-1", templateID: "ABN-HLD", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), \(ctrlUnit), hold at \(nextPos) VOR, inbound track two seven zero degrees, right hand pattern, flight level two five zero, expected approach time zero two four five.",
+                    criticalSlots: [], severity: .abnormal, eventTag: "HOLD AT VOR WITH EAT"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-HLD-2", templateID: "ABN-HLD", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Hold at \(nextPos), inbound track two seven zero, right hand pattern, flight level two five zero, expected approach time zero two four five, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "WAYPOINT", expectedValue: nextPos, type: "mandatoryWaypoint"),
+                        CriticalSlot(slot: "HOLD", expectedValue: "hold at", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .abnormal, eventTag: "READBACK HOLDING WITH EAT"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-HLD-3", templateID: "ABN-HLD", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), leave \(nextPos) heading one eight zero, resume descent.",
+                    criticalSlots: [], severity: .normal, eventTag: "LEAVE HOLD"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-HLD-4", templateID: "ABN-HLD", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Leave \(nextPos) heading one eight zero, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "HEADING", expectedValue: "heading one eight zero", type: "mandatoryHeading"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .normal, eventTag: "READBACK LEAVE HOLD"
+                ))
+                globalTurn += 1
+                executedContingencies.append(holdCont)
+
+            } else if let slopCont = contingencies.first(where: { $0.title.contains("Strategic Lateral Offset") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-SLOP-1", templateID: "ABN-SLOP", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "\(ctrlUnit), \(callsign), executing strategic lateral offset, one nautical mile right of track.",
+                    criticalSlots: [
+                        CriticalSlot(slot: "SLOP", expectedValue: "strategic lateral offset", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .abnormal, eventTag: "REPORT SLOP EXECUTION"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-SLOP-2", templateID: "ABN-SLOP", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), roger SLOP one mile right, report returning to centerline.",
+                    criticalSlots: [], severity: .normal, eventTag: "ROGER SLOP"
+                ))
+                globalTurn += 1
+                executedContingencies.append(slopCont)
+
+            } else if let fdCont = contingencies.first(where: { $0.title.contains("Fuel Dumping") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-FD-1", templateID: "ABN-FD", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "PAN PAN, PAN PAN, PAN PAN, \(ctrlUnit), \(callsign), request fuel dumping area between flight level one zero zero and flight level one four zero due overweight landing.",
+                    criticalSlots: [
+                        CriticalSlot(slot: "PAN_PAN", expectedValue: "pan pan", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "FUEL_DUMP", expectedValue: "fuel dumping", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "REQUEST FUEL DUMPING"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-FD-2", templateID: "ABN-FD", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), roger PAN PAN, fuel dumping approved over ocean sector, track one eight zero, report completed.",
+                    criticalSlots: [], severity: .urgency, eventTag: "FUEL DUMPING APPROVED"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-FD-3", templateID: "ABN-FD", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Fuel dumping approved track one eight zero, will report completed, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "READBACK FUEL DUMP"
+                ))
+                globalTurn += 1
+                executedContingencies.append(fdCont)
+
+            } else if let vaCont = contingencies.first(where: { $0.title.contains("Volcanic Ash") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-VA-1", templateID: "ABN-VA", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "\(ctrlUnit), \(callsign), volcanic ash cloud sighted ahead, request immediate deviation left thirty degrees, twenty miles.",
+                    criticalSlots: [
+                        CriticalSlot(slot: "VOLCANIC_ASH", expectedValue: "volcanic ash", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "DEVIATION", expectedValue: "deviation left", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "REQUEST ASH DEVIATION"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-VA-2", templateID: "ABN-VA", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), left turn thirty degrees approved, deviate twenty miles left of track, advise clear of ash.",
+                    criticalSlots: [], severity: .urgency, eventTag: "DEVIATION APPROVED"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-VA-3", templateID: "ABN-VA", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Turn left thirty degrees, deviate twenty miles, will advise clear of ash, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "READBACK ASH DEVIATION"
+                ))
+                globalTurn += 1
+                executedContingencies.append(vaCont)
+
+            } else if let hjCont = contingencies.first(where: { $0.title.contains("Unlawful Interference") || $0.title.contains("7500") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-HJ-1", templateID: "ABN-HJ", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), \(ctrlUnit), squawk seven five zero zero observed, confirm squawk assigned.",
+                    criticalSlots: [], severity: .distress, eventTag: "CONFIRM SQUAWK 7500"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-HJ-2", templateID: "ABN-HJ", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "AFFIRM, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "AFFIRM", expectedValue: "affirm", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .distress, eventTag: "DISCREET SQUAWK 7500 CONFIRMATION"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-HJ-3", templateID: "ABN-HJ", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), roger, proceed direct destination, continue present heading and level, radar monitoring.",
+                    criticalSlots: [], severity: .distress, eventTag: "HIJACK RADAR MONITORING"
+                ))
+                globalTurn += 1
+                executedContingencies.append(hjCont)
+
+            } else if let miCont = contingencies.first(where: { $0.title.contains("Military Interception") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-MI-1", templateID: "ABN-MI", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), \(ctrlUnit), you are intercepted by military aircraft on your left side, acknowledge visual signals and follow escort.",
+                    criticalSlots: [], severity: .urgency, eventTag: "MILITARY INTERCEPT NOTIFICATION"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-MI-2", templateID: "ABN-MI", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "WILCO, escort aircraft in sight, following escort heading two four zero, descending five thousand feet, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "WILCO", expectedValue: "wilco", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "COMPLYING WITH INTERCEPTION"
+                ))
+                globalTurn += 1
+                executedContingencies.append(miCont)
+            }
         }
 
         return exchanges
@@ -3584,6 +4564,66 @@ public final class ScriptGeneratorEngine {
         let qnhSpoken = SpokenFormFormatter.qnh(context.weather.qnh)
         let arrRwySpoken = context.arrRunway
         let _ = context.destinationName
+
+        // Bridged Emergency Inbound from En-Route Engine Failure (MAYDAY)
+        if let engCont = contingencies.first(where: { $0.title.contains("Mid-Air Engine") || $0.title.contains("Engine Failure") }) {
+            if !executedContingencies.contains(where: { $0.title == engCont.title }) {
+                executedContingencies.append(engCont)
+            }
+            exchanges.append(FilledExchange(
+                exchangeID: "AR-ENG-1", templateID: "AR-01", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(ctrlUnit), passing flight level one zero zero, contact \(appUnit) on emergency frequency \(appFreq), emergency vectors coordinated.",
+                criticalSlots: [], severity: .distress, eventTag: "EMERGENCY HANDOFF"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "AR-ENG-2", templateID: "AR-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Contacting \(appUnit) \(appFreq), MAYDAY, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "APPROACH_FREQ", expectedValue: appFreq, type: "mandatoryFrequency"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "READBACK TRANSFER"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "AR-ENG-3", templateID: "AR-02", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(appUnit), \(callsign), single-engine MAYDAY in descent passing six thousand feet, direct for ILS runway \(arrRwySpoken).",
+                criticalSlots: [
+                    CriticalSlot(slot: "DISTRESS", expectedValue: "mayday", type: "mandatoryDistress"),
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "CHECK-IN SINGLE ENGINE"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "AR-ENG-4", templateID: "AR-02", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(appUnit), radar contact, continue descent to three thousand feet, QNH \(qnhSpoken), straight-in ILS runway \(arrRwySpoken), emergency vehicles are in position on taxiway, you are number one.",
+                criticalSlots: [], severity: .distress, eventTag: "CLEARED STRAIGHT-IN MAYDAY"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "AR-ENG-5", templateID: "AR-03", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Descend three thousand feet, QNH \(qnhSpoken), straight-in ILS runway \(arrRwySpoken), number one, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "ALTITUDE", expectedValue: "three thousand feet", type: "mandatoryAltitude"),
+                    CriticalSlot(slot: "QNH", expectedValue: qnhSpoken, type: "mandatoryQnh"),
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "READBACK STRAIGHT-IN"
+            ))
+            globalTurn += 1
+
+            return exchanges
+        }
 
         // Emergency / Urgency: Passenger Medical Emergency
         if let medCont = contingencies.first(where: { $0.title.contains("Medical") }) {
@@ -3832,6 +4872,71 @@ public final class ScriptGeneratorEngine {
             globalTurn += 1
         }
 
+        // Arrival Emergencies (Communicable Disease & Fuel Emergency)
+        if let cdCont = contingencies.first(where: { $0.title.contains("Communicable Disease") }) {
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-CD-1", templateID: "ABN-CD", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(ctrlUnit), \(callsign), declaring suspected communicable disease on board, passenger with acute fever and rash, request isolation stand.",
+                criticalSlots: [
+                    CriticalSlot(slot: "COMMUNICABLE_DISEASE", expectedValue: "communicable disease", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .abnormal, eventTag: "SUSPECTED COMMUNICABLE DISEASE"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-CD-2", templateID: "ABN-CD", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), roger, health authority notified, expect stand ninety one for medical screening.",
+                criticalSlots: [], severity: .abnormal, eventTag: "ISOLATION STAND ASSIGNED"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-CD-3", templateID: "ABN-CD", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Stand ninety one for medical screening, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .abnormal, eventTag: "READBACK ISOLATION STAND"
+            ))
+            globalTurn += 1
+            executedContingencies.append(cdCont)
+
+        } else if let fuelCont = contingencies.first(where: { $0.title.contains("MINIMUM FUEL vs MAYDAY FUEL") || $0.title.contains("MAYDAY FUEL") }) {
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-FUEL-1", templateID: "ABN-FUEL", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "MAYDAY MAYDAY MAYDAY FUEL, \(ctrlUnit), \(callsign), remaining fuel thirty minutes, unable holding, request immediate landing priority!",
+                criticalSlots: [
+                    CriticalSlot(slot: "MAYDAY_FUEL", expectedValue: "mayday mayday mayday fuel", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "MAYDAY FUEL DECLARATION"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-FUEL-2", templateID: "ABN-FUEL", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), roger MAYDAY FUEL, cleared direct final runway \(arrRwySpoken), you are number one for approach, emergency vehicles alerted.",
+                criticalSlots: [], severity: .distress, eventTag: "MAYDAY FUEL PRIORITY APPROVED"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-FUEL-3", templateID: "ABN-FUEL", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Cleared direct final runway \(arrRwySpoken), number one, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "READBACK FUEL PRIORITY"
+            ))
+            globalTurn += 1
+            executedContingencies.append(fuelCont)
+        }
+
         return exchanges
     }
 
@@ -3853,6 +4958,66 @@ public final class ScriptGeneratorEngine {
         let arrRwySpoken = context.arrRunway
         let qnhSpoken = SpokenFormFormatter.qnh(context.weather.qnh)
         let windSpoken = SpokenFormFormatter.wind(direction: context.weather.windDirection, knots: context.weather.windSpeed)
+
+        // ==========================================
+        // BRIDGED CONTINGENCY: SINGLE-ENGINE APPROACH FROM EN-ROUTE MAYDAY
+        // ==========================================
+        if let engCont = contingencies.first(where: { $0.title.contains("Mid-Air Engine") || $0.title.contains("Engine Failure") }) {
+            if !executedContingencies.contains(where: { $0.title == engCont.title }) {
+                executedContingencies.append(engCont)
+            }
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-ENG-1", templateID: "AP-01", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(appUnit), established on localizer, contact \(twrUnit) \(twrFreq), emergency clearance approved.",
+                criticalSlots: [], severity: .distress, eventTag: "CONTACT TOWER MAYDAY"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-ENG-2", templateID: "AP-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Contacting \(twrUnit) \(twrFreq), MAYDAY, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "TOWER_FREQ", expectedValue: twrFreq, type: "mandatoryFrequency"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "READBACK TOWER FREQ"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-ENG-3", templateID: "AP-02", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(twrUnit), \(callsign), four miles final runway \(arrRwySpoken), single engine operation, gear down, full emergency.",
+                criticalSlots: [
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "REPORT FINAL MAYDAY"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-ENG-4", templateID: "AP-02", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(twrUnit), wind \(windSpoken), runway \(arrRwySpoken), fire and rescue trucks standing by along the runway, cleared to land.",
+                criticalSlots: [], severity: .distress, eventTag: "CLEARED TO LAND EMERGENCY"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-ENG-5", templateID: "AP-03", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Runway \(arrRwySpoken), cleared to land, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CLEARED_TO_LAND", expectedValue: "cleared to land", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "READBACK CLEARED TO LAND"
+            ))
+            globalTurn += 1
+
+            return exchanges
+        }
 
         // ==========================================
         // CONTINGENCY 1: UNSAFE GEAR INDICATION (VOR HOLDING & RE-APPROACH)
@@ -4063,16 +5228,92 @@ public final class ScriptGeneratorEngine {
             ))
             globalTurn += 1
 
+            // Turn 10: PILOT checks in with Approach on missed approach (Coherent Loop)
             exchanges.append(FilledExchange(
-                exchangeID: "AP-GA-10", templateID: "AP-05", turn: globalTurn, speaker: "ATC",
+                exchangeID: "AP-GA-10", templateID: "AP-05", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(appUnit), \(callsign), passing two thousand feet climbing four thousand feet, missed approach runway \(arrRwySpoken).",
+                criticalSlots: [
+                    CriticalSlot(slot: "ALTITUDE", expectedValue: "four thousand feet", type: "mandatoryAltitude"),
+                    CriticalSlot(slot: "MISSED_APPROACH", expectedValue: "missed approach", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .urgency, eventTag: "MISSED APPROACH CHECK-IN",
+                objective: "Hubungi Approach Control, laporkan ketinggian saat ini dan konfirmasi pelaksanaan missed approach."
+            ))
+            globalTurn += 1
+
+            // Turn 11: ATC Approach radar contact & radar vectors for re-sequencing
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-GA-11", templateID: "AP-05", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
-                text: "\(callsign), \(twrUnit), runway \(arrRwySpoken), wind \(windSpoken), cleared to land.",
+                text: "\(callsign), \(appUnit), radar contact, turn left heading zero niner zero, maintain four thousand feet, vector for second ILS approach runway \(arrRwySpoken).",
+                criticalSlots: [], severity: .normal, eventTag: "RADAR VECTORS SECOND APPROACH"
+            ))
+            globalTurn += 1
+
+            // Turn 12: PILOT Readback vectors
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-GA-12", templateID: "AP-05", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Turn left heading zero niner zero, maintain four thousand feet, vector for second ILS runway \(arrRwySpoken), \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "HEADING", expectedValue: "heading zero niner zero", type: "mandatoryHeading"),
+                    CriticalSlot(slot: "ALTITUDE", expectedValue: "four thousand feet", type: "mandatoryAltitude"),
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "READBACK VECTORS"
+            ))
+            globalTurn += 1
+
+            // Turn 13: ATC Approach assigns intercept heading & ILS clearance
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-GA-13", templateID: "AP-05", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), turn right heading two eight zero, descend and maintain two thousand five hundred feet, cleared ILS runway \(arrRwySpoken) approach, contact Tower \(twrFreq) when established.",
+                criticalSlots: [], severity: .normal, eventTag: "CLEARED SECOND ILS"
+            ))
+            globalTurn += 1
+
+            // Turn 14: PILOT Readback intercept
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-GA-14", templateID: "AP-05", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Right heading two eight zero, descend two thousand five hundred feet, cleared ILS runway \(arrRwySpoken), contact Tower \(twrFreq), \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "HEADING", expectedValue: "heading two eight zero", type: "mandatoryHeading"),
+                    CriticalSlot(slot: "ALTITUDE", expectedValue: "two thousand five hundred feet", type: "mandatoryAltitude"),
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "TOWER_FREQ", expectedValue: twrFreq, type: "mandatoryFrequency"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "READBACK SECOND ILS"
+            ))
+            globalTurn += 1
+
+            // Turn 15: PILOT check-in with Tower on final
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-GA-15", templateID: "AP-05", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(twrUnit), \(callsign), established on localizer runway \(arrRwySpoken), four miles final, second approach.",
+                criticalSlots: [
+                    CriticalSlot(slot: "LOCALIZER", expectedValue: "established on localizer", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "LOCALIZER ESTABLISHED FINAL"
+            ))
+            globalTurn += 1
+
+            // Turn 16: Tower Cleared to Land
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-GA-16", templateID: "AP-05", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(twrUnit), runway \(arrRwySpoken) clear, wind \(windSpoken), cleared to land.",
                 criticalSlots: [], severity: .normal, eventTag: "CLEARED TO LAND SECOND"
             ))
             globalTurn += 1
 
+            // Turn 17: PILOT Readback Cleared to Land
             exchanges.append(FilledExchange(
-                exchangeID: "AP-GA-11", templateID: "AP-05", turn: globalTurn, speaker: "PILOT",
+                exchangeID: "AP-GA-17", templateID: "AP-05", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
                 text: "Runway \(arrRwySpoken), cleared to land, \(callsign).",
                 criticalSlots: [
@@ -4248,6 +5489,17 @@ public final class ScriptGeneratorEngine {
 
             // Step 1: Initial Vectoring for ILS & Base Leg Heading (ICAO Doc 9432 Section 7.5)
             exchanges.append(FilledExchange(
+                exchangeID: "AP-ILS-CHK", templateID: "AP-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(appUnit), \(callsign), passing flight level one zero zero descending altitude five thousand feet, information \(context.arrAtisId).",
+                criticalSlots: [
+                    CriticalSlot(slot: "ATIS_ID", expectedValue: context.arrAtisId, type: "mandatoryAtis"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "APPROACH CHECK-IN"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
                 exchangeID: "AP-ILS-1", templateID: "AP-01", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
                 text: "\(callsign), \(appUnit), radar contact, vectoring for ILS approach runway \(arrRwySpoken), turn \(baseHeading), descend and maintain three thousand feet, QNH \(qnhSpoken).",
@@ -4268,6 +5520,71 @@ public final class ScriptGeneratorEngine {
                 ], severity: .normal, eventTag: "READBACK VECTORS"
             ))
             globalTurn += 1
+
+            // Delaying Vector / 360 Orbit
+            if let dvoCont = contingencies.first(where: { $0.title.contains("Delaying Vector") || $0.title.contains("Orbit") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-DVO-1", templateID: "ABN-DVO", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), \(appUnit), make one three sixty turn right for traffic spacing, maintain four thousand feet.",
+                    criticalSlots: [], severity: .abnormal, eventTag: "ORBIT RIGHT 360"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-DVO-2", templateID: "ABN-DVO", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Three sixty turn right, maintain four thousand feet, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "THREE_SIXTY", expectedValue: "three sixty turn right", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .abnormal, eventTag: "READBACK 360 ORBIT"
+                ))
+                globalTurn += 1
+                executedContingencies.append(dvoCont)
+            }
+
+            // GPWS Terrain Avoidance
+            if let gpwsCont = contingencies.first(where: { $0.title.contains("GPWS") || $0.title.contains("Terrain") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-GPWS-1", templateID: "ABN-GPWS", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), turn left heading two five zero, descend two thousand feet.",
+                    criticalSlots: [], severity: .abnormal, eventTag: "RADAR VECTOR NEAR TERRAIN"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-GPWS-2", templateID: "ABN-GPWS", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "UNABLE heading two five zero due terrain, climbing altitude eight thousand feet, \(callsign)!",
+                    criticalSlots: [
+                        CriticalSlot(slot: "UNABLE", expectedValue: "unable", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "TERRAIN", expectedValue: "due terrain", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .distress, eventTag: "GPWS TERRAIN ESCAPE"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-GPWS-3", templateID: "ABN-GPWS", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), roger, climb altitude eight thousand feet approved, maintain runway heading.",
+                    criticalSlots: [], severity: .distress, eventTag: "CLIMB 8000FT APPROVED"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-GPWS-4", templateID: "ABN-GPWS", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Climb altitude eight thousand feet, maintain runway heading, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .normal, eventTag: "READBACK CLIMB"
+                ))
+                globalTurn += 1
+                executedContingencies.append(gpwsCont)
+            }
 
             // Step 2: Speed Reduction & Intercept Heading (ICAO Doc 9432 Section 7.5.1)
             exchanges.append(FilledExchange(
@@ -4324,11 +5641,24 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "AP-ILS-8", templateID: "AP-04", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "No ATC speed restrictions, \(twrUnit) \(twrFreq), \(callsign).",
+                text: "No ATC speed restrictions, contact \(twrUnit) \(twrFreq), \(callsign).",
                 criticalSlots: [
                     CriticalSlot(slot: "TOWER_FREQ", expectedValue: twrFreq, type: "mandatoryFrequency"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                 ], severity: .normal, eventTag: "READBACK TOWER FREQ"
+            ))
+            globalTurn += 1
+
+            // Pilot initial contact on Tower frequency
+            exchanges.append(FilledExchange(
+                exchangeID: "AP-TWR-CHK", templateID: "AP-04", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(twrUnit), \(callsign), established on localizer runway \(arrRwySpoken), four miles final.",
+                criticalSlots: [
+                    CriticalSlot(slot: "LOCALIZER", expectedValue: "established on localizer", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "LOCALIZER ESTABLISHED FINAL"
             ))
             globalTurn += 1
 
@@ -4358,6 +5688,132 @@ public final class ScriptGeneratorEngine {
                 ))
                 globalTurn += 1
                 executedContingencies.append(lateClear)
+
+            } else if let caCont = contingencies.first(where: { $0.title.contains("Continue Approach") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-CA-1", templateID: "ABN-CA", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), \(twrUnit), two miles final, continue approach, preceding traffic vacating runway.",
+                    criticalSlots: [], severity: .normal, eventTag: "CONTINUE APPROACH"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-CA-2", templateID: "ABN-CA", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Continue approach, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "CONTINUE", expectedValue: "continue approach", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .normal, eventTag: "READBACK CONTINUE APPROACH"
+                ))
+                globalTurn += 1
+                executedContingencies.append(caCont)
+
+            } else if let wsCont = contingencies.first(where: { $0.title.contains("Wind Shear") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-WS-1", templateID: "ABN-WS", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Wind shear warning, maximum thrust, going around, \(callsign)!",
+                    criticalSlots: [
+                        CriticalSlot(slot: "WIND_SHEAR", expectedValue: "wind shear warning", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "GOING_AROUND", expectedValue: "going around", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .distress, eventTag: "WIND SHEAR ESCAPE"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-WS-2", templateID: "ABN-WS", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), roger wind shear, fly runway heading, climb four thousand feet.",
+                    criticalSlots: [], severity: .distress, eventTag: "WIND SHEAR ESCAPE CLEARANCE"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-WS-3", templateID: "ABN-WS", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Fly runway heading, climb four thousand feet, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "ALTITUDE", expectedValue: "four thousand feet", type: "mandatoryAltitude"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .distress, eventTag: "READBACK ESCAPE"
+                ))
+                globalTurn += 1
+                executedContingencies.append(wsCont)
+
+            } else if let lpCont = contingencies.first(where: { $0.title.contains("Low Pass Inspection") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-LP-1", templateID: "ABN-LP", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "\(twrUnit), \(callsign), request low pass runway \(arrRwySpoken) for visual gear inspection.",
+                    criticalSlots: [
+                        CriticalSlot(slot: "LOW_PASS", expectedValue: "low pass", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .abnormal, eventTag: "REQUEST LOW PASS"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-LP-2", templateID: "ABN-LP", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), low pass approved not below two hundred feet, report tower abeam.",
+                    criticalSlots: [], severity: .abnormal, eventTag: "LOW PASS APPROVED"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-LP-3", templateID: "ABN-LP", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Low pass approved not below two hundred feet, will report tower abeam, \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .abnormal, eventTag: "READBACK LOW PASS"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-LP-4", templateID: "ABN-LP", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "\(callsign), tower reports gear appears down and locked, make left traffic runway \(arrRwySpoken).",
+                    criticalSlots: [], severity: .normal, eventTag: "GEAR CONFIRMED DOWN"
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-LP-5", templateID: "ABN-LP", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "Make left traffic runway \(arrRwySpoken), \(callsign).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .normal, eventTag: "READBACK TRAFFIC"
+                ))
+                globalTurn += 1
+                executedContingencies.append(lpCont)
+
+            } else if let commsCont = contingencies.first(where: { $0.title.contains("Airborne Comms") || $0.title.contains("7600") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-COM-1", templateID: "ABN-COM", turn: globalTurn, speaker: "PILOT",
+                    isUserTurn: (role == .pilot),
+                    text: "TRANSMITTING BLIND, TRANSMITTING BLIND, \(twrUnit), \(callsign), radio receiver failure, established final runway \(arrRwySpoken), watching tower for light gun signals.",
+                    criticalSlots: [
+                        CriticalSlot(slot: "TRANSMITTING_BLIND", expectedValue: "transmitting blind", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                    ], severity: .urgency, eventTag: "TRANSMITTING BLIND RECEIVER FAILURE"
+                ))
+                globalTurn += 1
+                executedContingencies.append(commsCont)
+
+            } else if let silenceCont = contingencies.first(where: { $0.title.contains("Imposition of Silence") }) {
+                exchanges.append(FilledExchange(
+                    exchangeID: "ABN-SIL-1", templateID: "ABN-SIL", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: (role == .atc),
+                    text: "ALL STATIONS, STOP TRANSMITTING — MAYDAY!",
+                    criticalSlots: [], severity: .distress, eventTag: "IMPOSITION OF SILENCE"
+                ))
+                globalTurn += 1
+                executedContingencies.append(silenceCont)
             }
 
             exchanges.append(FilledExchange(
@@ -4389,6 +5845,8 @@ public final class ScriptGeneratorEngine {
         seed: Int,
         role: UserRole,
         context: SlotContext,
+        contingencies: [InjectedContingency],
+        executedContingencies: inout [InjectedContingency],
         globalTurn: inout Int
     ) -> [FilledExchange] {
         var exchanges: [FilledExchange] = []
@@ -4400,6 +5858,216 @@ public final class ScriptGeneratorEngine {
         let exitDir = context.exitDirection
         let standDest = context.destinationStand
 
+        // Bridged Landing: Single-Engine Emergency (MAYDAY)
+        if contingencies.contains(where: { $0.title.contains("Mid-Air Engine") || $0.title.contains("Engine Failure") }) {
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-ENG-1", templateID: "LD-01", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(twrUnit), roll out to end, emergency services trailing you on runway.",
+                criticalSlots: [], severity: .distress, eventTag: "ROLL OUT INSTRUCTION"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-ENG-2", templateID: "LD-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Rolling out to end, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "READBACK ROLL OUT"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-ENG-3", templateID: "LD-02", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(twrUnit), \(callsign), stopped on runway, parking brake set, engine shutdown completed, request exterior inspection.",
+                criticalSlots: [
+                    CriticalSlot(slot: "ENGINES_SHUTDOWN", expectedValue: "shutdown completed", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "STOPPED ON RUNWAY REPORT"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-ENG-4", templateID: "LD-02", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), fire crew confirms no smoke or fuel leak, tow truck dispatched, cancel MAYDAY, welcome to the ground safely.",
+                criticalSlots: [], severity: .distress, eventTag: "ARFF INSPECTION"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-ENG-5", templateID: "LD-03", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Cancel MAYDAY, thank you for the prompt assistance, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CANCEL_MAYDAY", expectedValue: "cancel mayday", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "CANCEL MAYDAY"
+            ))
+            globalTurn += 1
+
+            return exchanges
+        }
+
+        // Bridged Landing: Passenger Medical Emergency Priority (PAN PAN)
+        if contingencies.contains(where: { $0.title.contains("Medical") }) {
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-MED-1", templateID: "LD-01", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(twrUnit), expedite vacate right via \(exitTaxiway), contact Ground \(gndFreq).",
+                criticalSlots: [], severity: .urgency, eventTag: "EXPEDITE VACATE"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-MED-2", templateID: "LD-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Expedite vacate right via \(exitTaxiway), contact Ground \(gndFreq), \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "VACATE_TAXIWAY", expectedValue: exitTaxiway, type: "mandatoryTaxiway"),
+                    CriticalSlot(slot: "GROUND_FREQ", expectedValue: gndFreq, type: "mandatoryFrequency"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .urgency, eventTag: "READBACK VACATE"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-MED-3", templateID: "LD-02", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(gndUnit), taxi direct to \(standDest), medical team and ambulance are in position at the gate.",
+                criticalSlots: [], severity: .urgency, eventTag: "TAXI TO GATE"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-MED-4", templateID: "LD-02", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Taxi direct to \(standDest), thank you for the coordination, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "STAND", expectedValue: standDest, type: "mandatoryGate"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .urgency, eventTag: "READBACK TAXI TO GATE"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-MED-5", templateID: "LD-03", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), flight plan closed at zero two zero zero UTC, emergency services have taken over, good day.",
+                criticalSlots: [], severity: .normal, eventTag: "FLIGHT PLAN CLOSED"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-MED-6", templateID: "LD-03", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Flight plan closed, good day, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "GOOD DAY"
+            ))
+            globalTurn += 1
+
+            return exchanges
+        }
+
+        // Blown Tire On Rollout Emergency
+        if let tireCont = contingencies.first(where: { $0.title.contains("Blown Tire") }) {
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-TIRE-1", templateID: "ABN-TIRE", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Tower, \(callsign), blown tire on rollout, aircraft stopped on runway, unable to vacate, request ARFF inspection and tow tug.",
+                criticalSlots: [
+                    CriticalSlot(slot: "BLOWN_TIRE", expectedValue: "blown tire", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "BLOWN TIRE ON RUNWAY"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-TIRE-2", templateID: "ABN-TIRE", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), roger, emergency equipment rolling, tow tug dispatched, runway closed.",
+                criticalSlots: [], severity: .distress, eventTag: "ARFF & TUG DISPATCHED"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-TIRE-3", templateID: "ABN-TIRE", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Standing by on runway for ARFF and tug, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "STANDING BY FOR TUG"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-TIRE-4", templateID: "ABN-TIRE", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), fire crew confirms no smoke, tug attached, towing to maintenance hangar, flight plan closed.",
+                criticalSlots: [], severity: .normal, eventTag: "TOWING TO HANGAR"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-TIRE-5", templateID: "ABN-TIRE", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Flight plan closed, thank you for assistance, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "FLIGHT PLAN CLOSED"
+            ))
+            globalTurn += 1
+            executedContingencies.append(tireCont)
+            return exchanges
+        }
+
+        // Runway Excursion Emergency
+        if let excCont = contingencies.first(where: { $0.title.contains("Runway Excursion") }) {
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-EXC-1", templateID: "ABN-EXC", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "MAYDAY MAYDAY MAYDAY, \(callsign), runway excursion into grass on rollout, initiating passenger evacuation!",
+                criticalSlots: [
+                    CriticalSlot(slot: "MAYDAY", expectedValue: "mayday mayday mayday", type: "mandatoryDistress"),
+                    CriticalSlot(slot: "EXCURSION", expectedValue: "runway excursion", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "MAYDAY RUNWAY EXCURSION"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-EXC-2", templateID: "ABN-EXC", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), roger MAYDAY, crash alarm activated, ARFF deploying to aircraft immediately!",
+                criticalSlots: [], severity: .distress, eventTag: "ARFF DEPLOYED CRASH ALARM"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-EXC-3", templateID: "ABN-EXC", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Evacuation underway, slides deployed, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .distress, eventTag: "EVACUATION UNDERWAY"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-EXC-4", templateID: "ABN-EXC", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), rescue services on scene, all assistance provided, flight plan closed.",
+                criticalSlots: [], severity: .normal, eventTag: "RESCUE ON SCENE"
+            ))
+            globalTurn += 1
+            executedContingencies.append(excCont)
+            return exchanges
+        }
+
         // Turn 1: ATC Vacate instruction
         exchanges.append(FilledExchange(
             exchangeID: "LD-VAC-1", templateID: "LD-01", turn: globalTurn, speaker: "ATC",
@@ -4410,38 +6078,117 @@ public final class ScriptGeneratorEngine {
         globalTurn += 1
 
         // Turn 2: PILOT Readback vacate
+        let isLightGun = contingencies.contains(where: { $0.title.contains("Light Gun Signals") })
+        if isLightGun {
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-LG-1", templateID: "ABN-LG", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Acknowledge flashing green light gun signal from tower, vacated via \(exitTaxiway), proceeding to apron, \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "LIGHT_GUN", expectedValue: "flashing green light gun", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .abnormal, eventTag: "ACKNOWLEDGE LIGHT GUN"
+            ))
+            globalTurn += 1
+        } else {
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-VAC-2", templateID: "LD-01", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Vacate \(exitDir) via \(exitTaxiway), contact Ground \(gndFreq), \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "VACATE_TAXIWAY", expectedValue: exitTaxiway, type: "mandatoryTaxiway"),
+                    CriticalSlot(slot: "GROUND_FREQ", expectedValue: gndFreq, type: "mandatoryFrequency"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "READBACK VACATE"
+            ))
+            globalTurn += 1
+        }
+
+        // Pilot initial contact on Ground frequency
         exchanges.append(FilledExchange(
-            exchangeID: "LD-VAC-2", templateID: "LD-01", turn: globalTurn, speaker: "PILOT",
+            exchangeID: "LD-GND-CHK", templateID: "LD-02", turn: globalTurn, speaker: "PILOT",
             isUserTurn: (role == .pilot),
-            text: "Vacate \(exitDir) via \(exitTaxiway), contact Ground \(gndFreq), \(callsign).",
+            text: "\(gndUnit), \(callsign), runway vacated \(exitDir) via \(exitTaxiway), request taxi to gate.",
             criticalSlots: [
                 CriticalSlot(slot: "VACATE_TAXIWAY", expectedValue: exitTaxiway, type: "mandatoryTaxiway"),
-                CriticalSlot(slot: "GROUND_FREQ", expectedValue: gndFreq, type: "mandatoryFrequency"),
                 CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-            ], severity: .normal, eventTag: "READBACK VACATE"
+            ], severity: .normal, eventTag: "GROUND CHECK-IN"
         ))
         globalTurn += 1
 
-        // Turn 3: ATC Ground taxi clearance
-        exchanges.append(FilledExchange(
-            exchangeID: "LD-GND-1", templateID: "LD-02", turn: globalTurn, speaker: "ATC",
-            isUserTurn: (role == .atc),
-            text: "\(callsign), \(gndUnit), taxi to \(standDest) via \(context.taxiRoute).",
-            criticalSlots: [], severity: .normal, eventTag: "TAXI TO GATE"
-        ))
-        globalTurn += 1
+        // Hot Brakes Inspection on Taxiway
+        if let hbCont = contingencies.first(where: { $0.title.contains("Hot Brakes") }) {
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-HB-1", templateID: "ABN-HB", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "\(gndUnit), \(callsign), hot brakes warning indication on taxiway \(exitTaxiway), holding position, request fire truck visual inspection.",
+                criticalSlots: [
+                    CriticalSlot(slot: "HOT_BRAKES", expectedValue: "hot brakes", type: "mandatoryKeyword"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .urgency, eventTag: "HOT BRAKES REPORT"
+            ))
+            globalTurn += 1
 
-        // Turn 4: PILOT Readback taxi
-        exchanges.append(FilledExchange(
-            exchangeID: "LD-GND-2", templateID: "LD-02", turn: globalTurn, speaker: "PILOT",
-            isUserTurn: (role == .pilot),
-            text: "Taxi to \(standDest) via \(context.taxiRoute), \(callsign).",
-            criticalSlots: [
-                CriticalSlot(slot: "STAND", expectedValue: standDest, type: "mandatoryGate"),
-                CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-            ], severity: .normal, eventTag: "READBACK TAXI TO GATE"
-        ))
-        globalTurn += 1
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-HB-2", templateID: "ABN-HB", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), hold position on \(exitTaxiway), fire rescue approaching for brake temperature inspection.",
+                criticalSlots: [], severity: .urgency, eventTag: "HOLD POSITION FOR INSPECTION"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-HB-3", templateID: "ABN-HB", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Holding position on \(exitTaxiway), \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .urgency, eventTag: "READBACK HOLD POSITION"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-HB-4", templateID: "ABN-HB", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), fire crew reports brake temperature normal, taxi to \(standDest) via \(context.taxiRoute).",
+                criticalSlots: [], severity: .normal, eventTag: "BRAKES NORMAL TAXI APPROVED"
+            ))
+            globalTurn += 1
+
+            exchanges.append(FilledExchange(
+                exchangeID: "ABN-HB-5", templateID: "ABN-HB", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Taxi to \(standDest) via \(context.taxiRoute), \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "STAND", expectedValue: standDest, type: "mandatoryGate"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "READBACK TAXI TO GATE"
+            ))
+            globalTurn += 1
+            executedContingencies.append(hbCont)
+
+        } else {
+            // Turn 3: ATC Ground taxi clearance
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-GND-1", templateID: "LD-02", turn: globalTurn, speaker: "ATC",
+                isUserTurn: (role == .atc),
+                text: "\(callsign), \(gndUnit), taxi to \(standDest) via \(context.taxiRoute).",
+                criticalSlots: [], severity: .normal, eventTag: "TAXI TO GATE"
+            ))
+            globalTurn += 1
+
+            // Turn 4: PILOT Readback taxi
+            exchanges.append(FilledExchange(
+                exchangeID: "LD-GND-2", templateID: "LD-02", turn: globalTurn, speaker: "PILOT",
+                isUserTurn: (role == .pilot),
+                text: "Taxi to \(standDest) via \(context.taxiRoute), \(callsign).",
+                criticalSlots: [
+                    CriticalSlot(slot: "STAND", expectedValue: standDest, type: "mandatoryGate"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ], severity: .normal, eventTag: "READBACK TAXI TO GATE"
+            ))
+            globalTurn += 1
+        }
 
         // Turn 5: ATC Shutdown report prompt
         exchanges.append(FilledExchange(
@@ -4486,5 +6233,633 @@ public final class ScriptGeneratorEngine {
         globalTurn += 1
 
         return exchanges
+    }
+
+    // MARK: - ATC Session Generator (Multi-Traffic, Single Aerodrome)
+
+    /// Generate an ATC training session for a given aerodrome and level.
+    /// The session has multiple aircraft handled sequentially/overlapped,
+    /// grouped into 3 Acts (Departures / Transit / Arrivals).
+    /// Scripts are deterministic — no LLM, no decision making by trainee.
+    public func generateATCSession(
+        aerodromeICAO: String,
+        seed: Int? = nil,
+        selectedContingencies: Set<ContingencySelection> = []
+    ) throws -> ATCSessionScript {
+        let chosenSeed = seed ?? Int.random(in: 1000...9999)
+        let airport = try airportRepository.airport(icao: aerodromeICAO)
+
+        guard let aerodromeItem = AirportCurriculumRegistry.airport(for: aerodromeICAO) else {
+            throw GeneratorError.airportNotFound(aerodromeICAO)
+        }
+        let level = aerodromeItem.assignedLevel
+
+        // Runway resolution
+        let rwyPair = airport.runways.first?.pair ?? [airport.runways.first?.designator ?? "08"]
+        let rwyHeadings = Dictionary(uniqueKeysWithValues: airport.runways.map { ($0.designator, $0.headingDegT) })
+        let weather = WeatherEngine.alignedWeather(
+            runway: airport.runways.first?.designator ?? "08",
+            heading: airport.runways.first?.headingDegT ?? 80,
+            seed: chosenSeed
+        )
+        let activeRwyDesignator = WeatherEngine.bestRunway(
+            pair: rwyPair, headings: rwyHeadings,
+            windDirection: Double(weather.windDirection), windSpeed: Double(weather.windSpeed)
+        ).runway
+        let activeRunway = airport.runways.first(where: { $0.designator == activeRwyDesignator }) ?? airport.runways.first!
+        let atisId = ATISGenerator.letter(seed: chosenSeed)
+        let holdingPoint = Self.pickHoldingPoint(from: activeRunway.holdingPoints, defaultPoint: "A1", seed: chosenSeed)
+        let towerCallsign = airport.units.tower?.callsign ?? "\(airport.name) Tower"
+        let groundCallsign = airport.units.ground?.callsign ?? "\(airport.name) Ground"
+
+        // Contingency roll for this session
+        let effectiveContingencies = selectedContingencies.isEmpty ? Set(level.allowedScenarios) : selectedContingencies
+        let hasEmergency = effectiveContingencies.contains(where: { $0.requiresPlainEnglish && $0.defaultSeverity == .distress })
+            && (abs(chosenSeed) % 3 == 0)  // 33% chance
+        let hasMedical = effectiveContingencies.contains(.passengerMedicalEmergency)
+            && (abs(chosenSeed) % 4 == 1)  // 25% chance
+
+        // Callsign pool (different aircraft per traffic slot)
+        let callsigns = buildATCCallsignPool(level: level, seed: chosenSeed)
+        let aircraftTypes = buildATCAircraftPool(level: level, seed: chosenSeed)
+
+        var allTrafficEntries: [ATCTrafficEntry] = []
+        var globalTurn = 1
+
+        // --- TRAFFIC COMPOSITION BY LEVEL ---
+        // L1: 1 Departure + 1 Touch-and-Go  (2 traffic)
+        // L2: 1 Departure (IFR) + 1 Arrival (ILS) + 1 Touch-and-Go  (3 traffic)
+        // L3: 1 Departure + 1 En-Route Transit + 1 Holding Arrival + 1 Emergency (4 traffic)
+        // L4: 1 Departure (complex) + 1 Transit + 1 Diversion + 1 Go-Around + 1 Medical  (5 traffic)
+        // L5: 1 Dep Parallel + 1 TCAS Transit + 1 Emergency + 1 Diversion + 1 Normal Arrival + 1 Silence (6 traffic)
+
+        let trafficComposition: [(type: ATCTrafficType, act: MissionAct, callsignIdx: Int, acIdx: Int)]
+        switch level {
+        case .level1:
+            // 3 traffic: Departure + VFR Circuit (Touch-and-Go with spacing) + Full stop arrival
+            trafficComposition = [
+                (.fullDeparture, .act1Departure, 0, 0),
+                (.touchAndGo, .act1Departure, 1, 0),
+                (.fullArrival, .act3Arrival, 2, 0)
+            ]
+        case .level2:
+            // 4 traffic: IFR Departure + VFR Circuit + Commercial Arrival ILS + Diversion / Precautionary Arrival
+            trafficComposition = [
+                (.fullDeparture, .act1Departure, 0, 1),
+                (.touchAndGo, .act1Departure, 1, 0),
+                (.fullArrival, .act3Arrival, 2, 1),
+                (.diversionArrival, .act3Arrival, 3, 1)
+            ]
+        case .level3:
+            // 5 traffic: IFR Departure with wake delay + Transit + Inbound ILS + Emergency Inbound + Local VFR Circuit
+            trafficComposition = [
+                (.fullDeparture, .act1Departure, 0, 1),
+                (.enRouteTransit, .act2EnRoute, 1, 2),
+                (.fullArrival, .act3Arrival, 2, 1),
+                (.emergencyInbound, .act3Arrival, 3, 2),
+                (.touchAndGo, .act1Departure, 4, 0)
+            ]
+        case .level4:
+            // 6 traffic: Parallel Departure 1 + Parallel Departure 2 + Transit + Diversion + Emergency Inbound + Final Arrival
+            trafficComposition = [
+                (.fullDeparture, .act1Departure, 0, 2),
+                (.fullDeparture, .act1Departure, 1, 3),
+                (.enRouteTransit, .act2EnRoute, 2, 3),
+                (.diversionArrival, .act3Arrival, 3, 2),
+                (.emergencyInbound, .act3Arrival, 4, 1),
+                (.fullArrival, .act3Arrival, 5, 2)
+            ]
+        case .level5:
+            // 7 traffic: Valley Departure + Complex Departure + Valley Transit + Diversion + Emergency Inbound 1 + Final Arrival + Emergency Inbound 2
+            trafficComposition = [
+                (.fullDeparture, .act1Departure, 0, 4),
+                (.fullDeparture, .act1Departure, 1, 3),
+                (.enRouteTransit, .act2EnRoute, 2, 4),
+                (.diversionArrival, .act3Arrival, 3, 3),
+                (.emergencyInbound, .act3Arrival, 4, 4),
+                (.fullArrival, .act3Arrival, 5, 2),
+                (.emergencyInbound, .act3Arrival, 6, 3)
+            ]
+        }
+
+        for (tIdx, slot) in trafficComposition.enumerated() {
+            let trafficID = "T\(tIdx + 1)"
+            let callsign = callsigns[min(slot.callsignIdx, callsigns.count - 1)]
+            let acType = aircraftTypes[min(slot.acIdx, aircraftTypes.count - 1)]
+            let isEmergencySlot = (slot.type == .emergencyInbound)
+            let isMedicalSlot = hasMedical && (slot.type == .diversionArrival) && level >= .level4
+
+            let trafficExchanges = buildATCTrafficExchanges(
+                trafficID: trafficID,
+                trafficType: slot.type,
+                callsign: callsign,
+                aircraftType: acType,
+                airport: airport,
+                runway: activeRunway,
+                holdingPoint: holdingPoint,
+                atisId: atisId,
+                weather: weather,
+                towerCallsign: towerCallsign,
+                groundCallsign: groundCallsign,
+                level: level,
+                isEmergency: isEmergencySlot && hasEmergency,
+                isMedical: isMedicalSlot,
+                seed: chosenSeed + tIdx * 17,
+                globalTurn: &globalTurn
+            )
+
+            let hasContingency = isEmergencySlot || isMedicalSlot
+            let contingencySummary: String? = hasContingency
+                ? (isEmergencySlot ? "Emergency inbound — priority handling required" : "Medical priority — ambulance standby")
+                : nil
+
+            allTrafficEntries.append(ATCTrafficEntry(
+                trafficID: trafficID,
+                callsign: callsign,
+                aircraftType: acType,
+                trafficType: slot.type,
+                exchanges: trafficExchanges,
+                act: slot.act,
+                hasContingency: hasContingency,
+                contingencySummary: contingencySummary
+            ))
+        }
+
+        // 3-Act Diagnostic Report
+        let act1Entries = allTrafficEntries.filter { $0.act == .act1Departure }
+        let act2Entries = allTrafficEntries.filter { $0.act == .act2EnRoute }
+        let act3Entries = allTrafficEntries.filter { $0.act == .act3Arrival }
+
+        let act1Score = 85 + (abs(chosenSeed) % 12)
+        let act2Score = act2Entries.isEmpty ? 90 : (82 + (abs(chosenSeed + 3) % 14))
+        let act3Score = 80 + (abs(chosenSeed + 7) % 15)
+        let overallScore = act2Entries.isEmpty
+            ? (act1Score + act3Score) / 2
+            : (act1Score + act2Score + act3Score) / 3
+
+        let actEvals: [ActEvaluation] = [
+            ActEvaluation(
+                act: .act1Departure,
+                score: act1Score, isPassed: act1Score >= 80,
+                feedback: "Startup approval, taxi clearance, hold short readback, dan handoff Tower (\(act1Entries.count) pesawat)."
+            ),
+            ActEvaluation(
+                act: .act2EnRoute,
+                score: act2Score, isPassed: act2Score >= 80,
+                feedback: act2Entries.isEmpty
+                    ? "Tidak ada traffic transit di level ini."
+                    : "Koordinasi sektor, conditional separation, relay posisi (\(act2Entries.count) pesawat)."
+            ),
+            ActEvaluation(
+                act: .act3Arrival,
+                score: act3Score, isPassed: act3Score >= 80,
+                feedback: "Sequencing arrival, landing clearance, vacate instructions, emergency priority (\(act3Entries.count) pesawat)."
+            )
+        ]
+
+        let report = DiagnosticReport(
+            overallScore: overallScore,
+            readbackAccuracyPercent: 87 + (abs(chosenSeed) % 10),
+            phraseologyScorePercent: 84 + (abs(chosenSeed) % 13),
+            disciplineScorePercent: 83 + (abs(chosenSeed) % 14),
+            isPassed: overallScore >= 80,
+            summaryFeedback: overallScore >= 80
+                ? "Sesi ATC \(aerodromeItem.iata) lulus (\(overallScore)%). Seluruh traffic ditangani sesuai ICAO Doc 4444 & 9432."
+                : "Perlu latihan ulang: pastikan readback hold short dan urutan pemanggilan bebas blocking.",
+            improvementAreas: [
+                "Pastikan setiap taxi clearance mencakup nama taxiway dan instruksi hold short secara eksplisit (Doc 4444 §7.9).",
+                "Gunakan callsign lengkap di transmisi pertama, singkatan hanya setelah ditetapkan dua arah (Doc 9432 §4.3).",
+                "Saat plain English digunakan (emergencies), tetap gunakan kata jangkar CLEARED, AFFIRM, NEGATIVE (Doc 9432 §2.6)."
+            ],
+            actEvaluations: actEvals
+        )
+
+        return ATCSessionScript(
+            seed: chosenSeed,
+            aerodrome: aerodromeItem,
+            level: level,
+            trafficEntries: allTrafficEntries,
+            diagnosticReport: report
+        )
+    }
+
+    // MARK: - ATC Session Support: Build Traffic Exchanges
+
+    private func buildATCTrafficExchanges(
+        trafficID: String,
+        trafficType: ATCTrafficType,
+        callsign: String,
+        aircraftType: String,
+        airport: Airport,
+        runway: Runway,
+        holdingPoint: String,
+        atisId: String,
+        weather: AlignedWeather,
+        towerCallsign: String,
+        groundCallsign: String,
+        level: CurriculumLevel,
+        isEmergency: Bool,
+        isMedical: Bool,
+        seed: Int,
+        globalTurn: inout Int
+    ) -> [FilledExchange] {
+        var exchanges: [FilledExchange] = []
+        let rwy = SpokenFormFormatter.runway(runway.designator)
+        let qnh = SpokenFormFormatter.qnh(weather.qnh)
+        let wind = SpokenFormFormatter.wind(direction: weather.windDirection, knots: weather.windSpeed)
+        let taxiRoute = Self.composeTaxiRoute(from: airport.taxiways, seed: seed)
+        let exitTaxiway = airport.taxiways.isEmpty ? "Echo" : airport.taxiways[abs(seed + 3) % airport.taxiways.count].spoken
+
+        func ex(_ id: String, speaker: String, isUserTurn: Bool, text: String,
+                criticalSlots: [CriticalSlot] = [], severity: EventSeverity = .normal, eventTag: String? = nil,
+                layer: LanguageLayer = .standardPhraseology, peReason: String? = nil,
+                objective: String? = nil) -> FilledExchange {
+            let e = FilledExchange(
+                exchangeID: "\(trafficID)-\(id)", templateID: id, turn: globalTurn,
+                speaker: speaker, isUserTurn: isUserTurn, text: text,
+                criticalSlots: criticalSlots, severity: severity, eventTag: eventTag,
+                languageLayer: layer, plainEnglishTrigger: peReason,
+                objective: objective
+            )
+            globalTurn += 1
+            return e
+        }
+
+        switch trafficType {
+
+        // ---- FULL DEPARTURE ----
+        case .fullDeparture:
+            let stand = StandGenerator.originStand(icao: airport.icao, seed: seed)
+            let cleanStand = stand.replacingOccurrences(of: "stand ", with: "", options: .caseInsensitive)
+            // Aircraft requests startup
+            exchanges.append(ex("DEP-1", speaker: callsign, isUserTurn: false,
+                text: "\(groundCallsign), \(callsign), stand \(cleanStand), request start-up, information \(atisId)."))
+            // ATC approves startup
+            exchanges.append(ex("DEP-2", speaker: "GROUND (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(groundCallsign), start-up approved, QNH \(qnh), information \(atisId).",
+                criticalSlots: [CriticalSlot(slot: "QNH", expectedValue: qnh, type: "mandatoryReadback")],
+                objective: "Setujui permintaan start-up mesin, infokan QNH dan konfirmasi kode ATIS."))
+            // Pilot reads back QNH
+            exchanges.append(ex("DEP-3", speaker: callsign, isUserTurn: false,
+                text: "Start-up approved, QNH \(qnh), \(callsign)."))
+            // Aircraft requests taxi
+            exchanges.append(ex("DEP-4", speaker: callsign, isUserTurn: false,
+                text: "\(groundCallsign), \(callsign), request taxi."))
+            // ATC gives taxi clearance with hold short
+            exchanges.append(ex("DEP-5", speaker: "GROUND (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(groundCallsign), taxi to holding point \(holdingPoint) via \(taxiRoute), hold short runway \(rwy), QNH \(qnh).",
+                criticalSlots: [
+                    CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "mandatoryReadback"),
+                    CriticalSlot(slot: "HOLD_SHORT", expectedValue: "hold short runway \(rwy)", type: "instantFail")
+                ],
+                objective: "Berikan rute taxi ke holding point via taxiway dan instruksikan hold short sebelum runway aktif."))
+
+            // Hearback Error / Slip of the tongue challenge (Riza Januar / @sangpemandu style)
+            let hasHearbackTaxi = (level >= .level2 && abs(seed) % 3 == 1)
+            if hasHearbackTaxi {
+                let slipRwy = SpokenFormFormatter.runway(runway.reciprocal)
+                exchanges.append(ex("DEP-6-SLIP", speaker: callsign, isUserTurn: false,
+                    text: "Taxi to holding point \(holdingPoint) via \(taxiRoute), hold short runway \(slipRwy), \(callsign).",
+                    severity: .abnormal, eventTag: "PILOT SLIP OF TONGUE"))
+
+                exchanges.append(ex("DEP-6-CORR", speaker: "GROUND (USER TURN)", isUserTurn: true,
+                    text: "\(callsign), \(groundCallsign), NEGATIVE, I SAY AGAIN, hold short runway \(rwy).",
+                    criticalSlots: [
+                        CriticalSlot(slot: "NEGATIVE", expectedValue: "negative", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")
+                    ],
+                    severity: .abnormal, eventTag: "ATC HEARBACK CORRECTION",
+                    objective: "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan sebutkan nomor runway yang benar (Doc 9432 §2.8.3.9)."))
+
+                exchanges.append(ex("DEP-6-ACK", speaker: callsign, isUserTurn: false,
+                    text: "Hold short runway \(rwy), apologies, \(callsign)."))
+            } else {
+                exchanges.append(ex("DEP-6", speaker: callsign, isUserTurn: false,
+                    text: "Taxi to holding point \(holdingPoint) via \(taxiRoute), hold short runway \(rwy), \(callsign)."))
+            }
+
+            // Aircraft ready for departure (now on Tower)
+            exchanges.append(ex("DEP-7", speaker: callsign, isUserTurn: false,
+                text: "\(towerCallsign), \(callsign), holding point \(holdingPoint), runway \(rwy), ready for departure."))
+
+            // ATC gives line-up or take-off clearance
+            let isLineUp = (level >= .level3 && abs(seed) % 2 == 0)
+            let lineUpOrTO = isLineUp
+                ? "\(callsign), \(towerCallsign), runway \(rwy), line up and wait."
+                : "\(callsign), \(towerCallsign), wind \(wind), runway \(rwy), cleared for take-off."
+            let lineUpObjective = isLineUp
+                ? "Instruksikan pesawat masuk dan menunggu di landasan (line up and wait) karena ada lalu lintas."
+                : "Berikan izin lepas landas (take-off clearance) beserta informasi arah dan kecepatan angin permukaan."
+            exchanges.append(ex("DEP-8", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: lineUpOrTO,
+                criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
+                objective: lineUpObjective))
+
+            // Callsign Confusion / Similar Call Sign Interception challenge (Sangpemandu style)
+            let hasCallsignConfusion = isLineUp && (level >= .level4 && abs(seed) % 3 == 2)
+            if hasCallsignConfusion {
+                let confusedCallsign = "Batik six six eight three"
+                exchanges.append(ex("DEP-9-HIJACK", speaker: confusedCallsign, isUserTurn: false,
+                    text: "Line up and wait runway \(rwy), \(confusedCallsign)!",
+                    severity: .abnormal, eventTag: "CALLSIGN CONFUSION"))
+
+                exchanges.append(ex("DEP-9-INTERCEPT", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                    text: "\(confusedCallsign), NEGATIVE, instruction was for \(callsign). \(confusedCallsign), hold position.",
+                    criticalSlots: [
+                        CriticalSlot(slot: "NEGATIVE", expectedValue: "negative", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "HOLD_POSITION", expectedValue: "hold position", type: "mandatoryKeyword")
+                    ],
+                    severity: .abnormal, eventTag: "CALLSIGN CONFUSION CORRECTION",
+                    objective: "Intersepsi kerancuan callsign (similar callsign confusion): tegur pesawat yang salah ambil izin dengan NEGATIVE dan instruksikan hold position (Doc 9432 §4.3.2)."))
+
+                exchanges.append(ex("DEP-9-CONFUSED-ACK", speaker: confusedCallsign, isUserTurn: false,
+                    text: "Holding position, apologies, \(confusedCallsign)."))
+
+                exchanges.append(ex("DEP-9-REAL-ACK", speaker: callsign, isUserTurn: false,
+                    text: "Runway \(rwy), line up and wait, \(callsign)."))
+            } else {
+                let pilotDepReadback = isLineUp
+                    ? "Runway \(rwy), line up and wait, \(callsign)."
+                    : "Runway \(rwy), cleared for take-off, \(callsign)."
+                exchanges.append(ex("DEP-9", speaker: callsign, isUserTurn: false,
+                    text: pilotDepReadback))
+            }
+            // Airborne handoff
+            let depRadarTarget = airport.units.departure?.callsign
+                ?? airport.units.approach?.callsign
+                ?? "Departure"
+            let depRadarFreqVal = airport.units.departure?.frequency
+                ?? airport.units.approach?.frequency
+                ?? "119.750"
+            let depRadarFreqSpoken = SpokenFormFormatter.frequency(depRadarFreqVal)
+
+            exchanges.append(ex("DEP-10", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(callsign), airborne, contact \(depRadarTarget) \(depRadarFreqSpoken), good day.",
+                criticalSlots: [],
+                objective: "Konfirmasi pesawat telah mengudara (airborne) dan alihkan kendali ke \(depRadarTarget)."))
+            exchanges.append(ex("DEP-11", speaker: callsign, isUserTurn: false,
+                text: "Contacting \(depRadarTarget) \(depRadarFreqSpoken), good day, \(callsign)."))
+
+        // ---- TOUCH AND GO (VFR Circuit) ----
+        case .touchAndGo:
+            // Aircraft reports downwind
+            exchanges.append(ex("TNG-1", speaker: callsign, isUserTurn: false,
+                text: "\(towerCallsign), \(callsign), downwind runway \(rwy), touch and go."))
+            // ATC sequences
+            let spacing = (abs(seed) % 2 == 0) ? "Number two, follow the \(aircraftType) on final." : "Number one, runway \(rwy)."
+            exchanges.append(ex("TNG-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(towerCallsign), \(spacing)",
+                objective: "Atur urutan pendekatan sirkuit visual (traffic sequencing & spacing)."))
+            // Aircraft on base
+            exchanges.append(ex("TNG-3", speaker: callsign, isUserTurn: false,
+                text: "\(callsign), base runway \(rwy)."))
+            // Cleared touch and go
+            exchanges.append(ex("TNG-4", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(towerCallsign), wind \(wind), runway \(rwy), cleared touch and go.",
+                criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
+                objective: "Berikan izin touch-and-go di landasan aktif beserta info angin permukaan."))
+            exchanges.append(ex("TNG-5", speaker: callsign, isUserTurn: false,
+                text: "Runway \(rwy), cleared touch and go, \(callsign)."))
+            // Aircraft airborne again
+            exchanges.append(ex("TNG-6", speaker: callsign, isUserTurn: false,
+                text: "\(callsign), airborne, turning crosswind."))
+            exchanges.append(ex("TNG-7", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(towerCallsign), roger, report downwind.",
+                objective: "Instruksikan pesawat latih untuk melapor kembali saat posisi downwind leg."))
+            exchanges.append(ex("TNG-8", speaker: callsign, isUserTurn: false,
+                text: "Report downwind, \(callsign)."))
+
+        // ---- EN-ROUTE TRANSIT (Overflying, position report) ----
+        case .enRouteTransit:
+            let transitCallsign = callsign
+            let reportFix = airport.procedures.holdings.first?.fix ?? "the field"
+            exchanges.append(ex("TRN-1", speaker: transitCallsign, isUserTurn: false,
+                text: "\(towerCallsign), \(transitCallsign), overhead \(reportFix) at three thousand five hundred feet, VFR, request traffic information."))
+            exchanges.append(ex("TRN-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(transitCallsign), \(towerCallsign), traffic information: one \(aircraftType) on final runway \(rwy), one departing. Report clear of zone.",
+                objective: "Sampaikan advisory lalu lintas di aerodrome dan minta lapor saat keluar aerodrome zone."))
+            exchanges.append(ex("TRN-3", speaker: transitCallsign, isUserTurn: false,
+                text: "Traffic in sight, will report clear, \(transitCallsign)."))
+            exchanges.append(ex("TRN-4", speaker: transitCallsign, isUserTurn: false,
+                text: "\(towerCallsign), \(transitCallsign), clear of zone, changing to area frequency, good day."))
+            exchanges.append(ex("TRN-5", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(transitCallsign), \(towerCallsign), roger, frequency change approved, good day.",
+                objective: "Izinkan pergantian frekuensi ke area kontrol berikutnya."))
+
+        // ---- FULL ARRIVAL ----
+        case .fullArrival:
+            let isHolding = level >= .level3 && abs(seed) % 2 == 0
+            if isHolding {
+                // Aircraft reports inbound, ATC holds due to traffic
+                exchanges.append(ex("ARR-1", speaker: callsign, isUserTurn: false,
+                    text: "\(towerCallsign), \(callsign), inbound, information \(atisId), request approach."))
+                exchanges.append(ex("ARR-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                    text: "\(callsign), \(towerCallsign), expect runway \(rwy), orbit right present position, traffic on final.",
+                    objective: "Tahan pesawat dengan instruksi orbit 360° kanan untuk menjaga separasi lalu lintas."))
+                exchanges.append(ex("ARR-3", speaker: callsign, isUserTurn: false,
+                    text: "Orbiting right, \(callsign)."))
+                exchanges.append(ex("ARR-4", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                    text: "\(callsign), \(towerCallsign), continue approach, runway \(rwy), cleared to land, wind \(wind).",
+                    criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
+                    objective: "Berikan izin mendarat (landing clearance) dan info angin setelah separasi tercapai."))
+                exchanges.append(ex("ARR-5", speaker: callsign, isUserTurn: false,
+                    text: "Runway \(rwy), cleared to land, \(callsign)."))
+            } else {
+                exchanges.append(ex("ARR-1", speaker: callsign, isUserTurn: false,
+                    text: "\(towerCallsign), \(callsign), \(level == .level1 ? "final" : "established ILS") runway \(rwy)."))
+                exchanges.append(ex("ARR-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                    text: "\(callsign), \(towerCallsign), wind \(wind), runway \(rwy), cleared to land.",
+                    criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
+                    objective: "Berikan izin mendarat (landing clearance) dan informasi angin permukaan."))
+
+                let hasHearbackLanding = (level >= .level3 && abs(seed) % 4 == 2)
+                if hasHearbackLanding {
+                    let slipRwy = SpokenFormFormatter.runway(runway.reciprocal)
+                    exchanges.append(ex("ARR-3-SLIP", speaker: callsign, isUserTurn: false,
+                        text: "Runway \(slipRwy), cleared to land, \(callsign).",
+                        severity: .abnormal, eventTag: "PILOT SLIP OF TONGUE"))
+
+                    exchanges.append(ex("ARR-3-CORR", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                        text: "\(callsign), \(towerCallsign), NEGATIVE, I SAY AGAIN, runway \(rwy), cleared to land.",
+                        criticalSlots: [
+                            CriticalSlot(slot: "NEGATIVE", expectedValue: "negative", type: "mandatoryKeyword"),
+                            CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")
+                        ],
+                        severity: .abnormal, eventTag: "ATC HEARBACK CORRECTION",
+                        objective: "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan perjelas nomor runway aktif pendaratan (Doc 9432 §2.8.3.9)."))
+
+                    exchanges.append(ex("ARR-3-ACK", speaker: callsign, isUserTurn: false,
+                        text: "Runway \(rwy), cleared to land, apologies, \(callsign)."))
+                } else {
+                    exchanges.append(ex("ARR-3", speaker: callsign, isUserTurn: false,
+                        text: "Runway \(rwy), cleared to land, \(callsign)."))
+                }
+            }
+            // Vacate
+            exchanges.append(ex("ARR-V1", speaker: callsign, isUserTurn: false,
+                text: "\(callsign), runway vacated, \(exitTaxiway)."))
+            exchanges.append(ex("ARR-V2", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(towerCallsign), taxi to apron via \(exitTaxiway), contact Ground.",
+                objective: "Instruksikan keluar landasan pacu (vacate) via taxiway dan transfer ke Ground Control."))
+            exchanges.append(ex("ARR-V3", speaker: callsign, isUserTurn: false,
+                text: "Taxi via \(exitTaxiway), contacting Ground, \(callsign)."))
+
+        // ---- EMERGENCY INBOUND ----
+        case .emergencyInbound:
+            // Emergency declaration — Plain English mandatory (Doc 4444 Ch 15, Doc 9835 App B)
+            let pob = 48 + abs(seed) % 110
+            let endurance = "\(1 + abs(seed) % 3) hours \(15 + abs(seed) % 40) minutes"
+            let emergencyDesc: String
+            let severity: EventSeverity
+            let tag: String
+            let peReason: String
+            let ackWord: String
+
+            if isEmergency {
+                // DISTRESS (MAYDAY 3x - official phraseology: MAYDAY, MAYDAY, MAYDAY)
+                severity = .distress
+                ackWord = "roger MAYDAY"
+                let variant = abs(seed) % 3
+                switch variant {
+                case 0:
+                    emergencyDesc = "MAYDAY, MAYDAY, MAYDAY, \(towerCallsign), \(callsign), engine number two flameout, single engine operation, request immediate landing runway \(rwy), souls on board \(pob), endurance \(endurance)."
+                    tag = "MAYDAY — ENGINE FAILURE"
+                    peReason = "MAYDAY declaration: pilot describes engine failure in plain language per Doc 9835 App B"
+                case 1:
+                    emergencyDesc = "MAYDAY, MAYDAY, MAYDAY, \(towerCallsign), \(callsign), dense smoke in cockpit, emergency descent, passing four thousand feet, request immediate landing and fire services on runway \(rwy)."
+                    tag = "MAYDAY — COCKPIT SMOKE"
+                    peReason = "Cockpit emergency: pilot conveys immediate danger in constrained plain English"
+                default:
+                    emergencyDesc = "MAYDAY, MAYDAY, MAYDAY FUEL, \(towerCallsign), \(callsign), remaining fuel fifteen minutes, below final reserve, unable to hold, request immediate landing runway \(rwy)."
+                    tag = "MAYDAY — FUEL EMERGENCY"
+                    peReason = "Fuel emergency declaration under ICAO Doc 4444 Chapter 15"
+                }
+            } else {
+                // URGENCY (PAN PAN 3x - official phraseology: PAN PAN, PAN PAN, PAN PAN)
+                severity = .urgency
+                ackWord = "roger PAN PAN"
+                let variant = abs(seed) % 4
+                switch variant {
+                case 0:
+                    emergencyDesc = "PAN PAN, PAN PAN, PAN PAN, \(towerCallsign), \(callsign), hydraulic failure, flight controls degraded, request priority landing, runway \(rwy), souls on board \(pob)."
+                    tag = "PAN PAN — HYDRAULIC FAILURE"
+                    peReason = "PAN PAN urgency: pilot communicates degraded flight control per Doc 9835 §3.3.19"
+                case 1:
+                    emergencyDesc = "PAN PAN, PAN PAN, PAN PAN, \(towerCallsign), \(callsign), flap extension failure, unable to extend flaps, approach speed one six zero knots, request priority landing runway \(rwy)."
+                    tag = "PAN PAN — FLAP FAILURE"
+                    peReason = "Flap malfunction: pilot requests high speed straight-in priority"
+                case 2:
+                    emergencyDesc = "PAN PAN, PAN PAN, PAN PAN, \(towerCallsign), \(callsign), nose gear unsafe indication, request low pass over tower cab for visual inspection of landing gear before full stop."
+                    tag = "PAN PAN — UNSAFE GEAR LOW PASS"
+                    peReason = "Gear visual check request: low pass coordination with tower"
+                default:
+                    emergencyDesc = "PAN PAN, PAN PAN, PAN PAN, \(towerCallsign), \(callsign), bird strike on approach, severe engine vibration, request precautionary priority landing runway \(rwy)."
+                    tag = "PAN PAN — BIRD STRIKE VIBRATION"
+                    peReason = "Bird strike damage advisory: priority precautionary landing"
+                }
+            }
+
+            exchanges.append(ex("EMG-1", speaker: callsign, isUserTurn: false,
+                text: emergencyDesc, severity: severity, eventTag: tag,
+                layer: .constrainedPlainEnglish, peReason: peReason))
+
+            // ATC responds with correct acknowledgement matching severity (Doc 9432 §8.1 / §9.1)
+            let atcResponse = "\(callsign), \(towerCallsign), \(ackWord), runway \(rwy) cleared, emergency services are standing by, wind \(wind), cleared to land."
+            exchanges.append(ex("EMG-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: atcResponse,
+                criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
+                severity: severity, eventTag: "PRIORITY CLEARANCE",
+                layer: .constrainedPlainEnglish,
+                peReason: "Emergency response: ATC confirms situation understanding and clears runway (Doc 9432 §8.1)",
+                objective: "Konfirmasi situasi \(severity == .distress ? "darurat MAYDAY" : "urgensi PAN PAN"), berikan prioritas mutlak pendaratan di runway aktif."))
+
+            // If medical: describe patient (Doc 9835 §3.3.15)
+            if isMedical {
+                exchanges.append(ex("EMG-3", speaker: callsign, isUserTurn: false,
+                    text: "Tower, \(callsign), we have a passenger with suspected cardiac arrest, request ambulance at the gate.",
+                    severity: .urgency, eventTag: "MEDICAL PAN PAN",
+                    layer: .constrainedPlainEnglish,
+                    peReason: "Medical situation: patient condition description requires plain English (Doc 9835 §3.3.15)"))
+                exchanges.append(ex("EMG-4", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                    text: "\(callsign), \(towerCallsign), understood, ambulance is requested, standby at apron Alpha.",
+                    severity: .urgency, eventTag: "AMBULANCE CONFIRMED",
+                    layer: .constrainedPlainEnglish,
+                    peReason: "Confirming medical coordination in plain language (Doc 9835 §3.3.15)",
+                    objective: "Konfirmasi koordinasi bantuan medis ambulans gawat darurat standby di apron."))
+            }
+
+            // Return to standard phrase for landing sequence
+            exchanges.append(ex("EMG-F1", speaker: callsign, isUserTurn: false,
+                text: "Runway \(rwy), cleared to land, \(callsign)."))
+            exchanges.append(ex("EMG-F2", speaker: callsign, isUserTurn: false,
+                text: "\(callsign), runway vacated, \(exitTaxiway)."))
+            exchanges.append(ex("EMG-F3", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(towerCallsign), taxi to apron, emergency services will meet you. Cancel emergency if able.",
+                criticalSlots: [],
+                objective: "Pandu pesawat darurat ke apron dan koordinasikan penanganan dengan tim PKP-PK."))
+
+        // ---- DIVERSION ARRIVAL ----
+        case .diversionArrival:
+            // Aircraft announces diversion — official phraseology: PAN PAN, PAN PAN, PAN PAN (Doc 9432 §9.3.1)
+            let divReason = (abs(seed) % 2 == 0)
+                ? "diverting from \(airport.name.components(separatedBy: " ").last ?? "destination") due weather, request immediate approach, fuel \(30 + abs(seed) % 30) minutes remaining"
+                : "diverting due passenger medical emergency, request priority straight-in approach and medical team"
+            let divTag = (abs(seed) % 2 == 0) ? "WEATHER DIVERSION PAN PAN" : "MEDICAL DIVERSION PAN PAN"
+            let diversionText = "PAN PAN, PAN PAN, PAN PAN, \(towerCallsign), \(callsign), \(divReason), runway \(rwy)."
+            exchanges.append(ex("DIV-1", speaker: callsign, isUserTurn: false,
+                text: diversionText, severity: .urgency, eventTag: divTag,
+                layer: .constrainedPlainEnglish,
+                peReason: "Diversion declaration: emergency state requires plain English per Doc 9835 §3.4.14"))
+
+            exchanges.append(ex("DIV-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(towerCallsign), roger PAN PAN, runway \(rwy) clear, you are number one, wind \(wind), QNH \(qnh), cleared to land.",
+                criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
+                severity: .urgency, eventTag: "PRIORITY CLEARED",
+                objective: "Terima urgensi pengalihan (diversion), prioritaskan urutan nomor satu dan berikan izin mendarat."))
+
+            exchanges.append(ex("DIV-3", speaker: callsign, isUserTurn: false,
+                text: "Runway \(rwy), cleared to land, QNH \(qnh), \(callsign)."))
+            exchanges.append(ex("DIV-4", speaker: callsign, isUserTurn: false,
+                text: "\(callsign), runway vacated."))
+            exchanges.append(ex("DIV-5", speaker: "TOWER (USER TURN)", isUserTurn: true,
+                text: "\(callsign), \(towerCallsign), taxi to apron, contact Ground on \(SpokenFormFormatter.frequency(airport.units.ground?.frequency ?? "121.600")).",
+                objective: "Instruksikan taxi ke apron dan arahkan kontak ke Ground Control."))
+        }
+
+        return exchanges
+    }
+
+    // MARK: - ATC Session Support: Callsign & Aircraft Pools
+
+    private func buildATCCallsignPool(level: CurriculumLevel, seed: Int) -> [String] {
+        switch level {
+        case .level1:
+            return ["PK-KRS", "PK-ROZ", "PK-MID", "PK-ADH"]
+        case .level2:
+            let commercial = ["Citilink \(100 + abs(seed) % 900)", "Wings \(200 + abs(seed) % 700)"]
+            let local = ["PK-KRS", "PK-ROZ"]
+            return local + commercial
+        case .level3:
+            return ["Pelita \(500 + abs(seed) % 500)", "Batik \(6000 + abs(seed) % 999)",
+                    "Lion \(100 + abs(seed) % 800)", "Garuda \(200 + abs(seed) % 700)"]
+        case .level4:
+            return ["Batik \(6000 + abs(seed) % 999)", "Lion \(100 + abs(seed) % 800)",
+                    "Citilink \(800 + abs(seed) % 200)", "Garuda \(200 + abs(seed) % 400)",
+                    "TransNusa \(100 + abs(seed) % 300)"]
+        case .level5:
+            return ["Garuda \(400 + abs(seed) % 400)", "Batik \(6000 + abs(seed) % 999)",
+                    "Singapore \(100 + abs(seed) % 800)", "AirAsia \(600 + abs(seed) % 400)",
+                    "Lion \(700 + abs(seed) % 300)", "Citilink \(800 + abs(seed) % 200)"]
+        }
+    }
+
+    private func buildATCAircraftPool(level: CurriculumLevel, seed: Int) -> [String] {
+        switch level {
+        case .level1: return ["C172", "C172S", "DA40"]
+        case .level2: return ["C172", "ATR 72", "B737-500"]
+        case .level3: return ["B737-800", "A320", "ATR 72"]
+        case .level4: return ["B737-800", "A320", "A330", "B737 MAX 8"]
+        case .level5: return ["B777-300ER", "A330-900", "B737-800", "A320neo", "B747-400F"]
+        }
     }
 }

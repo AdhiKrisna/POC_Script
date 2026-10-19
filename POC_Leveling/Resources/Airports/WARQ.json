@@ -1,0 +1,105 @@
+{
+  "level": 3,
+  "icao": "WARQ",
+  "iata": "SOC",
+  "name": "Adisoemarmo International Airport",
+  "city": "Solo",
+  "elevation_ft": 421,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "08",
+        "26"
+      ],
+      "designator": "08",
+      "reciprocal": "26",
+      "heading_degT": 82.0,
+      "holdingPoints": [
+        "A1",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Solo Ground",
+      "frequency": "121.800"
+    },
+    "tower": {
+      "callsign": "Solo Tower",
+      "frequency": "118.300"
+    },
+    "approach": {
+      "callsign": "Yogya Approach",
+      "frequency": "120.500"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Solo Information",
+      "frequency": "127.200"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "2",
+      "spoken": "stand two"
+    },
+    {
+      "id": "3",
+      "spoken": "stand three"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "SOC1A",
+        "name": "Solo One Alfa",
+        "runway": "08",
+        "initialAltFt": 5000
+      }
+    ],
+    "stars": [
+      {
+        "id": "SOC1B",
+        "name": "Solo One Bravo",
+        "runway": "08"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS08",
+        "type": "ILS",
+        "runway": "08",
+        "missedApproachAltFt": 4000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "SMO",
+        "inboundTrack": 82,
+        "turns": "right",
+        "altFt": 5500
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 3,
+    "curriculumCategory": "Busy Single-Runway & Backtrack",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

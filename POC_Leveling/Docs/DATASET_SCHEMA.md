@@ -11,8 +11,8 @@ Dataset bandara dalam proyek ini distrukturkan ke dalam dua tingkatan (*Tier*):
 ```text
 [TIER 1: MASTER DIRECTORY (6-CSV RELATIONAL)]
   - Sumber: 6 CSV OurAirports (Airports, Countries, Regions, Runways, Frequencies, Navaids)
-  - Cakupan: 731 Bandara Indonesia (Master) -> 110 Bandara RTF-Viable
-  - File: `indonesia_airports_master.csv/.json` & `indonesia_airports_rtf_viable_110.csv`
+  - Cakupan: 731 Bandara Indonesia (Master) -> 122 Bandara RTF-Viable
+  - File: `indonesia_airports_master.csv/.json` & `indonesia_airports_rtf_viable_122.csv` (arsip lama `_110.csv`, `_114.csv`, `_115.csv` di `artifacts/`)
   - Peran: Candidate pool, identitas koordinat, elevasi, nomor runway, dan frekuensi ATC.
          │
          ▼ (Promosi Bandara: Kurasi Manual dari AIP AirNav & Review Instruktur)
@@ -27,7 +27,7 @@ Dataset bandara dalam proyek ini distrukturkan ke dalam dua tingkatan (*Tier*):
 
 ## 2. Skema Tier 1: Master Directory Dataset (Hasil Join 6 CSV)
 
-Skema ini mendokumentasikan kolom pada `indonesia_airports_master.csv` dan `indonesia_airports_rtf_viable_110.csv`.
+Skema ini mendokumentasikan kolom pada `indonesia_airports_master.csv` dan `indonesia_airports_rtf_viable_122.csv`.
 
 ### 2.1 Kolom Tabular (Flat CSV Schema)
 

@@ -1,38 +1,37 @@
 {
+  "level": 4,
   "icao": "WARR",
   "iata": "SUB",
   "name": "Juanda International Airport",
-  "city": "Surabaya / Sidoarjo",
+  "city": "Sidoarjo, Surabaya",
   "elevation_ft": 9,
-  "latitude": -7.3798,
-  "longitude": 112.7874,
   "profile": "IFR_COMMERCIAL",
   "runways": [
     {
-      "pair": ["10", "28"],
+      "pair": [
+        "10",
+        "28"
+      ],
       "designator": "10",
       "reciprocal": "28",
-      "length_ft": 9843,
-      "width_ft": 148,
-      "surface": "ASP",
-      "heading_degT": 99.3,
-      "ils_available": true,
-      "holdingPoints": ["N1", "N2"],
-      "_source": "AIP WARR AD 2.12"
+      "heading_degT": 98.0,
+      "holdingPoints": [
+        "N1",
+        "N2",
+        "N3",
+        "S1"
+      ]
     }
   ],
   "units": {
     "delivery": {
       "callsign": "Surabaya Delivery",
-      "frequency": "121.900"
+      "frequency": "121.600"
     },
-    "apron": {
-      "callsign": "Surabaya Apron",
-      "frequency": "121.900"
-    },
+    "apron": null,
     "ground": {
       "callsign": "Surabaya Ground",
-      "frequency": "118.900"
+      "frequency": "121.900"
     },
     "tower": {
       "callsign": "Surabaya Tower",
@@ -40,80 +39,53 @@
     },
     "approach": {
       "callsign": "Surabaya Approach",
-      "frequency": "123.550"
-    },
-    "departure": {
-      "callsign": "Surabaya Departure",
       "frequency": "125.100"
     },
-    "center": {
-      "callsign": "Surabaya Control",
-      "frequency": "124.000"
-    },
+    "departure": null,
+    "center": null,
     "atis": {
       "callsign": "Surabaya Information",
-      "frequency": "128.200"
+      "frequency": "126.800"
     }
   },
   "taxiways": [
-    { "id": "November", "spoken": "November", "description": "North parallel taxiway" },
-    { "id": "November1", "spoken": "November One", "description": "Holding point Runway 10" },
-    { "id": "November3", "spoken": "November Three", "description": "Rapid exit taxiway Runway 10" },
-    { "id": "November4", "spoken": "November Four", "description": "Rapid exit taxiway Runway 28" },
-    { "id": "November6", "spoken": "November Six", "description": "Holding point Runway 28" },
-    { "id": "Bravo", "spoken": "Bravo", "description": "Crossing taxiway" }
+    {
+      "id": "November",
+      "spoken": "November"
+    },
+    {
+      "id": "Sierra",
+      "spoken": "Sierra"
+    },
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    }
   ],
   "stands": [
-    { "id": "2", "spoken": "Gate Two", "type": "DOMESTIC", "apron": "Terminal 1" },
-    { "id": "5", "spoken": "Gate Five", "type": "DOMESTIC", "apron": "Terminal 1" },
-    { "id": "8", "spoken": "Gate Eight", "type": "DOMESTIC", "apron": "Terminal 1" },
-    { "id": "11", "spoken": "Gate One One", "type": "INTERNATIONAL", "apron": "Terminal 2" }
+    {
+      "id": "10",
+      "spoken": "gate one zero"
+    },
+    {
+      "id": "12",
+      "spoken": "gate one two"
+    }
   ],
   "procedures": {
     "sids": [
       {
-        "id": "SBY1B",
-        "name": "SURABAYA One Bravo",
+        "id": "SUR1A",
+        "name": "Surabaya One Alfa Departure",
         "runway": "10",
-        "initialAltFt": 5000,
-        "entryFix": "SBY"
-      },
-      {
-        "id": "SBY1D",
-        "name": "SURABAYA One Delta",
-        "runway": "28",
-        "initialAltFt": 5000,
-        "entryFix": "SBY"
-      },
-      {
-        "id": "AMBOM1A",
-        "name": "AMBOM One Alfa",
-        "runway": "10",
-        "initialAltFt": 4000,
-        "entryFix": "AMBOM"
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
-        "id": "POSOP1A",
-        "name": "POSOP One Alfa",
-        "runway": "10",
-        "entryFix": "POSOP",
-        "initialDescentFt": 10000
-      },
-      {
-        "id": "NIKAS1A",
-        "name": "NIKAS One Alfa",
-        "runway": "28",
-        "entryFix": "NIKAS",
-        "initialDescentFt": 10000
-      },
-      {
-        "id": "BLI1A",
-        "name": "BLI One Alfa",
-        "runway": "10",
-        "entryFix": "BLI",
-        "initialDescentFt": 11000
+        "id": "SUR1B",
+        "name": "Surabaya One Bravo",
+        "runway": "10"
       }
     ],
     "approaches": [
@@ -121,25 +93,22 @@
         "id": "ILS10",
         "type": "ILS",
         "runway": "10",
-        "finalApproachFix": "WARKO",
-        "fafAltFt": 2500,
-        "da_mda_ft": 200,
-        "missedApproachAltFt": 3000,
-        "missedApproachHeading": 100
+        "missedApproachAltFt": 4000
       }
     ],
     "holdings": [
       {
-        "fix": "SBY",
-        "inboundTrack": 100,
+        "fix": "SUR",
+        "inboundTrack": 98,
         "turns": "right",
-        "altFt": 6000,
-        "published": true
+        "altFt": 5000
       }
     ]
   },
   "_meta": {
+    "curriculumLevel": 4,
+    "curriculumCategory": "Major Metropolitan Hub",
     "datasetCycle": "2026-AIRAC",
-    "status": "verified"
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
   }
 }

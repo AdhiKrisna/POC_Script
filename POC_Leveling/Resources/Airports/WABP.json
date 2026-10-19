@@ -1,0 +1,106 @@
+{
+  "level": 5,
+  "icao": "WABP",
+  "iata": "TIM",
+  "name": "Mozes Kilangin Airport",
+  "city": "Timika, Papua Tengah",
+  "elevation_ft": 103,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "12",
+        "30"
+      ],
+      "designator": "12",
+      "reciprocal": "30",
+      "heading_degT": 118.0,
+      "holdingPoints": [
+        "A1",
+        "A2",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Timika Ground",
+      "frequency": "121.700"
+    },
+    "tower": {
+      "callsign": "Kilangin Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Timika Approach",
+      "frequency": "122.300"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Timika Information",
+      "frequency": "126.500"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "3",
+      "spoken": "stand three"
+    },
+    {
+      "id": "4",
+      "spoken": "stand four"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "TIM1A",
+        "name": "Grasberg One Alfa",
+        "runway": "12",
+        "initialAltFt": 5000
+      }
+    ],
+    "stars": [
+      {
+        "id": "TIM1B",
+        "name": "Carstensz One Arrival",
+        "runway": "12"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS12",
+        "type": "ILS",
+        "runway": "12",
+        "missedApproachAltFt": 4000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "TIM",
+        "inboundTrack": 118,
+        "turns": "left",
+        "altFt": 6000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 5,
+    "curriculumCategory": "High-Risk Valley & Extreme Terrain",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

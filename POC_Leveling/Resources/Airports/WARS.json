@@ -1,0 +1,106 @@
+{
+  "level": 3,
+  "icao": "WARS",
+  "iata": "SRG",
+  "name": "Jenderal Ahmad Yani Airport",
+  "city": "Semarang",
+  "elevation_ft": 10,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "13",
+        "31"
+      ],
+      "designator": "13",
+      "reciprocal": "31",
+      "heading_degT": 130.0,
+      "holdingPoints": [
+        "A1",
+        "A2",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Semarang Ground",
+      "frequency": "121.600"
+    },
+    "tower": {
+      "callsign": "Semarang Tower",
+      "frequency": "118.300"
+    },
+    "approach": {
+      "callsign": "Semarang Approach",
+      "frequency": "120.100"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Semarang Information",
+      "frequency": "126.000"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "3",
+      "spoken": "stand three"
+    },
+    {
+      "id": "4",
+      "spoken": "stand four"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "ANY1A",
+        "name": "Ahmad Yani One Alfa",
+        "runway": "13",
+        "initialAltFt": 4000
+      }
+    ],
+    "stars": [
+      {
+        "id": "ANY1B",
+        "name": "Ahmad Yani One Bravo",
+        "runway": "13"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS13",
+        "type": "ILS",
+        "runway": "13",
+        "missedApproachAltFt": 3500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "SRG",
+        "inboundTrack": 130,
+        "turns": "right",
+        "altFt": 5000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 3,
+    "curriculumCategory": "Busy Single-Runway & Backtrack",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "level": 3,
+  "icao": "WALL",
+  "iata": "BPN",
+  "name": "Sultan Aji Muhammad Sulaiman Sepinggan",
+  "city": "Balikpapan",
+  "elevation_ft": 12,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "07",
+        "25"
+      ],
+      "designator": "07",
+      "reciprocal": "25",
+      "heading_degT": 71.0,
+      "holdingPoints": [
+        "A1",
+        "A2",
+        "B1"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": {
+      "callsign": "Balikpapan Ground",
+      "frequency": "121.700"
+    },
+    "tower": {
+      "callsign": "Balikpapan Tower",
+      "frequency": "118.100"
+    },
+    "approach": {
+      "callsign": "Balikpapan Approach",
+      "frequency": "121.000"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Balikpapan Information",
+      "frequency": "126.600"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    },
+    {
+      "id": "Bravo",
+      "spoken": "Bravo"
+    }
+  ],
+  "stands": [
+    {
+      "id": "4",
+      "spoken": "stand four"
+    },
+    {
+      "id": "5",
+      "spoken": "stand five"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "BPN1A",
+        "name": "Sepinggan One Alfa",
+        "runway": "07",
+        "initialAltFt": 5000
+      }
+    ],
+    "stars": [
+      {
+        "id": "BPN1B",
+        "name": "Sepinggan One Bravo",
+        "runway": "07"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS07",
+        "type": "ILS",
+        "runway": "07",
+        "missedApproachAltFt": 3500
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "BPN",
+        "inboundTrack": 71,
+        "turns": "right",
+        "altFt": 5000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 3,
+    "curriculumCategory": "Busy Single-Runway & Backtrack",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

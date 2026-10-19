@@ -1,18 +1,24 @@
 # HERMES — Radiotelephony Flight Simulation Engine
 ### Proof-of-Concept: Multi-Page Leveling & Grounded ICAO Radiotelephony Generator
+**Repository:** `AdhiKrisna/POC_Script` | **Branch:** `POC_Leveling`  
 **Apple Developer Academy Final Challenge — Team Abang Tukang Bakso**
 
 ---
 
 ## 1. Executive Summary & Visi Proyek
 
-**HERMES** adalah mesin simulasi dan generator naskah komunikasi radio penerbangan (*Aeronautical Radiotelephony Simulation*) yang dirancang khusus untuk melatih **Student Pilot** dan **Air Traffic Controller (ATC) Trainee**. 
+**HERMES** adalah mesin simulasi dan generator naskah komunikasi radio penerbangan (*Aeronautical Radiotelephony Simulation*) yang dirancang khusus untuk melatih **Student Pilot** dan **Air Traffic Controller (ATC) Trainee**.
 
 Aplikasi ini menyimulasikan komunikasi suara dua arah VHF di seluruh fase penerbangan (*Pre-Departure*, *Departure*, *En-Route*, *Arrival*, *Approach*, hingga *Landing & Shutdown*) dengan kepatuhan 100% terhadap standar internasional penerbangan:
 * **ICAO Doc 9432**: *Manual of Radiotelephony* (Edisi ke-4).
 * **ICAO Doc 4444**: *Air Traffic Management (PANS-ATM)* (Edisi ke-16).
 * **ICAO Doc 9835**: *Manual on the Implementation of ICAO Language Proficiency Requirements*.
 * **AIP Indonesia (Aeronautical Information Publication)**: Data resmi aerodrome, frekuensi ATS, taxiway, runway, holding point, SID (*Standard Instrument Departure*), dan STAR (*Standard Terminal Arrival Route*).
+
+### Arsitektur Repository `POC_Script`
+Repository ini menaungi dua tonggak penting evolusi simulator HERMES RTF:
+1. **Branch `POC_Leveling` (Cabang ini)**: Validasi arsitektur multi-page leveling berjenjang (L1 s/d L5), progresi peringkat pilot (Student Pilot hingga Airline Captain), Three-Act Flight Engine (Departure, En-Route, Arrival/Approach) mencakup 23 bandara kanonikal Indonesia, dan pure deterministic FSM generator dengan 0 ms latency.
+2. **Branch `POC_Mission`**: Validasi 25 Misi Kanonikal resmi (M-101 s/d M-505), hierarki scaffolding visual & kognitif (4-Slot Cards, Cloze Text, Intent Badges, Avionics HUD, Partyline Chatter), serta State Machine Exam Mode.
 
 ### Mengapa Pure Deterministic Finite State Machine (FSM), Bukan LLM Runtime?
 Pada tahap awal perancangan, opsi penggunaan Large Language Model (LLM) di runtime dipertimbangkan untuk menyusun dialog dinamis. Namun, keputusan arsitektur final **menolak keras penggunaan LLM runtime dan memilih Pure Complex Deterministic FSM** karena alasan-alasan teknis fundamental:
@@ -31,7 +37,8 @@ Aplikasi menggunakan arsitektur modular dua halaman (*Multi-Page Push Navigation
 ┌──────────────────────────────────────────────────────────────────┐
 │ PAGE 1: Curriculum Hub (CurriculumHubView)                       │
 │ • Seleksi 5 Level Kurikulum Berjenjang (L1 s/d L5)               │
-│ • POC Unlocked State: Seluruh 5 Level Dapat Diakses Langsung     │
+│ • Pilot Rank Progression Status (SP, CPL, IR, ATPL, Master)      │
+│ • Dynamic Airport Selector (23 Bandara Kanonikal Sesuai Level)   │
 │ • Ringkasan Rute, Profil Pesawat, Jarak, & Topik Pembelajaran    │
 └─────────────────────────────────┬────────────────────────────────┘
                                   │ Push Navigation (NavigationLink)
@@ -44,6 +51,7 @@ Aplikasi menggunakan arsitektur modular dua halaman (*Multi-Page Push Navigation
 │ • Passive Cockpit ATIS Broadcast Header Box (Doc 9432 Bab 4.4.3) │
 │ • 6-Phase Scrollable Timeline Filter Tabs (All / 1..6)           │
 │ • Turn-by-Turn Card View dengan Verifikasi Mandatory Readback    │
+│ • Three-Act Mission Flow (Departure -> En-Route -> Arrival)      │
 │ • Post-Session Diagnostic & Performance Report (Doc 9835)        │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -63,17 +71,17 @@ Aplikasi menggunakan arsitektur modular dua halaman (*Multi-Page Push Navigation
 
 ---
 
-## 3. Kurikulum 5 Level Berjenjang (Koridor Jawa & Bali)
+## 3. Kurikulum 5 Level Berjenjang (23 Bandara Kanonikal)
 
-Kurikulum dirancang bertahap mengikuti silabus sekolah penerbangan dan lisensi pilot resmi (PPL $\rightarrow$ CPL $\rightarrow$ IR $\rightarrow$ ATPL):
+Kurikulum dirancang bertahap mengikuti silabus sekolah penerbangan dan lisensi pilot resmi (PPL $\rightarrow$ CPL $\rightarrow$ IR $\rightarrow$ ATPL $\rightarrow$ Mountain/Valley Master):
 
-| Level | Rute & Jarak | Jenis Lisensi / Profil | Karakteristik Ruang Udara | Fokus Pembelajaran Radiotelephony |
+| Level | Rute & Jarak Representatif | Jenis Lisensi / Profil | Karakteristik Ruang Udara | Fokus Pembelajaran Radiotelephony |
 | :---: | :---: | :---: | :---: | :--- |
-| **Level 1** | **BWX – BWX**<br>(WADY – WADY)<br>*Sirkuit Lokal* | PPL / Siswa Mula<br>**C172, PA-28, DA-40**<br>(Single Engine Piston) | Uncontrolled / Class D Aerodrome (1.000–1.500 ft AGL) | Pola sirkuit visual (*Traffic Pattern*), *touch-and-go*, *wind shift*, *visual orbit spacing 360°*, *extend downwind*, *blind transmission (NORDO)*, dan pengenalan *rejected take-off roll (RTO)*. |
-| **Level 2** | **BWX – DPS**<br>(WADY – WADD)<br>*55 NM* | CPL / Navigasi Lintas Batas<br>**ATR 72, Dash 8, C208**<br>(Regional Turboprop, FL080) | Transisi VFR ke IFR, batas FIR Surabaya – Bali | Navigasi lintas batas, handoff Tower ke Bali Control, penyeberangan Selat Bali, deviasi awan CB, kegagalan flap di Bali, dan darurat medis penumpang. **Dijamin 100% terbang airborne ke Bali (tanpa abort di darat)**. |
-| **Level 3** | **DPS – SUB**<br>(WADD – WARR)<br>*165 NM* | Instrument Rating (IR)<br>**A320, B737**<br>(Commercial Jet, FL240) | Controlled Class A/C Airspace, Tactical Radar Vectoring | Pemanduan vektor radar Surabaya, separasi kecepatan (*speed control*), separasi *wake turbulence*, *radar avoiding action turn*, penanganan roda tidak terkunci (*unsafe gear VOR holding*), dan *uncleared go-around*. **Dijamin 100% terbang airborne ke Surabaya**. |
-| **Level 4** | **SUB – YIA**<br>(WARR – WAHI)<br>*175 NM* | Airline Transport Pilot (ATPL)<br>**B737, A320, A330**<br>(Jet Transport, FL360) | Koridor Pegunungan Jawa (Airway W45, Mt. Lawu/Merapi) | Mitigasi *runway incursion crossing* di Juanda, kegagalan mesin jelajah (*mid-air engine out diversion*), penurunan darurat dekompresi kabin (FL360 ke FL100), dan pendekatan ILS cuaca buruk. **Dijamin 100% terbang airborne ke Yogyakarta**. |
-| **Level 5** | **YIA – CGK**<br>(WAHI – WIII)<br>*240 NM* | Mega-Hub Operations<br>**A320, B737, A330, B777**<br>(Heavy Jet, FL360) | High-Density Airspace, CDM Slot, Parallel Runways | A-CDM Target Start-Up Time (TSAT), manuver *TCAS Resolution Advisory (RA)*, degradasi sensor RNAV/GPS, *holding stack delay* di atas JAKAR/DOLTA, *parallel runway breakout*, dan penegakan *silence imposition*. |
+| **Level 1** | **BWX – BWX**<br>(WADY – WADY)<br>*Sirkuit Visual* | PPL / Siswa Mula<br>**C172, PA-28, DA-40**<br>(Single Engine Piston) | Uncontrolled / Class D Aerodrome (1.000–1.500 ft AGL) | Pola sirkuit visual (*Traffic Pattern*), *touch-and-go*, *wind shift*, *visual orbit spacing 360°*, *extend downwind*, *blind transmission (NORDO)*, dan pengenalan *rejected take-off roll (RTO)*. Bandara: WADY, WADE, WAOO, WARQ, WARS. |
+| **Level 2** | **BWX – DPS**<br>(WADY – WADD)<br>*55 NM* | CPL / Navigasi Lintas Batas<br>**ATR 72, Dash 8, C208**<br>(Regional Turboprop, FL080) | Transisi VFR ke IFR, batas FIR Surabaya – Bali | Navigasi lintas batas, handoff Tower ke Bali Control, penyeberangan Selat Bali, deviasi awan CB, kegagalan flap di Bali, dan darurat medis penumpang. Dijamin 100% terbang airborne ke tujuan. Bandara: WADY, WADD, WICB, WIPP, WIPT. |
+| **Level 3** | **DPS – SUB**<br>(WADD – WARR)<br>*165 NM* | Instrument Rating (IR)<br>**A320, B737**<br>(Commercial Jet, FL240) | Controlled Class A/C Airspace, Tactical Radar Vectoring | Pemanduan vektor radar Surabaya, separasi kecepatan (*speed control*), separasi *wake turbulence*, *radar avoiding action turn*, penanganan roda tidak terkunci (*unsafe gear VOR holding*), dan *uncleared go-around*. Bandara: WADD, WARR, WADL, WAHI, WALL, WIDD. |
+| **Level 4** | **SUB – CGK**<br>(WARR – WIII)<br>*365 NM* | Airline Transport Pilot (ATPL)<br>**B737, A320, A330**<br>(Jet Transport, FL360) | High-Density Airspace, Parallel Runways, CDM Slot | Mitigasi *runway incursion crossing*, kegagalan mesin jelajah (*mid-air engine out diversion*), penurunan darurat dekompresi kabin (FL360 ke FL100), pendekatan paralel, dan penegakan *silence imposition*. Bandara: WIII, WARR, WAAA, WIMM, WIHH. |
+| **Level 5** | **TIM – WMX**<br>(WABP – WAVV)<br>*110 NM* | Mountain / Valley Operations<br>**DHC-6, ATR 72, C208, A320**<br>(STOL / High Performance) | Extreme Terrain, High-Altitude Valley (El >5.000 ft) | Navigasi lembah pegunungan tinggi, *valley visual blind transmission*, wind shear kuat di final, *hazardous ATC instruction challenge*, dan kegagalan sensor GPS/RNAV di area pegunungan. Bandara: WAVV, WICC, WAFB, WABP, WALR. |
 
 ---
 
@@ -87,13 +95,11 @@ Skenario diklasifikasikan ke dalam 4 tingkatan keparahan resmi (*Event Severity*
 4. **Distress (MAYDAY)**: Kondisi ancaman bahaya maut yang memerlukan pertolongan darurat segera (Bird Strike Abort, EFATO, Mid-Air Engine Out, Cabin Decompression Emergency Descent, TCAS RA).
 
 ### B. Model Probabilitas yang Adil (*Fair Pedagogical Distribution*)
-Sebelumnya, sistem melempar koin independen 50% untuk setiap skenario, yang menyebabkan 87.5% penerbangan dipaksa *abort take-off* di darat dan menumpuk hingga 8 bencana sekaligus dalam 1 penerbangan.
-
-Sistem baru menerapkan **distribusi kurikulum berimbang**:
+Sistem menerapkan distribusi kurikulum berimbang untuk menjaga kualitas pedagogis:
 * **55% – 70% dari Seed**: **ROUTINE NORMAL FLIGHT (Penerbangan Utuh 100% Mulus)**.
   Mahasiswa berlatih percakapan standar end-to-end dari Phase 1 hingga Phase 6.
 * **30% – 45% dari Seed**: **SINGLE FOCUSED CONTINGENCY FLIGHT (Tepat 1 Kejadian Khas)**.
-  Siswa fokus melatih 1 prosedur tertentu sesuai levelnya (misalnya hanya deviasi awan CB di Selat Bali, atau hanya roda macet di Surabaya).
+  Siswa fokus melatih 1 prosedur tertentu sesuai levelnya (misalnya deviasi awan CB di Selat Bali, atau roda macet di Surabaya).
 * **Maksimal 5% dari Seed**: **DUAL COHERENT CONTINGENCY** (kombinasi 2 gangguan minor di fase berbeda tanpa saling bertentangan).
 * **Targeted Drill Mode**: Jika pengguna membuka modal sheet dan hanya mencentang skenario tertentu (misal *Unsafe Gear*), skenario tersebut **100% langsung muncul** di setiap regenerasi seed.
 
@@ -101,7 +107,7 @@ Sistem baru menerapkan **distribusi kurikulum berimbang**:
 
 ## 5. Pacing & Ritme Autentik Fase Arrival & Approach (Doc 9432 Bab 6 & 7)
 
-Fase penurunan (*Arrival*) dan pendekatan akhir (*Approach*) telah dirombak dari versi lama yang terburu-buru (hanya 4 bubbles) menjadi **20 pertukaran dialog berbobot (~9–10 menit simulasi)** yang menyajikan prosedur radar sesungguhnya:
+Fase penurunan (*Arrival*) dan pendekatan akhir (*Approach*) mengimplementasikan **20 pertukaran dialog berbobot (~9–10 menit simulasi)** yang menyajikan prosedur radar sesungguhnya:
 
 ### A. Phase 4: Arrival (8 Turns, ~3.6 Menit)
 1. **Top of Descent Clearance**:
@@ -134,137 +140,96 @@ Fase penurunan (*Arrival*) dan pendekatan akhir (*Approach*) telah dirombak dari
 ## 6. Kepatuhan Baku Regulasi Penerbangan (ICAO Standards)
 
 Aplikasi mengunci aturan fraseologi baku berikut tanpa kompromi:
-
 1. **Larangan Penggunaan Kata "ROGER" oleh Pilot (Doc 9432 Bab 2.6)**:
-   * Sesuai ICAO Doc 9432 Bab 2.6: *"ROGER under no circumstances to be used in reply to a question requiring READ BACK or a direct answer in the affirmative (AFFIRM) or negative (NEGATIVE)."*
-   * Pilot dilarang keras menjawab perizinan menggunakan kata "Roger". Pilot wajib melakukan *full readback* nomor runway/ketinggian/heading, atau menggunakan kata **WILCO** / **AFFIRM**.
+   Pilot dilarang keras menjawab perizinan menggunakan kata "Roger". Pilot wajib melakukan *full readback* nomor runway/ketinggian/heading, atau menggunakan kata **WILCO** / **AFFIRM**.
 2. **Prosedur Baku Line Up and Wait (Doc 9432 Bab 4.5.3)**:
-   * Menggantikan lompatan instan dari holding point langsung take-off. Seluruh level menerapkan otorisasi masuk dan menahan di landasan (*Line Up and Wait*), termasuk variasi *Conditional Line Up* (*"Behind landing Airbus three two zero, line up and wait runway zero niner behind"*).
+   Menggantikan lompatan langsung take-off. Seluruh level menerapkan otorisasi masuk dan menahan di landasan (*Line Up and Wait*), termasuk variasi *Conditional Line Up*.
 3. **Pemisahan Inisiasi Pembatalan Lepas Landas (Doc 9432 Bab 4.5.11 vs 4.5.12)**:
-   * **ATC-Initiated Abort (Bab 4.5.11)**: Berlaku untuk bahaya eksternal di landasan (*vehicle entering runway / runway incursion*). ATC memanggil duluan:  
-     `ATC: "STOP IMMEDIATELY, [Callsign], STOP IMMEDIATELY!" -> PILOT: "STOPPING, ABORTING TAKE-OFF!"`
-   * **Pilot-Initiated Abort (Bab 4.5.12)**: Berlaku untuk kerusakan internal pesawat (*bird strike*, mesin meledak, getaran instrumen). Pilot di kokpit yang merasakan masalah $\rightarrow$ Pilot yang menekan PTT duluan:  
-     `PILOT: "STOPPING, ABORTING TAKE-OFF, BIRD STRIKE ENGINE NUMBER TWO!" -> ATC: "STOP IMMEDIATELY, [Callsign], emergency equipment alerted!"`
+   * **ATC-Initiated Abort (Bab 4.5.11)**: Berlaku untuk bahaya eksternal di landasan (*vehicle entering runway*). ATC memanggil duluan: `"STOP IMMEDIATELY, [Callsign], STOP IMMEDIATELY!"`.
+   * **Pilot-Initiated Abort (Bab 4.5.12)**: Berlaku untuk kerusakan internal pesawat (*bird strike*, mesin meledak). Pilot yang merasakan masalah $\rightarrow$ Pilot yang menekan PTT duluan.
 4. **Single Cohesive Transmission (Doc 9432 Bab 4.10 & Doc 4444 Bab 12.3.1.2)**:
-   * Informasi kondisi aerodrome temporer (*bird dispersal completed* / *emergency aircraft landed*) disatukan langsung dalam satu transmisi dengan instruksi masuk landasan, mengeliminasi transmisi ganda ATC berturut-turut tanpa respons pilot.
-5. **Format Pengucapan Angka & Waktu UTC (Doc 9432 Bab 2.5)**:
-   * Seluruh angka diformat fonetik ICAO terpisah (`one zero one two`, `flight level two four zero`, `heading zero niner zero`).
-   * Transmisi waktu mematuhi standar menit berjalan UTC (*"Time zero one two zero UTC"*).
-6. **Konsistensi Penamaan Prosedur Navigasi (Anti-Slash Artifact)**:
-   * Prosedur STAR dan SID tidak lagi mengandung pemisah garis miring ambigu. Prosedur mengunci rute tunggal yang sah (misal: `DOLTA One Alfa (DOLTA 1A)` untuk Runway 25R).
+   Informasi kondisi aerodrome temporer disatukan langsung dalam satu transmisi dengan instruksi masuk landasan.
+5. **Format Pengucapan Angka Fonetik & Waktu UTC (Doc 9432 Bab 2.5)**:
+   Seluruh angka diformat fonetik ICAO terpisah (`one zero one two`, `flight level two four zero`), dan waktu mematuhi menit berjalan UTC.
+6. **Konsistensi Prosedur Navigasi (Anti-Slash Purity)**:
+   Prosedur STAR dan SID mengunci rute tunggal yang sah (misal: `DOLTA One Alfa (DOLTA 1A)`), bebas dari artefak string bergaris miring ganda.
 
 ---
 
 ## 7. Inovasi "Zero Empty Phase" (Adaptive Ground Response Pipeline)
 
-Pada simulator radiotelephony konvensional, jika pesawat membatalkan lepas landas di Phase 2 (Departure), tab Phase 3 (En-Route), Phase 4 (Arrival), dan Phase 5 (Approach) dibiarkan kosong melompong.
-
-HERMES memecahkan masalah ini melalui **Adaptive Ground Emergency Flow**:
-Jika terjadi pembatalan lepas landas (*Abort Take-off* atau *EFATO*), seluruh fase berikutnya dialihkan secara adaptif ke protokol penanganan darurat darat resmi ICAO:
-* **Phase 3**: *Runway Assessment & Brake Cooling* (Evaluasi suhu rem panas, penahanan lalu lintas yang mendekat di final).
-* **Phase 4**: *ARFF & Safety Operations Escort* (Pemeriksaan eksternal oleh armada pemadam Tender One, konfirmasi tidak ada deflasi ban atau kebocoran hidrolik).
-* **Phase 5**: *Runway Vacated & Aerodrome Reopening* (Laporan pengosongan landasan, pembukaan kembali aerodrome untuk trafik, transfer ke Ground).
-* **Phase 6**: *Maintenance Stand & Flight Plan Cancellation* (Parkir di stand perawatan, pendinginan rem total, dan pembatalan resmi rencana penerbangan pada jam UTC).
-
-> **Geographical Lock**: Seluruh koordinasi darurat Fase 3–6 dikunci secara ketat pada bandara dan frekuensi keberangkatan, mencegah kebocoran data navigasi ke bandara tujuan saat pesawat masih tertahan di darat.
+Jika pesawat membatalkan lepas landas di Phase 2 (Departure), seluruh fase berikutnya dialihkan secara adaptif ke protokol penanganan darurat darat resmi ICAO:
+* **Phase 3**: *Runway Assessment & Brake Cooling* (Evaluasi suhu rem panas, penahanan lalu lintas final).
+* **Phase 4**: *ARFF & Safety Operations Escort* (Pemeriksaan eksternal oleh armada pemadam Tender One).
+* **Phase 5**: *Runway Vacated & Aerodrome Reopening* (Laporan pengosongan landasan, pembukaan kembali aerodrome untuk trafik).
+* **Phase 6**: *Maintenance Stand & Flight Plan Cancellation* (Parkir di stand perawatan, pembatalan rencana penerbangan pada jam UTC).
 
 ---
 
-## 8. Riwayat Milestone & Perbaikan Teknis Penting
+## 8. Dokumentasi Teknis & Spesifikasi Engine (`Docs/`)
 
-* **Swift Compiler Type-Check Timeout Resolved**:
-  Memecahkan error kompilasi Swift `The compiler is unable to type-check this expression in reasonable time` pada `ContentView.swift` dengan mendekomposisi sub-tampilan monolitik menjadi properti modular (`cockpitHudBar`, `phaseFilterTabs`, `scriptTimelineView`, dan struct mandiri `PhaseCardView`).
-* **Multi-Page Push Navigation Architecture**:
-  Memisahkan seleksi level kurikulum (`CurriculumHubView`) dengan ruang simulasi aktif (`MissionSimulatorView`).
-* **Koreksi Paradoks Ketinggian & Pesawat Realistis**:
-  Membatasi tipe pesawat realistis per rute (C172 di L1, Turboprop regional di L2, Jet komersial di L3–L5). Menghapus opsi *step climb* ke FL380 pada rute hopping Banyuwangi–Bali (55 NM) dan mengunci jelajah di FL080.
-* **Koreksi Bug Runway Reciprocal Leakage**:
-  Memperbaiki penanganan runway tunggal dengan arah ganda (`WADY` Runway 08 vs 26). Menginversi objek runway secara dinamis saat terjadi *Runway Change* sehingga instruksi lanjutan 100% konsisten mengunci nomor runway baru.
-* **Integrasi Penuh Generator Approach & Drill Mode**:
-  Menghubungkan seluruh skenario instrumen (`unsafeGear`, `flapFailure`, `unclearedGoAround`, `contaminatedRunwayBraking`, dll.) ke dalam generator fase Approach, serta memastikan skenario pilihan manual langsung terpicu 100%.
-* **Eliminasi String Slash pada Prosedur STAR**:
-  Menghilangkan string ambigu `DOLTA One Alfa / JAKAR Two Alfa` dan menguncinya menjadi STAR tunggal yang sah `DOLTA One Alfa (DOLTA 1A)` untuk pendaratan Runway 25R di Jakarta.
-* **Perombakan Pacing & Ritme Fase Arrival dan Approach**:
-  Memperluas Phase 4 (Arrival) dari 4 turns menjadi 8 turns (Top of descent, speed constraint di waypoint BUNTA, QNH transition level, handoff Approach), dan Phase 5 (Approach) dari 4 turns menjadi 10–12 turns (radar vectoring base leg, speed reduction 180 kts, 30° closing intercept, established report, Tower transfer, 4 miles final check, cleared to land) agar pengalaman simulator terasa imersif, klimaks, dan realistis.
+Folder `POC_Leveling/Docs/` memuat 8 dokumen spesifikasi teknis primer:
+
+1. **`DATASET_SCHEMA.md`**: Spesifikasi skema JSON dua tingkat (Tier 1 fisik bandara & Tier 2 data operasional penerbangan).
+2. **`GENERATOR_LOGIC.md`**: Logika alur 5-langkah pure deterministic finite state machine (FSM).
+3. **`REQUEST_AND_EMERGENCY_RESPONSE_ENGINE.md`**: Spesifikasi state machine untuk permintaan pilot, skenario abnormal, dan respons darurat.
+4. **`WIND_WEATHER_AND_DYNAMIC_VARIABLES.md`**: Perhitungan vektor aerodinamika angin (headwind/crosswind) dan pemilihan landasan pacu.
+5. **`FULL_END_TO_END_SCRIPT_GENERATOR_PLAN.md`**: Arsitektur end-to-end 3-act (6-phase) mission generator.
+6. **`ICAO_PHRASEOLOGY_VS_PLAIN_LANGUAGE_REFERENCE.md`**: Kompendium otoritatif standar fraseologi ICAO vs Plain Aviation English.
+7. **`ATC_SESSION_MODE_SPEC_AND_ARCHIVE.md`**: Spesifikasi dan arsip kode implementasi mode controller (ATC).
+8. **`TEMPLATE_SCHEMA.md`**: Format skema template percakapan per fase penerbangan.
+
+Data sumber 23 bandara kanonikal dan referensi AIP Indonesia terdokumentasi di:
+* **`POC_Leveling/Resources/Airports/AirportDataSources.md`**
 
 ---
 
-## 9. Hasil Verifikasi & Batch Simulation Audit
-
-Sistem telah diuji secara menyeluruh melalui test suite mandiri terhadap **50 seeds representatif (10 seeds per level)**:
+## 9. Struktur Direktori Proyek
 
 ```
-================================================================================
-          HERMES RTF ENGINE: 50-SEED COMPREHENSIVE FLIGHT AUDIT
-       (Audit ICAO Doc 9432, Doc 4444, Doc 9835 & FSM State Integrity)
-================================================================================
-Total Flights Tested        : 50 / 50 (100% Passed)
-Total Exchanges Verified    : 2.106 turns
-Total Contingencies Handled : 176 events
-Total Failed Audits         : 0
-
-STATUS AUDIT KELAYAKAN:
-   - ATIS Broadcast Segregation              : PASSED (100% passive cockpit header)
-   - Strict Turn Alternation (PILOT <-> ATC) : PASSED (0 speaker collision)
-   - Monotonic Turn Sequence (1..N)          : PASSED (0 turn gap)
-   - Procedural STAR Purity (No Slashes)     : PASSED (0 slash artifact)
-   - Coherent Abort Initiation               : PASSED (Flock warning -> Pilot abort -> Stop order)
-   - Coherent Runway Change (Reciprocal)     : PASSED (0 old runway leakage)
-   - Zero Empty Phase (Adaptive Ground Flow) : PASSED (100% phases populated)
-   - Rich Arrival & Approach Pacing          : PASSED (20 turns full vectoring)
-================================================================================
+POC_Leveling/
+├── README.md                                  <- Dokumentasi teknis branch POC_Leveling
+├── POC_Leveling.xcodeproj                     <- Proyek Xcode utama (iOS / iPadOS)
+└── POC_Leveling/
+    ├── MyApp.swift                            <- Entry point SwiftUI (@main)
+    ├── ContentView.swift                      <- Antarmuka pengguna multi-halaman & komponen UI
+    ├── Engine/
+    │   ├── Models.swift                       <- Data model bandara, runway, taxiway, frekuensi ATS
+    │   ├── ScriptEngineModels.swift           <- Model kurikulum 5 level, 30 kontinjensi, SlotContext
+    │   ├── ScriptGeneratorEngine.swift        <- Mesin generator naskah FSM & Sequential Flow Assembler
+    │   ├── Generators.swift                   <- Generator pesawat realistis & rute penerbangan
+    │   ├── WeatherEngine.swift                <- Mesin kalkulasi komponen angin & penyesuaian QNH
+    │   ├── SpokenFormFormatter.swift          <- Formatter pengucapan fonetik ICAO, knot, waktu UTC
+    │   ├── Repositories.swift                 <- Airport repository & pemuat template lokal
+    │   └── EmergencyResponseEngine.swift      <- Penilai respon darurat & scoring Doc 9835
+    ├── Docs/                                  <- 8 Dokumen spesifikasi teknis primer
+    └── Resources/
+        ├── Airports/                          <- 23 Dataset resmi bandara AIP Indonesia (.json)
+        │   └── AirportDataSources.md          <- Catatan sumber & sitasi resmi AIP eAIP
+        └── Templates/                         <- Template percakapan standar ICAO Doc 9432
 ```
 
 ---
 
-## 10. Panduan Menjalankan & Menguji Proyek
+## 10. Panduan Menjalankan via Xcode & Terminal
 
 ### Kebutuhan Sistem
 * macOS 14.0+ (Sonoma atau Sequoia).
-* Xcode 16.0+ dengan iOS 18+ Simulator SDK.
+* Xcode 16.0+ dengan iOS 18+ SDK.
 
 ### Cara Menjalankan via Xcode
 1. Buka file proyek:
    ```bash
-   open POC/Script_Generator/06_POC_Swift/POC_Leveling/POC_Leveling.xcodeproj
+   open POC_Leveling.xcodeproj
    ```
 2. Pilih skema target: **`POC_Leveling`**.
 3. Pilih perangkat tujuan: **iPhone 16** atau **iPhone 16 Pro (Simulator)**.
-4. Tekan tombol **Run (Cmd + R)**.
+4. Tekan **Run (Cmd + R)**.
 
-### Cara Menjalankan Automated Build Test via Terminal
+### Build Test via Terminal
 ```bash
-# Kompilasi dan jalankan build test di iOS Simulator
-xcodebuild -project POC/Script_Generator/06_POC_Swift/POC_Leveling/POC_Leveling.xcodeproj \
-  -scheme POC_Leveling \
-  -destination 'generic/platform=iOS Simulator' build \
-  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+xcodebuild -scheme POC_Leveling -destination 'generic/platform=iOS' build
 ```
 
 ---
-
-## 11. Struktur Direktori Proyek
-
-```
-POC_Leveling/
-├── README.md                              <- Dokumentasi teknis & arsitektur lengkap (file ini)
-├── POC_Leveling.xcodeproj                 <- Proyek Xcode utama
-└── POC_Leveling/
-    ├── MyApp.swift                        <- Entry point aplikasi SwiftUI (@main)
-    ├── ContentView.swift                  <- Antarmuka pengguna multi-halaman & komponen UI
-    ├── Engine/
-    │   ├── Models.swift                   <- Data model bandara, runway, taxiway, frekuensi ATS
-    │   ├── ScriptEngineModels.swift       <- Model kurikulum 5 level, 30 kontinjensi, SlotContext
-    │   ├── ScriptGeneratorEngine.swift    <- Mesin generator naskah FSM & Sequential Flow Assembler
-    │   ├── Generators.swift               <- Generator pesawat realistis & rute penerbangan
-    │   ├── WeatherEngine.swift            <- Mesin kalkulasi komponen angin & penyesuaian QNH
-    │   ├── SpokenFormFormatter.swift      <- Formatter pengucapan fonetik ICAO, knot, waktu UTC
-    │   ├── Repositories.swift             <- Airport repository & pemuat template lokal
-    │   └── EmergencyResponseEngine.swift  <- Penilai respon darurat & scoring Doc 9835
-    └── Resources/
-        ├── Airports/                      <- Dataset resmi 114 bandara AIP Indonesia (.json)
-        └── Templates/                     <- Template percakapan standar ICAO Doc 9432
-```
-
----
-*Dokumentasi ini disusun sebagai referensi arsitektur dan panduan evaluasi teknis untuk Apple Developer Academy Final Challenge.*
+*Dokumentasi ini disusun untuk Apple Developer Academy Final Challenge — Team Abang Tukang Bakso.*

@@ -37,9 +37,11 @@ public enum FlightProfile: String, Codable, Sendable {
 }
 
 public struct Airport: Codable, Equatable, Sendable {
+    public let level: Int?
     public let icao: String
     public let iata: String?
     public let name: String
+    public let city: String?
     public let profile: FlightProfile
     public let elevationFt: Int
     public let runways: [Runway]
@@ -49,7 +51,7 @@ public struct Airport: Codable, Equatable, Sendable {
     public let procedures: Procedures
 
     enum CodingKeys: String, CodingKey {
-        case icao, iata, name, profile, runways, units, taxiways, stands, procedures
+        case level, icao, iata, name, city, profile, runways, units, taxiways, stands, procedures
         case elevationFt = "elevation_ft"
     }
 }

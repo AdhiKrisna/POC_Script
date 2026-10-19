@@ -1,0 +1,113 @@
+{
+  "level": 4,
+  "icao": "WIMM",
+  "iata": "KNO",
+  "name": "Kualanamu International Airport",
+  "city": "Deli Serdang, Medan",
+  "elevation_ft": 23,
+  "profile": "IFR_COMMERCIAL",
+  "runways": [
+    {
+      "pair": [
+        "05",
+        "23"
+      ],
+      "designator": "05",
+      "reciprocal": "23",
+      "heading_degT": 50.0,
+      "holdingPoints": [
+        "P1",
+        "P2",
+        "P3"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": {
+      "callsign": "Medan Delivery",
+      "frequency": "121.850"
+    },
+    "apron": null,
+    "ground": {
+      "callsign": "Medan Ground",
+      "frequency": "121.700"
+    },
+    "tower": {
+      "callsign": "Medan Tower",
+      "frequency": "118.300"
+    },
+    "approach": {
+      "callsign": "Medan Approach",
+      "frequency": "124.200"
+    },
+    "departure": null,
+    "center": null,
+    "atis": {
+      "callsign": "Kualanamu Information",
+      "frequency": "126.400"
+    }
+  },
+  "taxiways": [
+    {
+      "id": "Papa",
+      "spoken": "Papa"
+    },
+    {
+      "id": "Quebec",
+      "spoken": "Quebec"
+    },
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    }
+  ],
+  "stands": [
+    {
+      "id": "8",
+      "spoken": "gate eight"
+    },
+    {
+      "id": "9",
+      "spoken": "gate nine"
+    }
+  ],
+  "procedures": {
+    "sids": [
+      {
+        "id": "KNO1A",
+        "name": "Kualanamu One Alfa",
+        "runway": "05",
+        "initialAltFt": 6000
+      }
+    ],
+    "stars": [
+      {
+        "id": "KNO1B",
+        "name": "Kualanamu One Bravo",
+        "runway": "05"
+      }
+    ],
+    "approaches": [
+      {
+        "id": "ILS05",
+        "type": "ILS",
+        "runway": "05",
+        "missedApproachAltFt": 4000
+      }
+    ],
+    "holdings": [
+      {
+        "fix": "KNO",
+        "inboundTrack": 50,
+        "turns": "right",
+        "altFt": 6000
+      }
+    ]
+  },
+  "_meta": {
+    "curriculumLevel": 4,
+    "curriculumCategory": "Major Metropolitan Hub",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}

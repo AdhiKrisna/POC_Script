@@ -1,0 +1,75 @@
+{
+  "level": 1,
+  "icao": "WADE",
+  "iata": "TTR",
+  "name": "Lieutenant Colonel Wisnu Airfield",
+  "city": "Buleleng, Bali",
+  "elevation_ft": 16,
+  "profile": "VFR_LOCAL",
+  "runways": [
+    {
+      "pair": [
+        "14",
+        "32"
+      ],
+      "designator": "14",
+      "reciprocal": "32",
+      "heading_degT": 140.0,
+      "holdingPoints": [
+        "A1",
+        "A2"
+      ]
+    }
+  ],
+  "units": {
+    "delivery": null,
+    "apron": null,
+    "ground": null,
+    "tower": {
+      "callsign": "Wisnu Tower",
+      "frequency": "118.300"
+    },
+    "approach": {
+      "callsign": "Bali Approach",
+      "frequency": "124.000"
+    },
+    "departure": null,
+    "center": null,
+    "atis": null
+  },
+  "taxiways": [
+    {
+      "id": "Alpha",
+      "spoken": "Alfa"
+    }
+  ],
+  "stands": [
+    {
+      "id": "1",
+      "spoken": "stand one"
+    },
+    {
+      "id": "2",
+      "spoken": "stand two"
+    }
+  ],
+  "procedures": {
+    "sids": [],
+    "stars": [],
+    "approaches": [
+      {
+        "id": "VIS14",
+        "type": "VISUAL",
+        "runway": "14",
+        "missedApproachAltFt": 2000
+      }
+    ],
+    "holdings": []
+  },
+  "_meta": {
+    "curriculumLevel": 1,
+    "curriculumCategory": "Flight School & Local Training",
+    "datasetCycle": "2026-AIRAC",
+    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+  }
+}
