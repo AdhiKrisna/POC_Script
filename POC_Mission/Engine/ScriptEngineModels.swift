@@ -424,19 +424,28 @@ public struct PartylineChatterPayload: Equatable, Codable, Sendable {
     public let baseVolume: Double
     public let duckingVolume: Double
     public let isDucking: Bool
+    public let activeTrafficCallsign: String?
+    public let activeTrafficAircraft: String?
+    public let frequencyStatus: String?
 
     public init(
         isActive: Bool = true,
         audioTrackName: String = "chatter_loop_papua_vhf",
         baseVolume: Double = 0.25,
         duckingVolume: Double = 0.10,
-        isDucking: Bool = false
+        isDucking: Bool = false,
+        activeTrafficCallsign: String? = nil,
+        activeTrafficAircraft: String? = nil,
+        frequencyStatus: String? = nil
     ) {
         self.isActive = isActive
         self.audioTrackName = audioTrackName
         self.baseVolume = baseVolume
         self.duckingVolume = duckingVolume
         self.isDucking = isDucking
+        self.activeTrafficCallsign = activeTrafficCallsign
+        self.activeTrafficAircraft = activeTrafficAircraft
+        self.frequencyStatus = frequencyStatus
     }
 }
 
@@ -1798,7 +1807,10 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                 }
                 output += "Turn \(ex.turn) | \(speakerLabel):\n"
 
-                if ex.isUserTurn {
+                if ex.speaker.contains("TRAFFIC") {
+                    let obj = ex.objective ?? "[MONITOR ONLY] Dengarkan transmisi pesawat lain di frekuensi yang sama. TAHAN TRANSMISI hingga frekuensi bebas."
+                    output += "  Objective: \(obj)\n"
+                } else if ex.isUserTurn {
                     let obj = ex.objective ?? (ex.intentPayload?.primaryIntent ?? "Lakukan transmisi komunikasi radio standar ICAO.")
                     output += "  Objective: \(obj)\n"
 
@@ -1822,6 +1834,8 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                     if level == .level5 {
                         if let haz = ex.hazardPayload {
                             output += "  [Cockpit Alert] ⚠️ \(haz.hazardDescription)\n"
+                        } else if let pl = ex.partylinePayload, let c = pl.activeTrafficCallsign {
+                            output += "  [Status] Cockpit Mountain HUD | Trafik di Frekuensi: \(c) (\(pl.activeTrafficAircraft ?? "VHF Traffic"))\n"
                         } else {
                             output += "  [Status] Cockpit Mountain HUD | VHF Partyline Active\n"
                         }

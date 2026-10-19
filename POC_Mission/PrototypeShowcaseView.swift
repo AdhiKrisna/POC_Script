@@ -573,7 +573,7 @@ public struct PrototypeShowcaseView: View {
         }
     }
 
-    // Level 5: Extreme Mountain HUD + GPWS
+    // Level 5: Extreme Mountain HUD + GPWS + Partyline Interruption
     private var level5Content: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -606,9 +606,57 @@ public struct PrototypeShowcaseView: View {
             .cornerRadius(6)
             .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.red.opacity(0.4), lineWidth: 1))
 
-            Text("📻 VHF Partyline Chatter: Active (25% vol, 10% ducking)")
-                .font(.caption2)
-                .foregroundColor(.secondary)
+            // LIVE VHF PARTYLINE TRAFFIC INTERCEPT
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    HStack(spacing: 4) {
+                        Image(systemName: "radio")
+                            .font(.system(size: 9))
+                        Text("VHF 122.200 MHz — TRAFIK LAIN DI FREKUENSI")
+                            .font(.system(size: 9, weight: .black))
+                    }
+                    .foregroundColor(themeAccent)
+
+                    Spacer()
+
+                    Text("⛔ FREKUENSI TERPAKAI")
+                        .font(.system(size: 8, weight: .heavy))
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(Color.red.opacity(0.2))
+                        .foregroundColor(.red)
+                        .cornerRadius(4)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("TRAFFIC [Smart 102]: \"Wamena Tower, Smart 102, passing Baliem Gap, descending 9000 ft.\"")
+                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .foregroundColor(themeAccent)
+                    Text("ATC: \"Smart 102, Wamena Tower, roger, report right base runway 15.\"")
+                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .foregroundColor(.purple)
+                    Text("TRAFFIC [Smart 102]: \"Right base runway 15, Smart 102.\"")
+                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .foregroundColor(themeAccent)
+                }
+                .padding(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.black.opacity(0.25))
+                .cornerRadius(6)
+
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.system(size: 10))
+                    Text("Frekuensi kini telah bersih (Silence observed). Giliran Anda On-Mic.")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.green)
+                }
+            }
+            .padding(8)
+            .background(themeAccent.opacity(0.06))
+            .cornerRadius(8)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(themeAccent.opacity(0.25), lineWidth: 1))
         }
     }
 

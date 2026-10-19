@@ -1685,7 +1685,7 @@ public final class ScriptGeneratorEngine {
             timeoutSeconds: 3.0
         )
 
-        let partyline = PartylineChatterPayload(
+        let partyline = exchange.partylinePayload ?? PartylineChatterPayload(
             isActive: true,
             audioTrackName: "chatter_loop_papua_vhf",
             baseVolume: 0.25,
@@ -3209,7 +3209,21 @@ public final class ScriptGeneratorEngine {
             globalTurn += 1
 
         } else if level == .level5 {
-            // Turn 1: PILOT Initial Contact with Delivery (TSAT A-CDM)
+            // Level 5 Mountain Bush / Valley: Inject VHF Partyline Ground Contention (1-3 turns)
+            let stationName = context.unitTower?.callsign ?? "\(context.airport.name) Tower"
+            let depRwySpoken = SpokenFormFormatter.runway(activeDepRunway.designator)
+            let partylineTurns = generateLevel5PartylineInterruption(
+                phase: .preDeparture,
+                station: stationName,
+                rwy: depRwySpoken,
+                airportICAO: context.airport.icao,
+                studentCallsign: callsign,
+                seed: seed,
+                globalTurn: &globalTurn
+            )
+            exchanges.append(contentsOf: partylineTurns)
+
+            // Turn 1: PILOT Initial Contact with Delivery / Tower (Channel now clear)
             exchanges.append(FilledExchange(
                 exchangeID: "PD-CD-REQ-1", templateID: "PD-02", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
@@ -3218,7 +3232,8 @@ public final class ScriptGeneratorEngine {
                     CriticalSlot(slot: "ATIS_ID", expectedValue: atisLetter, type: "mandatoryAtis"),
                     CriticalSlot(slot: "DESTINATION", expectedValue: destName, type: "mandatoryAirport"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                ], severity: .normal, eventTag: "IFR CLEARANCE REQ"
+                ], severity: .normal, eventTag: "IFR CLEARANCE REQ",
+                objective: "Frekuensi kini telah bebas (Silence observed). Minta izin rute IFR ke bandara tujuan."
             ))
             globalTurn += 1
 
@@ -5996,6 +6011,21 @@ public final class ScriptGeneratorEngine {
                 executedContingencies.append(dvoCont)
             }
 
+            // Level 5 Mountain Valley: Inject VHF Partyline Approach / Valley Contention (1-3 turns)
+            if level == .level5 {
+                let stationName = context.unitTower?.callsign ?? "\(context.airport.name) Tower"
+                let partylineTurns = generateLevel5PartylineInterruption(
+                    phase: .approach,
+                    station: stationName,
+                    rwy: arrRwySpoken,
+                    airportICAO: context.airport.icao,
+                    studentCallsign: callsign,
+                    seed: seed,
+                    globalTurn: &globalTurn
+                )
+                exchanges.append(contentsOf: partylineTurns)
+            }
+
             // GPWS Terrain Avoidance
             if let gpwsCont = contingencies.first(where: { $0.title.contains("GPWS") || $0.title.contains("Terrain") }) {
                 exchanges.append(FilledExchange(
@@ -7299,9 +7329,9 @@ public final class ScriptGeneratorEngine {
                     "Citilink \(800 + abs(seed) % 200)", "Garuda \(200 + abs(seed) % 400)",
                     "TransNusa \(100 + abs(seed) % 300)"]
         case .level5:
-            return ["Garuda \(400 + abs(seed) % 400)", "Batik \(6000 + abs(seed) % 999)",
-                    "Singapore \(100 + abs(seed) % 800)", "AirAsia \(600 + abs(seed) % 400)",
-                    "Lion \(700 + abs(seed) % 300)", "Citilink \(800 + abs(seed) % 200)"]
+            return ["Trigana \(200 + abs(seed) % 100)", "Smart \(100 + abs(seed) % 50)",
+                    "Susi Air \(110 + abs(seed) % 20)", "Asian One \(300 + abs(seed) % 50)",
+                    "Wings Air \(1800 + abs(seed) % 100)"]
         }
     }
 
@@ -7311,7 +7341,230 @@ public final class ScriptGeneratorEngine {
         case .level2: return ["C172", "ATR 72", "B737-500"]
         case .level3: return ["B737-800", "A320", "ATR 72"]
         case .level4: return ["B737-800", "A320", "A330", "B737 MAX 8"]
-        case .level5: return ["B777-300ER", "A330-900", "B737-800", "A320neo", "B747-400F"]
+        case .level5: return ["DHC-6 Twin Otter", "C208B Grand Caravan", "ATR 72-600", "B737-500 STOL", "Pilatus PC-6"]
         }
+    }
+
+    // MARK: - Level 5 VHF Partyline Realistic Interruption Engine
+    private func generateLevel5PartylineInterruption(
+        phase: Phase,
+        station: String,
+        rwy: String,
+        airportICAO: String,
+        studentCallsign: String,
+        seed: Int,
+        globalTurn: inout Int
+    ) -> [FilledExchange] {
+        var exchanges: [FilledExchange] = []
+
+        struct RegionalTraffic {
+            let callsign: String
+            let aircraft: String
+        }
+
+        let trafficPool: [RegionalTraffic]
+        let isPapua = (airportICAO == "WAVV" || airportICAO == "WABP")
+        let isToraja = (airportICAO == "WAFB")
+        let isBandung = (airportICAO == "WICC" || airportICAO == "WIHH")
+        let isTarakan = (airportICAO == "WALR" || airportICAO == "WALL")
+
+        if isPapua {
+            trafficPool = [
+                RegionalTraffic(callsign: "Smart one zero two", aircraft: "DHC-6 Twin Otter"),
+                RegionalTraffic(callsign: "Susi Air one one four", aircraft: "C208B Grand Caravan"),
+                RegionalTraffic(callsign: "Trigana two four one", aircraft: "B737-500 STOL"),
+                RegionalTraffic(callsign: "Asian One three one zero", aircraft: "C208B Grand Caravan"),
+                RegionalTraffic(callsign: "Rimbun Air five zero two", aircraft: "DHC-6 Twin Otter")
+            ]
+        } else if isToraja {
+            trafficPool = [
+                RegionalTraffic(callsign: "Wings Air one eight five five", aircraft: "ATR 72-600"),
+                RegionalTraffic(callsign: "Smart one zero five", aircraft: "DHC-6 Twin Otter"),
+                RegionalTraffic(callsign: "Susi Air one two zero", aircraft: "C208B Grand Caravan")
+            ]
+        } else if isBandung {
+            trafficPool = [
+                RegionalTraffic(callsign: "Wings Air one eight five two", aircraft: "ATR 72-600"),
+                RegionalTraffic(callsign: "Batik four zero two", aircraft: "Airbus A320"),
+                RegionalTraffic(callsign: "Lion Air seven one two", aircraft: "Boeing 737-800"),
+                RegionalTraffic(callsign: "Supergreen four two six", aircraft: "ATR 72-600")
+            ]
+        } else if isTarakan {
+            trafficPool = [
+                RegionalTraffic(callsign: "Smart one one eight", aircraft: "DHC-6 Twin Otter"),
+                RegionalTraffic(callsign: "Wings Air one eight five zero", aircraft: "ATR 72-600"),
+                RegionalTraffic(callsign: "Batik four one two", aircraft: "Boeing 737-800")
+            ]
+        } else {
+            trafficPool = [
+                RegionalTraffic(callsign: "Smart two zero four", aircraft: "C208B Grand Caravan"),
+                RegionalTraffic(callsign: "Wings Air one eight zero two", aircraft: "ATR 72-600"),
+                RegionalTraffic(callsign: "Trigana one seven two", aircraft: "ATR 42-300")
+            ]
+        }
+
+        let filteredPool = trafficPool.filter { $0.callsign.lowercased() != studentCallsign.lowercased() }
+        let selectedTraffic = filteredPool.isEmpty ? trafficPool[0] : filteredPool[abs(seed / 13) % filteredPool.count]
+        let tCall = selectedTraffic.callsign
+        let tPlane = selectedTraffic.aircraft
+
+        let chatterPayload = PartylineChatterPayload(
+            isActive: true,
+            audioTrackName: "chatter_loop_papua_vhf",
+            baseVolume: 0.25,
+            duckingVolume: 0.10,
+            isDucking: false,
+            activeTrafficCallsign: tCall,
+            activeTrafficAircraft: tPlane,
+            frequencyStatus: "CHANNEL_OCCUPIED_MONITOR_ONLY"
+        )
+
+        let monitorObjective = "[MONITOR ONLY] Dengarkan transmisi pesawat lain di frekuensi yang sama. TAHAN TRANSMISI (jangan tekan PTT) hingga frekuensi bebas."
+
+        if phase == .preDeparture {
+            let variant = abs(seed / 19) % 2
+            if variant == 0 {
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-PD-1", templateID: "PL-01", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "\(station), \(tCall), vacated runway \(rwy) via taxiway Bravo, request taxi to apron.",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE TRAFFIC CONTENTION",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-PD-2", templateID: "PL-01", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: false,
+                    text: "\(tCall), \(station), taxi to apron stand two via Bravo, hold short taxiway Alfa.",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE ATC INSTRUCTION",
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-PD-3", templateID: "PL-01", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "Taxi to apron stand two via Bravo, hold short taxiway Alfa, \(tCall).",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE TRAFFIC CONTENTION",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+            } else {
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-PD-1", templateID: "PL-01", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "\(station), \(tCall), apron stand two, request start-up.",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE TRAFFIC CONTENTION",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-PD-2", templateID: "PL-01", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: false,
+                    text: "\(tCall), \(station), hold position, expect two minutes delay due departing traffic.",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE ATC INSTRUCTION",
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-PD-3", templateID: "PL-01", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "Hold position, \(tCall).",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE TRAFFIC CONTENTION",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+            }
+        } else if phase == .approach {
+            let variant = abs(seed / 23) % 3
+            if variant == 0 {
+                let gapName = isPapua ? "Baliem Gap" : (isToraja ? "Rantepao Valley" : "Cimahi Ridge")
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-AP-1", templateID: "PL-02", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "\(station), \(tCall), passing \(gapName), descending altitude niner thousand feet, visual runway \(rwy).",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE TRAFFIC CONTENTION",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-AP-2", templateID: "PL-02", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: false,
+                    text: "\(tCall), \(station), roger, report right base runway \(rwy), number two behind traffic on final.",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE ATC INSTRUCTION",
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-AP-3", templateID: "PL-02", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "Right base runway \(rwy), number two, \(tCall).",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE TRAFFIC CONTENTION",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+            } else if variant == 1 {
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-AP-1", templateID: "PL-02", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "\(station), \(tCall), caution all stations, moderate downdraft and mountain wave north of the ridge at seven thousand feet.",
+                    criticalSlots: [], severity: .urgency, eventTag: "PARTYLINE WEATHER ADVISORY",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-AP-2", templateID: "PL-02", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: false,
+                    text: "\(tCall), \(station), copied weather advisory, thank you.",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE ATC ACKNOWLEDGEMENT",
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+            } else {
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-AP-1", templateID: "PL-02", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "\(station), \(tCall), overhead valley fix, request three sixty orbit for cloud clearance.",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE TRAFFIC CONTENTION",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-AP-2", templateID: "PL-02", turn: globalTurn, speaker: "ATC",
+                    isUserTurn: false,
+                    text: "\(tCall), \(station), three sixty orbit approved right hand, report roll out heading.",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE ATC INSTRUCTION",
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+
+                exchanges.append(FilledExchange(
+                    exchangeID: "PL-AP-3", templateID: "PL-02", turn: globalTurn, speaker: "TRAFFIC (\(tCall))",
+                    isUserTurn: false,
+                    text: "Orbit approved right hand, will report roll out, \(tCall).",
+                    criticalSlots: [], severity: .normal, eventTag: "PARTYLINE TRAFFIC CONTENTION",
+                    objective: monitorObjective,
+                    partylinePayload: chatterPayload
+                ))
+                globalTurn += 1
+            }
+        }
+
+        return exchanges
     }
 }

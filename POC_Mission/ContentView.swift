@@ -1469,7 +1469,15 @@ struct ExchangeRowView: View {
             VStack(alignment: .leading, spacing: 8) {
                 // Header tags row
                 HStack(spacing: 6) {
-                    if exchange.isUserTurn {
+                    if exchange.speaker.contains("TRAFFIC") {
+                        Text("📻 TRAFIK DI FREKUENSI")
+                            .font(.system(size: 9, weight: .black))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Color.teal.opacity(0.18))
+                            .foregroundColor(.teal)
+                            .cornerRadius(4)
+                    } else if exchange.isUserTurn {
                         Text("▶ ANDA")
                             .font(.system(size: 9, weight: .black))
                             .padding(.horizontal, 5)
@@ -1610,7 +1618,10 @@ struct ExchangeRowView: View {
     }
 
     private var speakerColor: Color {
-        exchange.speaker == "PILOT" ? Color.blue : Color.purple
+        if exchange.speaker.contains("TRAFFIC") {
+            return Color.teal
+        }
+        return exchange.speaker == "PILOT" ? Color.blue : Color.purple
     }
 
     private func tagColor(_ sev: EventSeverity) -> Color {
@@ -1958,13 +1969,26 @@ struct PartylineHUDStripView: View {
     }
 
     private func partylineView(_ p: PartylineChatterPayload) -> some View {
-        HStack(spacing: 5) {
-            Image(systemName: "waveform")
-                .font(.system(size: 9))
-                .foregroundColor(.teal)
-            Text("VHF PARTYLINE AKTIF (\(p.audioTrackName)): Volume \(Int(p.baseVolume * 100))% (Ducking \(Int(p.duckingVolume * 100))%)")
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                .foregroundColor(.teal)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 5) {
+                Image(systemName: "waveform")
+                    .font(.system(size: 9))
+                    .foregroundColor(.teal)
+                if let call = p.activeTrafficCallsign {
+                    Text("📻 VHF FREKUENSI TERPAKAI: \(call) (\(p.activeTrafficAircraft ?? "Trafik"))")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.teal)
+                } else {
+                    Text("VHF PARTYLINE AKTIF (\(p.audioTrackName)): Volume \(Int(p.baseVolume * 100))% (Ducking \(Int(p.duckingVolume * 100))%)")
+                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                        .foregroundColor(.teal)
+                }
+            }
+            if p.frequencyStatus == "CHANNEL_OCCUPIED_MONITOR_ONLY" {
+                Text("⛔ FREKUENSI SIBUK — TAHAN TRANSMISI / JANGAN TEKAN PTT!")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(.orange)
+            }
         }
         .padding(6)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1986,8 +2010,8 @@ struct PartylineHUDStripView: View {
                 .font(.system(size: 10, weight: .medium))
                 .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)
-            Text("Wajib tolak: \"\(h.rejectionPhraseology)\"")
-                .font(.system(size: 10, weight: .bold, design: .monospaced))
+            Text("🎯 Objective: Tolak instruksi penurunan dan minta tanjak ke ketinggian aman!")
+                .font(.system(size: 10, weight: .bold))
                 .foregroundColor(.red)
                 .fixedSize(horizontal: false, vertical: true)
         }
