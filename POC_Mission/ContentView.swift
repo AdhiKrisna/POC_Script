@@ -181,6 +181,8 @@ struct MissionSimulatorView: View {
     @State private var missionScript: FlightMissionScript?
     @State private var errorMessage: String?
     @State private var currentSeed: Int = Int.random(in: 1000...9999)
+    @State private var hasCopiedScript: Bool = false
+    @State private var showCopiedToast: Bool = false
     @State private var showDiagnosticModal: Bool = false
     @State private var showBriefingSheet: Bool = false
     @State private var showContingencyDetailSheet: Bool = false
@@ -304,6 +306,24 @@ struct MissionSimulatorView: View {
             }
             if missionScript == nil {
                 generateMission()
+            }
+        }
+        .overlay(alignment: .top) {
+            if showCopiedToast {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Seluruh naskah disalin ke clipboard")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.primary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(.ultraThinMaterial)
+                .cornerRadius(20)
+                .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, 6)
             }
         }
     }
@@ -596,10 +616,45 @@ struct MissionSimulatorView: View {
     private var toolbarItems: some ToolbarContent {
         ToolbarItemGroup(placement: .topBarTrailing) {
             Button(action: {
+                copyScriptToClipboard()
+            }) {
+                Image(systemName: hasCopiedScript ? "checkmark" : "doc.on.doc")
+                    .foregroundColor(hasCopiedScript ? .green : .accentColor)
+            }
+            .disabled(missionScript == nil)
+            .accessibilityLabel("Salin Seluruh Naskah")
+
+            Button(action: {
                 currentSeed = Int.random(in: 1000...9999)
                 generateMission()
             }) {
                 Image(systemName: "arrow.clockwise")
+            }
+            .accessibilityLabel("Acak Ulang Skenario")
+        }
+    }
+
+    private func copyScriptToClipboard() {
+        guard let script = missionScript else { return }
+        let text = script.exportAsPlainText()
+        #if canImport(UIKit)
+        UIPasteboard.general.string = text
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        #elseif canImport(AppKit)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
+
+        withAnimation(.easeInOut(duration: 0.2)) {
+            hasCopiedScript = true
+            showCopiedToast = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                hasCopiedScript = false
+                showCopiedToast = false
             }
         }
     }
@@ -2364,6 +2419,21 @@ struct ATCSessionRunnerView: View {
                     Button(action: { generateSession() }) {
                         Image(systemName: "arrow.clockwise")
                     }
+                    Button(action: {
+                        if let s = session {
+                            #if canImport(UIKit)
+                            UIPasteboard.general.string = s.exportAsPlainText()
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.success)
+                            #elseif canImport(AppKit)
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(s.exportAsPlainText(), forType: .string)
+                            #endif
+                        }
+                    }) {
+                        Image(systemName: "doc.on.doc")
+                    }
+                    .disabled(session == nil)
                     if session?.diagnosticReport != nil {
                         Button(action: { showDiagnosticSheet = true }) {
                             Image(systemName: "chart.bar.doc.horizontal")
