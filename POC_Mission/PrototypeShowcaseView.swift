@@ -123,6 +123,59 @@ public struct PrototypeShowcaseView: View {
                     .foregroundColor(.secondary)
             }
 
+            // Card 0: Pre-Flight Operational Story Briefing
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    HStack(spacing: 5) {
+                        Image(systemName: "book.pages.fill")
+                        Text("PRE-FLIGHT STORY BRIEFING")
+                    }
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(themeAccent)
+
+                    Spacer()
+
+                    Text("IFR Commercial")
+                        .font(.system(size: 9, weight: .bold))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(themeSubtleBg)
+                        .cornerRadius(4)
+                        .foregroundColor(themeAccent)
+                }
+
+                Divider().background(themeBorderColor)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Penerbangan Komersial Regional Turboprop Antar-Kota")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(themeTextMain)
+                    Text("Junior First Officer — Supergreen Air (ATR 72-600)")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.secondary)
+                }
+
+                Text("Anda bertugas sebagai First Officer di kokpit turboprop ATR 72-600 dengan nomor penerbangan Supergreen 426. Hari ini Anda mengoperasikan penerbangan berjadwal menghubungkan Yogyakarta International (WAHI) menuju Lombok Zainuddin Abdul Madjid (WADL). Pesawat membawa 68 penumpang dan 4 awak kabin. Cuaca BMKG menunjukkan rute penerbangan kondusif dengan kecepatan angin permukaan 12 knot dan jarak pandang di atas 10 km. Anda bersiap meminta IFR route clearance, memandu taksi keberangkatan, dan menanjak ke FL150.")
+                    .font(.system(size: 11))
+                    .foregroundColor(themeTextMain)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: 8) {
+                    Label("68 Penumpang", systemImage: "person.2.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.secondary)
+                    Text("•").foregroundColor(.secondary)
+                    Label("CAVOK (> 10 km)", systemImage: "sun.max.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(14)
+            .background(themeCardBg)
+            .cornerRadius(cardRadius)
+            .overlay(cardBorder)
+
             // Card 1: Operational Flight Plan (OFP)
             VStack(alignment: .leading, spacing: 10) {
                 HStack {

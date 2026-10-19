@@ -603,7 +603,12 @@ struct MissionSimulatorView: View {
     @ViewBuilder
     private func scriptTimelineView(mission: FlightMissionScript) -> some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
+            LazyVStack(spacing: 14) {
+                // Pre-Flight Operational Story Briefing (Before Phase 1)
+                if (activeActFilter == .all || activeActFilter == .act1), let story = mission.storyBriefing {
+                    preFlightStoryCard(story)
+                }
+
                 ForEach(filteredPhases(mission: mission)) { phaseScript in
                     PhaseCardView(
                         phaseScript: phaseScript,
@@ -615,6 +620,76 @@ struct MissionSimulatorView: View {
             }
             .padding()
         }
+    }
+
+    // MARK: - Pre-Flight Story Briefing Card
+    @ViewBuilder
+    private func preFlightStoryCard(_ story: MissionStoryBriefing) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 6) {
+                Image(systemName: "book.pages.fill")
+                    .foregroundColor(.blue)
+                    .font(.system(size: 13))
+                Text("PRE-FLIGHT STORY BRIEFING")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(.blue)
+
+                Spacer()
+
+                Text(story.flightRule)
+                    .font(.system(size: 9, weight: .bold))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.blue.opacity(0.12))
+                    .foregroundColor(.blue)
+                    .cornerRadius(4)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(story.title)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.primary)
+                Text(story.roleContext)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.secondary)
+            }
+
+            Text(story.narrativeText)
+                .font(.system(size: 12))
+                .foregroundColor(.primary)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 8) {
+                HStack(spacing: 4) {
+                    Image(systemName: "person.2.fill")
+                        .font(.system(size: 9))
+                    Text(story.passengerCount == 0 ? "Solo Cadet (Tanpa Penumpang)" : "\(story.passengerCount) Penumpang")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                .foregroundColor(.secondary)
+
+                Text("•")
+                    .foregroundColor(.secondary)
+
+                HStack(spacing: 4) {
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 9))
+                    Text(story.weatherBriefingSummary)
+                        .font(.system(size: 10, weight: .medium))
+                        .lineLimit(1)
+                }
+                .foregroundColor(.secondary)
+            }
+            .padding(.top, 2)
+        }
+        .padding(14)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+        )
     }
 
     // MARK: - Empty View
@@ -957,6 +1032,11 @@ struct FlightBriefingSheet: View {
                     // Header Route Summary
                     headerRouteBanner
 
+                    // 0. Pre-Flight Story Briefing
+                    if let story = mission.storyBriefing {
+                        storyBriefingCard(story)
+                    }
+
                     // 1. Operational Flight Plan (OFP) Card
                     flightPlanCard
 
@@ -977,6 +1057,67 @@ struct FlightBriefingSheet: View {
                 }
             }
         }
+    }
+
+    // MARK: - Story Briefing Card
+    private func storyBriefingCard(_ story: MissionStoryBriefing) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Label("PRE-FLIGHT STORY BRIEFING", systemImage: "book.pages.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(.blue)
+                Spacer()
+                Text(story.flightRule)
+                    .font(.system(size: 9, weight: .bold))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.blue.opacity(0.12))
+                    .foregroundColor(.blue)
+                    .cornerRadius(4)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(story.title)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.primary)
+                Text(story.roleContext)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.secondary)
+            }
+
+            Text(story.narrativeText)
+                .font(.system(size: 12))
+                .foregroundColor(.primary)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 8) {
+                HStack(spacing: 4) {
+                    Image(systemName: "person.2.fill")
+                        .font(.system(size: 9))
+                    Text(story.passengerCount == 0 ? "Solo Cadet" : "\(story.passengerCount) Penumpang")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                .foregroundColor(.secondary)
+
+                Text("•")
+                    .foregroundColor(.secondary)
+
+                HStack(spacing: 4) {
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 9))
+                    Text(story.weatherBriefingSummary)
+                        .font(.system(size: 10, weight: .medium))
+                        .lineLimit(1)
+                }
+                .foregroundColor(.secondary)
+            }
+            .padding(.top, 2)
+        }
+        .padding(14)
+        .background(Color(.systemBackground))
+        .cornerRadius(12)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.blue.opacity(0.3), lineWidth: 0.8))
     }
 
     // MARK: - Route Header Banner

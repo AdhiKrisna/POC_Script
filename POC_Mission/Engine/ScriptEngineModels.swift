@@ -474,6 +474,34 @@ public struct HazardousInstructionPayload: Equatable, Codable, Sendable {
     }
 }
 
+public struct MissionStoryBriefing: Equatable, Codable, Sendable {
+    public let title: String
+    public let roleContext: String
+    public let narrativeText: String
+    public let passengerCount: Int
+    public let flightRule: String
+    public let missionTypeDescription: String
+    public let weatherBriefingSummary: String
+
+    public init(
+        title: String,
+        roleContext: String,
+        narrativeText: String,
+        passengerCount: Int,
+        flightRule: String,
+        missionTypeDescription: String,
+        weatherBriefingSummary: String
+    ) {
+        self.title = title
+        self.roleContext = roleContext
+        self.narrativeText = narrativeText
+        self.passengerCount = passengerCount
+        self.flightRule = flightRule
+        self.missionTypeDescription = missionTypeDescription
+        self.weatherBriefingSummary = weatherBriefingSummary
+    }
+}
+
 public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
     public var id: String { exchangeID }
     public let exchangeID: String
@@ -1684,6 +1712,7 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
     public let phaseScripts: [PhaseScript]
     public let diagnosticReport: DiagnosticReport?
     public let contingencies: [InjectedContingency]
+    public let storyBriefing: MissionStoryBriefing?
 
     public var contingency: InjectedContingency? {
         contingencies.first
@@ -1704,7 +1733,8 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
         phaseScripts: [PhaseScript],
         diagnosticReport: DiagnosticReport? = nil,
         contingency: InjectedContingency? = nil,
-        contingencies: [InjectedContingency] = []
+        contingencies: [InjectedContingency] = [],
+        storyBriefing: MissionStoryBriefing? = nil
     ) {
         self.id = id
         self.seed = seed
@@ -1719,6 +1749,7 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
         self.missionContext = missionContext
         self.phaseScripts = phaseScripts
         self.diagnosticReport = diagnosticReport
+        self.storyBriefing = storyBriefing
         if !contingencies.isEmpty {
             self.contingencies = contingencies
         } else if let c = contingency {
@@ -1784,6 +1815,22 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
         [ARRIVAL ATIS - \(missionContext.destinationAirport.icao)]
         Information \(missionContext.arrAtisId) | RWY \(missionContext.arrRunway.designator) in use | Approach: ILS DME RWY \(missionContext.arrRunway.designator) | Wind: \(String(format: "%03d", missionContext.arrWeather.windDirection))°/\(String(format: "%02d", missionContext.arrWeather.windSpeed))kt | QNH \(missionContext.arrWeather.qnh) hPa
         """
+
+        if let story = storyBriefing {
+            output += """
+
+
+            [PRE-FLIGHT MISSION BRIEFING & OPERATIONAL STORY]
+            • Misi / Skenario : \(story.title)
+            • Peran Anda      : \(story.roleContext)
+            • Kategori / Rule : \(story.missionTypeDescription) (\(story.flightRule))
+            • Muatan Kabin    : \(story.passengerCount == 0 ? "Solo Cadet (Tanpa Penumpang)" : "\(story.passengerCount) Penumpang")
+            • Kondisi Cuaca   : \(story.weatherBriefingSummary)
+
+            [Narasi Pengantar Operasional]:
+            "\(story.narrativeText)"
+            """
+        }
 
         if !contingencies.isEmpty {
             output += "\n\n[SKENARIO KONTINJENSI]"
