@@ -1216,8 +1216,8 @@
             </div>
 
             <div style="background: rgba(47, 84, 235, 0.08); border-left: 3px solid #2F54EB; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
-              <div style="font-size: 9px; font-weight: 800; color: #2F54EB; text-transform: uppercase;">🎯 Objective Operasional:</div>
-              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Minta izin taksi ke holding point Runway 18.</div>
+              <div style="font-size: 9px; font-weight: 800; color: #2F54EB; text-transform: uppercase;">🎯 Operational Objective:</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Request taxi clearance to holding point Runway 18 via taxiway Alfa.</div>
             </div>
 
             <div class="atc-prompt-bubble">
@@ -1248,27 +1248,27 @@
           <!-- LEVEL 2: CLOZE TEXT (RUMPANG) -->
           <div id="content-lv-2" style="display: none;">
             <div style="background: rgba(250, 140, 22, 0.08); border-left: 3px solid #FA8C16; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
-              <div style="font-size: 9px; font-weight: 800; color: #FA8C16; text-transform: uppercase;">🎯 Objective Operasional:</div>
-              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Dengarkan transmisi ATC di radio. Lengkapi nilai kritis yang rumpang dan lakukan readback lengkap.</div>
+              <div style="font-size: 9px; font-weight: 800; color: #FA8C16; text-transform: uppercase;">🎯 Operational Objective:</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Listen to ATC transmission. Extract masked critical values and deliver full readback.</div>
             </div>
             <div class="atc-prompt-bubble" style="border-left-color: #FA8C16; margin-bottom: 8px;">
-              <div class="atc-label" style="color: #FA8C16;">ATC Transmission (Teks Rumpang / Cloze Masked):</div>
+              <div class="atc-label" style="color: #FA8C16;">ATC Transmission (Cloze Masked):</div>
               "Supergreen 426, turn left heading <span class="cloze-blank">[ ___ ]</span>, maintain flight level <span class="cloze-blank">[ ___ ]</span>, QNH <span class="cloze-blank">[ ___ ]</span>"
             </div>
             <div style="font-size: 10px; color: var(--text-muted); margin-top: 6px;">
-              ⏱️ PTT Timer: ≤ 8 detik (Dengarkan audio radio ATC untuk melengkapi slot)
+              ⏱️ PTT Timer: ≤ 8 seconds (Listen to ATC audio to complete slots)
             </div>
           </div>
 
           <!-- LEVEL 3: INTENTION / OBJECTIVE ONLY -->
           <div id="content-lv-3" style="display: none;">
             <div class="objective-prompt">
-              <div class="objective-badge">🎯 Objective Operasional</div>
+              <div class="objective-badge">🎯 Operational Objective</div>
               <div class="objective-text">
-                "Lakukan readback instruksi backtrack 180° di Runway 13 dan masuk posisi menahan (Line Up and Wait)."
+                "Read back backtrack 180° instruction on Runway 13 and line up and wait."
               </div>
               <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">
-                💡 Dikasih Objectivenya aja (No English Script cheat) | PTT ≤ 5s
+                💡 Objective card only (No ready-to-read English script cheat) | PTT ≤ 5s
               </div>
             </div>
           </div>
@@ -1276,8 +1276,8 @@
           <!-- LEVEL 4: COCKPIT SCRATCHPAD HUD (AUDIO FIRST) -->
           <div id="content-lv-4" style="display: none;">
             <div style="background: rgba(0, 229, 255, 0.08); border-left: 3px solid var(--accent-color); padding: 6px 10px; border-radius: 4px; margin-bottom: 8px;">
-              <div style="font-size: 9px; font-weight: 800; color: var(--accent-color); text-transform: uppercase;">🎯 Objective Operasional:</div>
-              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Dengarkan radio ATC, sesuaikan kecepatan dan intercept localizer ILS RWY 10.</div>
+              <div style="font-size: 9px; font-weight: 800; color: var(--accent-color); text-transform: uppercase;">🎯 Operational Objective:</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-main);">Listen to ATC instructions, manage airspeed, and intercept localizer ILS RWY 10.</div>
             </div>
             <div class="wire-card-header" style="margin-bottom: 6px; padding-bottom: 3px;">
               <span class="wire-card-title">📟 Cockpit Scratchpad (Audio HUD)</span>
@@ -1298,12 +1298,12 @@
             <div class="emergency-alert-box">
               <div class="emergency-title">⚠️ GPWS TERRAIN ALERT</div>
               <div class="emergency-desc" style="margin-bottom: 6px;">
-                Vektor ATC 250° membahayakan pesawat menabrak tebing.
+                ATC vector 250° endangers aircraft into mountain terrain.
               </div>
               <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 6px 8px; text-align: left;">
-                <div class="objective-badge" style="color: #FF4D4F; font-size: 10px;">🎯 OBJECTIVE OPERASIONAL:</div>
+                <div class="objective-badge" style="color: #FF4D4F; font-size: 10px;">🎯 OPERATIONAL OBJECTIVE:</div>
                 <div style="font-size: 12px; font-weight: 700; color: var(--text-main); margin-top: 2px;">
-                  Tolak instruksi penurunan ATC karena ada tebing (Authority Breaker), dan minta izin tanjak ke ketinggian aman.
+                  Reject ATC descent instruction due to terrain (Authority Breaker) and request climb to safety altitude.
                 </div>
               </div>
             </div>
@@ -1312,10 +1312,10 @@
             <div style="margin-top: 10px; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 8px; padding: 10px; text-align: left;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <div style="font-size: 10px; font-weight: 800; color: var(--accent-color); display: flex; align-items: center; gap: 4px;">
-                  <span>📻</span> VHF 122.200 MHz — TRAFIK LAIN DI FREKUENSI
+                  <span>📻</span> VHF 122.200 MHz — TRAFFIC ON FREQUENCY
                 </div>
                 <span style="background: rgba(255, 77, 79, 0.2); color: #FF4D4F; border: 1px solid #FF4D4F; font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 4px;">
-                  ⛔ FREKUENSI TERPAKAI (MONITOR ONLY)
+                  ⛔ FREQUENCY BUSY (MONITOR ONLY)
                 </span>
               </div>
 
@@ -1336,7 +1336,7 @@
               </div>
 
               <div style="margin-top: 8px; font-size: 10px; color: #52C41A; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                <span>✅</span> Frekuensi kini telah bersih (Silence observed). <strong>Giliran Anda On-Mic.</strong>
+                <span>✅</span> Frequency is now clear (Radio silence observed). <strong>Your turn to transmit.</strong>
               </div>
             </div>
           </div>
