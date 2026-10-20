@@ -89,7 +89,7 @@ TOTAL: 25 Misi Kanonikal Terstruktur
    * **Dialog Kunci:** ATC: *"Batik 6302, backtrack and line up runway one three, report ready for departure."*
 
 2. **Misi 302: Bali Ngurah Rai (WADD) ➔ Solo (WARQ)**
-   * **Pesawat / Callsign:** Boeing 737-800 | `Garuda 312`
+   * **Pesawat / Callsign:** Boeing 737-800 | `Indonesia 312`
    * **Skenario:** `[ABNORMAL]` Wake Turbulence Wait (*Doc 4444: Ch.5.8*) + `[ABNORMAL]` Holding Pattern & EAT (*Doc 4444: Ch.5.5*)
    * **Letak Masalah:** Tertahan 2 menit pusaran turbulensi jet berat di Bali, lalu disuruh masuk holding antrean cuaca di Solo.
 
@@ -109,7 +109,7 @@ TOTAL: 25 Misi Kanonikal Terstruktur
    * **Letak Masalah:** Flap macet di final approach Batam; pilot mendeklarasikan PAN PAN dan meminta pendaratan laju 160 knot.
 
 6. **Misi 306: Batam (WIDD) ➔ Semarang (WARS)**
-   * **Pesawat / Callsign:** Boeing 737-800 | `Garuda 380`
+   * **Pesawat / Callsign:** Boeing 737-800 | `Indonesia 380`
    * **Skenario:** `[ABNORMAL]` Continue Approach on Short Final (*Doc 9432 Ch.4.7.1*)
    * **Letak Masalah:** Di jarak 2 NM final Semarang, izin mendarat belum keluar. Pilot diinstruksikan melanjutkan approach sambil bersiap go-around.
 
@@ -119,7 +119,7 @@ TOTAL: 25 Misi Kanonikal Terstruktur
 *Bantuan UI: Cockpit HUD Strip (Audio-Only) | PTT: ≤ 3s | 8 Skenario Kompaun Hub*
 
 1. **Misi 401: Jakarta CGK (WIII) ➔ Surabaya (WARR)**
-   * **Pesawat / Callsign:** Boeing 777-300ER Heavy | `Garuda 123 Heavy`
+   * **Pesawat / Callsign:** Boeing 777-300ER Heavy | `Indonesia 123 Heavy`
    * **Skenario:** `[ABNORMAL]` CTOT Slot Management (*Doc 4444 Ch.3*) + `[ABNORMAL]` Dual Runway Crossing (*Doc 4444: Ch.7.6.3.2*)
    * **Uji Kritis:** Readback slot waktu lepas landas terhitung dan izin menyeberangi RWY 07L sambil menahan sebelum RWY 07R dalam satu tarikan napas.
 
@@ -129,7 +129,7 @@ TOTAL: 25 Misi Kanonikal Terstruktur
    * **Uji Kritis:** Menahan diri diam saat nomor mirip dipanggil (`Lion 712`), dan teriak *"STOPPING"* seketika saat pembatalan lepas landas di 110 knot.
 
 3. **Misi 403: Makassar (WAAA) ➔ Medan Kualanamu (WIMM)**
-   * **Pesawat / Callsign:** Airbus A330-300 Heavy | `Garuda 612 Heavy`
+   * **Pesawat / Callsign:** Airbus A330-300 Heavy | `Indonesia 612 Heavy`
    * **Skenario:** `[ABNORMAL]` Strategic Lateral Offset / SLOP (*Doc 4444: Ch.16.5*) + `[DISTRESS]` TCAS Resolution Advisory (*Doc 4444: Ch.15.7.3*)
    * **Uji Kritis:** Deviasi lateral 1 NM kanan di Selat Karimata dan kepatuhan instan alarm kokpit "CLIMB" mengabaikan ATC sesaat.
 
