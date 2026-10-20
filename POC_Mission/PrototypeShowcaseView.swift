@@ -982,7 +982,7 @@ public struct PrototypeShowcaseView: View {
         case 1: return "\"Tower, Taxiing to RWY 18 VIA ALPHA, WGN 502\""
         case 2: return "\"Turn left heading zero six zero, maintain flight level one five zero, Supergreen four two six\""
         case 3: return "\"Backtrack runway one three, line up and wait, Lion Air seven five zero\""
-        case 4: return "\"Reduce speed one eight zero knots, turn heading zero niner zero, cleared ILS runway one zero, Garuda two eight three Heavy\""
+        case 4: return "\"Reduce speed one eight zero knots, turn heading zero niner zero, cleared ILS runway one zero, Indonesia two eight three Heavy\""
         default: return "\"UNABLE heading two five zero due terrain, climbing altitude eight thousand feet, Asian One three six four!\""
         }
     }

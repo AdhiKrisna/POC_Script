@@ -37,11 +37,11 @@ public enum CallsignGenerator {
             }
 
         case .level3:
-            // Garuda [300-399], Batik [6300-6399], Lion Air [700-799], Supergreen [500-599]
+            // Indonesia [300-399], Batik [6300-6399], Lion Air [700-799], Supergreen [500-599]
             let choice = absSeed % 4
             if choice == 0 {
                 let num = 300 + (absSeed % 100)
-                return "Garuda \(SpokenFormFormatter.digitWords(String(num)))"
+                return "Indonesia \(SpokenFormFormatter.digitWords(String(num)))"
             } else if choice == 1 {
                 let num = 6300 + (absSeed % 100)
                 return "Batik \(SpokenFormFormatter.digitWords(String(num)))"
@@ -54,17 +54,20 @@ public enum CallsignGenerator {
             }
 
         case .level4:
-            // Garuda [100-299] Heavy, Batik [7000-7199], Lion Air [800-899]
-            let choice = absSeed % 3
+            // Indonesia [100-299] Heavy, Batik [7000-7199], Lion Air [800-899], Prosper [100-299]
+            let choice = absSeed % 4
             if choice == 0 {
                 let num = 100 + (absSeed % 200)
-                return "Garuda \(SpokenFormFormatter.digitWords(String(num))) Heavy"
+                return "Indonesia \(SpokenFormFormatter.digitWords(String(num))) Heavy"
             } else if choice == 1 {
                 let num = 7000 + (absSeed % 200)
                 return "Batik \(SpokenFormFormatter.digitWords(String(num)))"
-            } else {
+            } else if choice == 2 {
                 let num = 800 + (absSeed % 100)
                 return "Lion Air \(SpokenFormFormatter.digitWords(String(num)))"
+            } else {
+                let num = 100 + (absSeed % 200)
+                return "Prosper \(SpokenFormFormatter.digitWords(String(num)))"
             }
 
         case .level5:
@@ -91,17 +94,20 @@ public enum CallsignGenerator {
 
     /// Generates a confusable bait callsign for Level 4 Selective Auditory Attention training
     public static func generateBait(playerCallsign: String, seed: Int) -> String {
-        // e.g. "Batik seven one two" -> "Lion seven one two"
-        // or swapped tail digits
         if playerCallsign.contains("Batik") {
             return playerCallsign.replacingOccurrences(of: "Batik", with: "Lion")
+        } else if playerCallsign.contains("Indonesia") {
+            return playerCallsign.replacingOccurrences(of: "Indonesia", with: "Supergreen")
         } else if playerCallsign.contains("Garuda") {
-            return playerCallsign.replacingOccurrences(of: "Garuda", with: "Citilink")
+            return playerCallsign.replacingOccurrences(of: "Garuda", with: "Indonesia")
         } else if playerCallsign.contains("Lion") {
-            return playerCallsign.replacingOccurrences(of: "Lion Air", with: "Batik").replacingOccurrences(of: "Lion", with: "Batik")
-        } else {
-            return "Indo Air " + SpokenFormFormatter.digitWords(String(abs(seed) % 900 + 100))
+            return playerCallsign.replacingOccurrences(of: "Lion", with: "Batik")
+        } else if playerCallsign.contains("Supergreen") {
+            return playerCallsign.replacingOccurrences(of: "Supergreen", with: "Prosper")
+        } else if playerCallsign.contains("Prosper") {
+            return playerCallsign.replacingOccurrences(of: "Prosper", with: "Supergreen")
         }
+        return "Batik \(100 + abs(seed) % 800)"
     }
 
     public static func generate(profile: FlightProfile, seed: Int) -> String {

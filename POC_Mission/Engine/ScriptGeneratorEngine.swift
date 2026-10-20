@@ -7415,11 +7415,12 @@ public final class ScriptGeneratorEngine {
             return local + commercial
         case .level3:
             return ["Pelita \(500 + abs(seed) % 500)", "Batik \(6000 + abs(seed) % 999)",
-                    "Lion \(100 + abs(seed) % 800)", "Garuda \(200 + abs(seed) % 700)"]
+                    "Lion \(100 + abs(seed) % 800)", "Indonesia \(200 + abs(seed) % 700)",
+                    "Supergreen \(500 + abs(seed) % 200)", "Prosper \(100 + abs(seed) % 300)"]
         case .level4:
             return ["Batik \(6000 + abs(seed) % 999)", "Lion \(100 + abs(seed) % 800)",
-                    "Citilink \(800 + abs(seed) % 200)", "Garuda \(200 + abs(seed) % 400)",
-                    "TransNusa \(100 + abs(seed) % 300)"]
+                    "Supergreen \(800 + abs(seed) % 200)", "Indonesia \(200 + abs(seed) % 400) Heavy",
+                    "TransNusa \(100 + abs(seed) % 300)", "Prosper \(100 + abs(seed) % 300)"]
         case .level5:
             return ["Trigana \(200 + abs(seed) % 100)", "Smart \(100 + abs(seed) % 50)",
                     "Susi Air \(110 + abs(seed) % 20)", "Asian One \(300 + abs(seed) % 50)",

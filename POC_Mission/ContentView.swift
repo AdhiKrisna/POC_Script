@@ -1810,12 +1810,36 @@ struct HUDMetricPill: View {
     let label: String
     let value: String
 
+    private var displayValue: String {
+        if label == "XPDR" {
+            return formatXpdrCode(value)
+        }
+        return value
+    }
+
+    private func formatXpdrCode(_ raw: String) -> String {
+        let map: [String: String] = [
+            "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+            "five": "5", "six": "6", "seven": "7", "eight": "8", "niner": "9", "nine": "9"
+        ]
+        let tokens = raw.lowercased().components(separatedBy: CharacterSet.whitespacesAndNewlines.union(.punctuationCharacters))
+        let digits = tokens.compactMap { map[$0] }
+        if digits.count == 4 {
+            return digits.joined()
+        }
+        let numericOnly = raw.filter { $0.isNumber }
+        if numericOnly.count >= 4 {
+            return String(numericOnly.prefix(4))
+        }
+        return raw
+    }
+
     var body: some View {
         VStack(spacing: 2) {
             Text(label)
                 .font(.system(size: 8, weight: .black))
                 .foregroundColor(.secondary)
-            Text(value)
+            Text(displayValue)
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
                 .foregroundColor(.primary)
                 .lineLimit(1)
