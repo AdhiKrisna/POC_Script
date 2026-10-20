@@ -1821,13 +1821,13 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
 
 
             [PRE-FLIGHT MISSION BRIEFING & OPERATIONAL STORY]
-            • Misi / Skenario : \(story.title)
-            • Peran Anda      : \(story.roleContext)
-            • Kategori / Rule : \(story.missionTypeDescription) (\(story.flightRule))
-            • Muatan Kabin    : \(story.passengerCount == 0 ? "Solo Cadet (Tanpa Penumpang)" : "\(story.passengerCount) Penumpang")
-            • Kondisi Cuaca   : \(story.weatherBriefingSummary)
+            • Mission / Scenario : \(story.title)
+            • Your Role          : \(story.roleContext)
+            • Category / Rules   : \(story.missionTypeDescription) (\(story.flightRule))
+            • Cabin Load         : \(story.passengerCount == 0 ? "Solo Cadet (No Passengers)" : "\(story.passengerCount) Passengers")
+            • Weather Summary    : \(story.weatherBriefingSummary)
 
-            [Narasi Pengantar Operasional]:
+            [Operational Narrative Briefing]:
             "\(story.narrativeText)"
             """
         }

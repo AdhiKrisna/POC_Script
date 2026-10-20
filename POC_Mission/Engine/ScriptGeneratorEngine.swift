@@ -7608,128 +7608,128 @@ public final class ScriptGeneratorEngine {
             if origICAO == "WADY" {
                 // Akademi Penerbang Indonesia (API) Banyuwangi (formerly LP3B)
                 return MissionStoryBriefing(
-                    title: "Latihan Sirkuit Visual VFR Solo (Pola Trafik Standar)",
-                    roleContext: "Student Pilot — Akademi Penerbang Indonesia (API) Banyuwangi",
-                    narrativeText: "Pagi ini Anda adalah seorang Student Pilot di Akademi Penerbang Indonesia (API) Banyuwangi yang sedang menyelesaikan jam terbang solo visual. Anda dijadwalkan menerbangkan pesawat latih \(aircraftType) dengan nomor registrasi \(callsign) untuk latihan sirkuit visual (VFR Circuit Pattern Training) di Bandara Blimbingsari. Cuaca pagi sangat bersahabat dengan langit cerah berawan (CAVOK), jarak pandang di atas 10 km, dan angin laut sepoi-sepoi dari Selat Bali. Rencana terbang Anda adalah melapor siap taksi di apron, berbaris di holding point, lepas landas, menanjak ke ketinggian pola 1.000 kaki, dan melakukan touch-and-go sebelum kembali mendarat penuh sesuai arahan Blimbingsari Tower.",
+                    title: "Solo VFR Circuit Training & Pattern Work",
+                    roleContext: "Student Pilot — Indonesian Flying Academy (API) Banyuwangi",
+                    narrativeText: "This morning, you are a Student Pilot at the Indonesian Flying Academy (API) Banyuwangi completing your solo visual flight training. You are scheduled to fly the \(aircraftType) trainer (registration \(callsign)) for standard VFR circuit pattern training at Blimbingsari Airport. Aerodrome weather is exceptional with CAVOK conditions, horizontal visibility exceeding 10 km, and a gentle coastal breeze off the Bali Strait. Your flight profile is to report ready for taxi on the apron, hold short at the assigned runway intersection, execute an initial climb to 1,000 feet pattern altitude, and perform touch-and-go circuits before full-stop landing as directed by Blimbingsari Tower.",
                     passengerCount: 0,
                     flightRule: "VFR (Visual Flight Rules)",
-                    missionTypeDescription: "Flight Training (Solo Cadet)",
-                    weatherBriefingSummary: "CAVOK, angin permukaan tenang, jarak pandang > 10 km, QNH lokal normal"
+                    missionTypeDescription: "Solo Cadet Flight Training",
+                    weatherBriefingSummary: "CAVOK, calm surface wind, visibility > 10 km, standard local QNH"
                 )
             } else if origICAO == "WICB" {
                 // Politeknik Penerbangan Indonesia (PPI) Curug (formerly STPI Curug)
                 return MissionStoryBriefing(
-                    title: "Latihan Silabus VFR Dasar & Area Latihan Lokal",
-                    roleContext: "Student Pilot — Politeknik Penerbangan Indonesia (PPI) Curug",
-                    narrativeText: "Hari ini Anda bertindak sebagai Kadet Penerbang di Politeknik Penerbangan Indonesia (PPI) Curug. Anda ditugaskan menerbangkan \(aircraftType) dengan callsign \(callsign) untuk melaksanakan misi latihan pola sirkuit dan navigasi visual di Local Training Area Curug. Kondisi atmosfer Banten terpantau tenang dengan jarak pandang prima dan batas awan tinggi. Misi Anda adalah melatih ketelitian fraseologi standar di darat dengan Curug Ground, berbaris tertib di holding point, dan bermanuver sirkuit visual dengan aman di bawah supervisi instruktur.",
+                    title: "Basic VFR Syllabus & Local Training Area Maneuvers",
+                    roleContext: "Student Pilot — Indonesian Civil Aviation Polytechnic (PPI) Curug",
+                    narrativeText: "Today you are acting as a Flight Cadet at the Indonesian Civil Aviation Polytechnic (PPI) Curug. You are assigned to fly \(aircraftType) with callsign \(callsign) for visual traffic circuits and basic airwork maneuvers in the Curug Local Training Area. Atmospheric conditions over Banten are calm with excellent visibility and a high cloud ceiling. Your objective is to practice standard ground radiotelephony with Curug Ground, maintain strict holding point discipline, and fly orderly visual circuits under instructor supervision.",
                     passengerCount: 0,
                     flightRule: "VFR (Visual Flight Rules)",
-                    missionTypeDescription: "Flight Training (Solo Cadet)",
-                    weatherBriefingSummary: "Kondisi VMC prima, visibilitas > 10 km, angin headwind stabil"
+                    missionTypeDescription: "Cadet Training Syllabus Flight",
+                    weatherBriefingSummary: "Prime VMC conditions, visibility > 10 km, steady headwind"
                 )
             } else if origICAO == "WADE" {
                 // Bali International Flight Academy (BIFA) Buleleng
                 return MissionStoryBriefing(
-                    title: "Latihan VFR Pesisir Bali Barat (Touch and Go)",
+                    title: "West Bali Coastal VFR Touch-and-Go Training",
                     roleContext: "Student Pilot — Bali International Flight Academy (BIFA)",
-                    narrativeText: "Sebagai kadet penerbang di Bali International Flight Academy (BIFA) yang berbasis di Lapangan Terbang Letkol Wisnu, Sumberkima, Buleleng, Anda bersiap menerbangkan armada latih \(aircraftType) (\(callsign)). Pagi ini Anda akan melatih prosedur touch-and-go di atas perairan Teluk Terima dan garis pantai Bali Barat. Cuaca pagi cerah tanpa tutupan awan konvektif dengan angin sejuk dari arah laut. Fokus latihan Anda adalah kesiapan radio check yang tajam, kepatuhan instruksi taksi, dan pembacaan readback presisi kepada Wisnu Tower.",
+                    narrativeText: "As a flight cadet at Bali International Flight Academy (BIFA) operating out of Lt. Col. Wisnu Airfield in Sumberkima, Buleleng, you are preparing to fly trainer \(aircraftType) (\(callsign)). This morning you will conduct touch-and-go circuit practice over Teluk Terima and the scenic West Bali coastline. Sky conditions are clear of convective clouds with a cool sea breeze. Your focus is sharp radio coordination, disciplined apron taxi, and crisp readback delivery to Wisnu Tower.",
                     passengerCount: 0,
                     flightRule: "VFR (Visual Flight Rules)",
-                    missionTypeDescription: "Flight Training (Solo Cadet)",
-                    weatherBriefingSummary: "Langit biru cerah, tanpa turbulensi, jarak pandang tak terbatas"
+                    missionTypeDescription: "Solo Cadet Circuit Training",
+                    weatherBriefingSummary: "Clear blue skies, smooth air, unlimited visibility"
                 )
             } else {
                 return MissionStoryBriefing(
-                    title: "Latihan Terbang Sirkuit Visual Lokal (VFR Pattern)",
-                    roleContext: "Student Pilot — Sekolah Penerbang Indonesia",
-                    narrativeText: "Pagi ini Anda bertugas sebagai kadet siswa penerbang yang menjalani latihan sirkuit visual di \(origName) menggunakan \(aircraftType) (\(callsign)). Kondisi cuaca bandara sangat baik dengan langit cerah berawan dan jarak pandang horizontal melebihi 10 km. Anda bersiap mempraktikkan koordinasi radio standar di darat, lepas landas, dan sirkuit visual penuh sesuai manual prosedur operasional standar.",
+                    title: "Local Aerodrome Visual Circuit Training",
+                    roleContext: "Student Pilot — Flight Training Academy",
+                    narrativeText: "This morning you are a student pilot cadet conducting visual traffic circuits at \(origName) aboard \(aircraftType) (\(callsign)). Local aerodrome weather is pristine with scattered clouds and visibility well over 10 km. You are ready to execute standard ground coordination, departure roll, and full visual circuit operations following standard operating procedures.",
                     passengerCount: 0,
                     flightRule: "VFR (Visual Flight Rules)",
-                    missionTypeDescription: "Flight Training (Solo Cadet)",
-                    weatherBriefingSummary: "CAVOK, angin tenang, kondisi visual sempurna"
+                    missionTypeDescription: "VFR Circuit Pattern Practice",
+                    weatherBriefingSummary: "CAVOK, calm surface wind, excellent visibility"
                 )
             }
 
         case .level2:
             let pax = 64 + (abs(seed) % 8)
             return MissionStoryBriefing(
-                title: "Penerbangan Komersial Regional Turboprop Antar-Kota",
-                roleContext: "Junior First Officer — Maskapai Regional Indonesia",
-                narrativeText: "Anda bertugas sebagai First Officer di kokpit turboprop \(aircraftType) dengan nomor penerbangan \(callsign). Hari ini Anda mengoperasikan penerbangan berjadwal menghubungkan \(origName) menuju \(destName). Pesawat membawa \(pax) penumpang dan 4 awak kabin, dengan kargo bagasi terdaftar 750 kg. Briefing cuaca dari BMKG menunjukkan rute penerbangan kondusif dengan kecepatan angin permukaan sedang dan jarak pandang di atas 10 km. Anda telah menyelesaikan kalkulasi bahan bakar serta rute IFR, dan kini bersiap meminta IFR clearance, memandu taksi keberangkatan, dan menanjak ke flight level jelajah.",
+                title: "Scheduled Inter-City Regional Turboprop Commercial Flight",
+                roleContext: "Junior First Officer — Regional Commercial Airline",
+                narrativeText: "You are serving as First Officer in the cockpit of the \(aircraftType) turboprop under flight number \(callsign). Today you are operating a scheduled passenger flight connecting \(origName) to \(destName). The cabin is carrying \(pax) passengers and 4 flight crew members, with 750 kg of checked baggage in the cargo hold. The aviation weather briefing indicates calm en-route conditions with moderate surface winds and visibility exceeding 10 km. Having finalized fuel calculations and your IFR flight plan, you are now preparing to request route clearance, manage departure taxi, and climb to cruising flight level.",
                 passengerCount: pax,
                 flightRule: "IFR (Instrument Flight Rules)",
-                missionTypeDescription: "Penerbangan Berjadwal Regional",
-                weatherBriefingSummary: "Cuaca rute kondusif, angin permukaan teratur, jarak pandang > 10 km"
+                missionTypeDescription: "Scheduled Regional Passenger Service",
+                weatherBriefingSummary: "Clear en-route conditions, steady surface wind, visibility > 10 km"
             )
 
         case .level3:
             let pax = 152 + (abs(seed) % 24)
             return MissionStoryBriefing(
-                title: "Penerbangan Domestik Reguler Pesawat Jet Narrow-Body",
-                roleContext: "Senior First Officer — Maskapai Komersial Nasional",
-                narrativeText: "Hari ini Anda bertindak sebagai Pilot Monitoring (PM) di kokpit armada jet \(aircraftType) (\(callsign)) untuk penerbangan penumpang reguler dari \(origName) menuju \(destName). Penerbangan mengangkut \(pax) penumpang dan 6 awak kabin dengan kapasitas muatan optimal. Analisis peta cuaca en-route menunjukkan rute jelajah yang tenang di lapisan awan stabil dengan jarak pandang sangat baik di kedua bandara. Tanggung jawab utama Anda adalah memastikan ketepatan komunikasi radio IFR dengan Delivery, Ground, Tower, hingga Radar pemandu sektor.",
+                title: "Scheduled Domestic Trunk Route Commercial Jet Flight",
+                roleContext: "Senior First Officer / Pilot Monitoring — Commercial Airline",
+                narrativeText: "Today you are acting as Pilot Monitoring (PM) in the cockpit of a \(aircraftType) jetliner (\(callsign)) for a scheduled trunk route flight from \(origName) to \(destName). The flight is booked with \(pax) passengers and 6 cabin crew members at optimal payload. En-route meteorological charts confirm a smooth cruise in stable upper air masses with excellent visibility at both departure and destination airports. Your primary responsibility is delivering crisp, precise IFR radiotelephony exchanges across Delivery, Ground, Tower, and Radar sectors.",
                 passengerCount: pax,
                 flightRule: "IFR (Instrument Flight Rules)",
-                missionTypeDescription: "Penerbangan Komersial Domestik Reguler",
-                weatherBriefingSummary: "Jarak pandang prima di bandara asal dan tujuan, angin permukaan teratur"
+                missionTypeDescription: "Scheduled Domestic Commercial Flight",
+                weatherBriefingSummary: "Excellent terminal visibility, smooth cruising conditions"
             )
 
         case .level4:
             let pax = 168 + (abs(seed) % 20)
             return MissionStoryBriefing(
-                title: "Penerbangan Jam Sibuk Hub Padat & Manajemen Waktu TSAT",
-                roleContext: "Captaincy Candidate / Pilot Flying — Hub Operasional Padat",
-                narrativeText: "Anda bertindak sebagai Pilot Flying dalam jadwal penerbangan padat jam sibuk sore hari dari \(origName) menuju \(destName) menggunakan armada \(aircraftType) (\(callsign)). Pesawat terisi penuh oleh \(pax) penumpang dan kargo bisnis prioritas. Bandara asal menerapkan regulasi Airport Collaborative Decision Making (A-CDM) dengan target slot waktu tolak (TSAT) yang sangat presisi di tengah kepadatan antrean apron. Cuaca dilaporkan cerah berawan dengan jarak pandang di atas 10 km. Misi Anda adalah mempertahankan komunikasi radio yang tajam, kepatuhan holding point yang mutlak, dan navigasi RNAV presisi.",
+                title: "Peak-Hour Metro Hub Flight & A-CDM Slot Management",
+                roleContext: "Captaincy Candidate / Pilot Flying — High-Density Metro Hub",
+                narrativeText: "You are acting as Pilot Flying on a high-density late afternoon peak flight from \(origName) to \(destName) operating \(aircraftType) (\(callsign)). The aircraft is fully booked with \(pax) passengers and priority commercial cargo. The departure aerodrome operates under strict Airport Collaborative Decision Making (A-CDM) protocols with tight Target Start-Up Times (TSAT) amidst heavy ramp congestion. Weather is CAVOK with horizontal visibility greater than 10 km. Your mission demands razor-sharp radiotelephony, uncompromising holding point compliance, and precision RNAV navigation.",
                 passengerCount: pax,
                 flightRule: "IFR (Instrument Flight Rules)",
-                missionTypeDescription: "Penerbangan Komersial Hub Utama Berjadwal",
-                weatherBriefingSummary: "CAVOK, angin headwind mantap, jarak pandang horizontal > 10 km"
+                missionTypeDescription: "Scheduled Major Hub Commercial Flight",
+                weatherBriefingSummary: "CAVOK, steady headwind, visibility > 10 km"
             )
 
         case .level5:
             if origICAO == "WAVV" || origICAO == "WABP" {
                 let pax = 16 + (abs(seed) % 4)
                 return MissionStoryBriefing(
-                    title: "Penerbangan Perintis Logistik & Warga Lembah Pegunungan Jayawijaya",
-                    roleContext: "Pioneer Mountain Pilot — Operator Penerbangan Perintis Pedalaman",
-                    narrativeText: "Pagi ini Anda mengoperasikan penerbangan perintis rute dataran tinggi melintasi Pegunungan Jayawijaya antara \(origName) dan \(destName) menggunakan armada tangguh \(aircraftType) (\(callsign)). Pesawat membawa \(pax) penumpang warga lokal serta 650 kg pasokan logistik sembako dan obat-obatan penting untuk distrik pegunungan. Briefing cuaca pagi dari stasiun pengamat lembah melaporkan celah awan terbuka di celah pegunungan (Baliem Gap) dengan angin lembah sejuk dan jarak pandang visual yang memadai. Karena ini adalah koridor lembah sempit dengan frekuensi radio bersama (VHF Partyline), Anda bersiap terbang visual menyusuri kontur medan dan memantau komunikasi radio pesawat perintis lain di frekuensi yang sama.",
+                    title: "Highland Valley Pioneer Logistics & Passenger Flight",
+                    roleContext: "Pioneer Mountain Pilot — Highland Remote Operations",
+                    narrativeText: "This morning you are commanding a remote highland pioneer flight across the rugged Jayawijaya mountain range between \(origName) and \(destName) in the rugged \(aircraftType) (\(callsign)). The cabin carries \(pax) local passengers alongside 650 kg of essential food supplies and medical cargo for isolated valley communities. Morning reports from mountain observation outposts show an open cloud gap through the Baliem valley corridor with cool valley winds and adequate visual flight conditions. Operating in a tight valley with a shared VHF radio frequency (Partyline), you prepare to navigate visually along terrain contours while closely monitoring traffic broadcasts from other bush pilots on the common advisory channel.",
                     passengerCount: pax,
-                    flightRule: "VFR / IFR Mountain Corridor",
-                    missionTypeDescription: "Penerbangan Perintis Pasokan & Penumpang",
-                    weatherBriefingSummary: "Celah lembah terbuka, angin lembah sejuk 15-20 kt, visibilitas visual memadai"
+                    flightRule: "VFR / IFR Mountain Valley Corridor",
+                    missionTypeDescription: "Pioneer Supply & Passenger Transport",
+                    weatherBriefingSummary: "Mountain gap open, cool valley breeze 15-20 kt, good visual reference"
                 )
             } else if origICAO == "WAFB" {
                 let pax = 42 + (abs(seed) % 8)
                 return MissionStoryBriefing(
-                    title: "Penerbangan Penumpang Dataran Tinggi Toraja Menuju Makassar",
-                    roleContext: "First Officer — Rute Khusus Pegunungan Sulawesi",
-                    narrativeText: "Anda menerbangkan rute berjadwal dari dataran tinggi Tana Toraja (\(origName)) menuju \(destName) menggunakan \(aircraftType) (\(callsign)). Pesawat terisi \(pax) penumpang wisatawan dan warga dengan bagasi penuh. Cuaca pagi di lembah Toraja terpantau tenang, kabut pagi mulai terangkat disinari matahari, dan angin bertiup perlahan 12 knot dari perbukitan. Anda telah merencanakan pendakian awal mengikuti kontur lembah sebelum berbelok menuju ketinggian jelajah normal di atas pesisir barat Sulawesi.",
+                    title: "Highland Commuter Service: Toraja Valley to Makassar",
+                    roleContext: "First Officer — Sulawesi Mountain Route Operations",
+                    narrativeText: "You are flying a scheduled morning service departing from the Toraja highlands at \(origName) bound for \(destName) aboard \(aircraftType) (\(callsign)). The flight is booked with \(pax) passengers and full baggage allowance. Morning mountain mist in the Toraja basin is lifting under early sunlight, and winds are light at 12 knots off the ridges. You have planned your initial departure climb along the valley corridor before establishing standard cruising altitude over the western Sulawesi coastline.",
                     passengerCount: pax,
                     flightRule: "IFR Mountain Departure",
-                    missionTypeDescription: "Penerbangan Regional Wisata & Komuter",
-                    weatherBriefingSummary: "Kabut pagi terangkat, angin lereng tenang, jarak pandang visual > 8 km"
+                    missionTypeDescription: "Highland Commuter Regional Service",
+                    weatherBriefingSummary: "Valley mist dispersing, gentle ridge winds, visual visibility > 8 km"
                 )
             } else if origICAO == "WICC" {
                 let pax = 68 + (abs(seed) % 6)
                 return MissionStoryBriefing(
-                    title: "Penerbangan Komuter Pagi Cekungan Bandung Menuju Ibukota",
-                    roleContext: "First Officer — Komuter Koridor Bisnis",
-                    narrativeText: "Anda memimpin penerbangan komuter pagi dari Bandara Husein Sastranegara (\(origName)) menuju \(destName) membawa \(pax) penumpang bisnis. Cekungan Bandung yang dikelilingi perbukitan dilaporkan berawan sebagian dengan angin permukaan tenang dan jarak pandang 9 km. Anda bersiap melakukan prosedur tolak dari apron militer Lanud Husein, mematuhi batas ketinggian keberangkatan instrumen, dan menanjak mulus menuju koridor udara Jakarta.",
+                    title: "Morning Commuter Flight: Bandung Basin to Capital Gateway",
+                    roleContext: "First Officer — Capital Corridor Commercial Commuter",
+                    narrativeText: "You are piloting a morning commuter flight from Husein Sastranegara Airport (\(origName)) to \(destName) carrying \(pax) business travelers. The volcanic basin surrounding Bandung reports scattered cloud cover, calm surface winds, and 9 km visibility. You are preparing for pushback from the shared military ramp, climbing out on an instrument departure profile, and cruising smoothly into the Jakarta TMA corridor.",
                     passengerCount: pax,
                     flightRule: "IFR (Instrument Flight Rules)",
-                    missionTypeDescription: "Penerbangan Komuter Berjadwal",
-                    weatherBriefingSummary: "Berawan sebagian di atas pegunungan, angin tenang, visibilitas 9 km"
+                    missionTypeDescription: "Scheduled Commercial Commuter Flight",
+                    weatherBriefingSummary: "Partly cloudy over ridges, calm surface wind, visibility 9 km"
                 )
             } else {
                 let pax = 50 + (abs(seed) % 10)
                 return MissionStoryBriefing(
-                    title: "Penerbangan Koridor Perintis Pesisir & Pulau Terluar",
-                    roleContext: "Pioneer Captain — Layanan Udara Regional",
-                    narrativeText: "Anda menjalankan misi penerbangan terjadwal dari \(origName) menuju \(destName) dengan armada \(aircraftType) (\(callsign)) membawa \(pax) penumpang antarpulau. Kondisi cuaca di sepanjang pesisir dilaporkan cerah berawan dengan angin laut sepoi-sepoi dan jarak pandang sangat baik melebihi 10 km. Rencana penerbangan dijadwalkan terbang normal menyusuri koridor udara pesisir pada tingkat jelajah yang telah ditentukan.",
+                    title: "Coastal & Outer-Island Pioneer Regional Flight",
+                    roleContext: "Pioneer Captain — Island Air Service",
+                    narrativeText: "You are executing a scheduled regional inter-island service from \(origName) to \(destName) piloting \(aircraftType) (\(callsign)) with \(pax) passengers on board. Coastal weather reports indicate clear to scattered skies with gentle sea breezes and excellent visibility exceeding 10 km. Your flight plan follows standard coastal airway waypoints at assigned cruising altitude.",
                     passengerCount: pax,
                     flightRule: "IFR (Instrument Flight Rules)",
-                    missionTypeDescription: "Penerbangan Regional Perintis Pesisir",
-                    weatherBriefingSummary: "Langit cerah berawan, jarak pandang > 10 km, kondisi penerbangan prima"
+                    missionTypeDescription: "Regional Pioneer Air Service",
+                    weatherBriefingSummary: "Scattered fair-weather clouds, visibility > 10 km, smooth flight conditions"
                 )
             }
         }

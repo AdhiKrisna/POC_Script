@@ -147,7 +147,7 @@ public struct PrototypeShowcaseView: View {
                 Divider().background(themeBorderColor)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Penerbangan Komersial Regional Turboprop Antar-Kota")
+                    Text("Scheduled Inter-City Regional Turboprop Commercial Flight")
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(themeTextMain)
                     Text("Junior First Officer — Supergreen Air (ATR 72-600)")
@@ -155,14 +155,14 @@ public struct PrototypeShowcaseView: View {
                         .foregroundColor(.secondary)
                 }
 
-                Text("Anda bertugas sebagai First Officer di kokpit turboprop ATR 72-600 dengan nomor penerbangan Supergreen 426. Hari ini Anda mengoperasikan penerbangan berjadwal menghubungkan Yogyakarta International (WAHI) menuju Lombok Zainuddin Abdul Madjid (WADL). Pesawat membawa 68 penumpang dan 4 awak kabin. Cuaca BMKG menunjukkan rute penerbangan kondusif dengan kecepatan angin permukaan 12 knot dan jarak pandang di atas 10 km. Anda bersiap meminta IFR route clearance, memandu taksi keberangkatan, dan menanjak ke FL150.")
+                Text("You are serving as First Officer in the cockpit of the ATR 72-600 turboprop under flight number Supergreen 426. Today you are operating a scheduled passenger flight connecting Yogyakarta International (WAHI) to Lombok Zainuddin Abdul Madjid (WADL). The aircraft is carrying 68 passengers and 4 flight crew members. The aviation weather briefing indicates calm en-route conditions with moderate surface winds and visibility exceeding 10 km. Having finalized fuel calculations and your IFR flight plan, you are now preparing to request IFR clearance, manage departure taxi, and climb to cruising flight level FL150.")
                     .font(.system(size: 11))
                     .foregroundColor(themeTextMain)
                     .lineSpacing(3)
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 8) {
-                    Label("68 Penumpang", systemImage: "person.2.fill")
+                    Label("68 Passengers", systemImage: "person.2.fill")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.secondary)
                     Text("•").foregroundColor(.secondary)

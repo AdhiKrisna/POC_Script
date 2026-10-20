@@ -664,7 +664,7 @@ struct MissionSimulatorView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "person.2.fill")
                         .font(.system(size: 9))
-                    Text(story.passengerCount == 0 ? "Solo Cadet (Tanpa Penumpang)" : "\(story.passengerCount) Penumpang")
+                    Text(story.passengerCount == 0 ? "Solo Cadet (No Passengers)" : "\(story.passengerCount) Passengers")
                         .font(.system(size: 10, weight: .semibold))
                 }
                 .foregroundColor(.secondary)
@@ -1095,7 +1095,7 @@ struct FlightBriefingSheet: View {
                 HStack(spacing: 4) {
                     Image(systemName: "person.2.fill")
                         .font(.system(size: 9))
-                    Text(story.passengerCount == 0 ? "Solo Cadet" : "\(story.passengerCount) Penumpang")
+                    Text(story.passengerCount == 0 ? "Solo Cadet (No Passengers)" : "\(story.passengerCount) Passengers")
                         .font(.system(size: 10, weight: .semibold))
                 }
                 .foregroundColor(.secondary)
