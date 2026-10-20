@@ -1569,6 +1569,9 @@ struct ExchangeRowView: View {
     let mode: SimulationMode
 
     private var shouldHideSpeechText: Bool {
+        if exchange.clozePayload != nil && !exchange.isUserTurn {
+            return true
+        }
         guard mode == .exam && exchange.isUserTurn else { return false }
         return exchange.scaffoldingType == .intentBadge ||
                exchange.scaffoldingType == .cockpitHUDStrip ||
@@ -1740,8 +1743,8 @@ struct ExchangeRowView: View {
                 FourSlotCardView(payload: p)
             }
         case .clozeMasked:
-            if let p = exchange.clozePayload, exchange.isUserTurn {
-                ClozeMaskedView(payload: p)
+            if let p = exchange.clozePayload {
+                ClozeMaskedView(payload: p, fullSpeechText: exchange.text, isExam: mode == .exam)
             }
         case .intentBadge:
             if let p = exchange.intentPayload, exchange.isUserTurn {
@@ -1865,11 +1868,14 @@ struct FourSlotCardView: View {
 
 struct ClozeMaskedView: View {
     let payload: ClozeMaskedPayload
+    var fullSpeechText: String? = nil
+    var isExam: Bool = false
+    @State private var showFullText: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Label("TEKS RUMPANG (CLOZE MASKED)", systemImage: "character.textbox")
+                Label("TRANSMISI ATC (TEKS RUMPANG / CLOZE)", systemImage: "character.textbox")
                     .font(.system(size: 9, weight: .black))
                     .foregroundColor(.orange)
                 Spacer()
@@ -1909,6 +1915,30 @@ struct ClozeMaskedView: View {
                             .background(Color.orange.opacity(0.12))
                             .cornerRadius(3)
                     }
+                }
+            }
+
+            if !isExam, let full = fullSpeechText {
+                Button(action: { showFullText.toggle() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: showFullText ? "eye.slash" : "eye")
+                            .font(.system(size: 9))
+                        Text(showFullText ? "Sembunyikan Kunci Transmisi ATC" : "Lihat Transmisi Lengkap ATC")
+                            .font(.system(size: 9, weight: .semibold))
+                    }
+                    .foregroundColor(.secondary)
+                    .padding(.top, 2)
+                }
+                .buttonStyle(.plain)
+
+                if showFullText {
+                    Text("\"\(full)\"")
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(.secondary)
+                        .padding(6)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.secondary.opacity(0.08))
+                        .cornerRadius(4)
                 }
             }
         }

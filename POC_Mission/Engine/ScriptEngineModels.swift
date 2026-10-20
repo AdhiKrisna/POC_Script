@@ -1123,10 +1123,10 @@ public enum CurriculumLevel: Int, CaseIterable, Identifiable, Comparable, Sendab
     public var sidName: String {
         switch self {
         case .level1: "Circuit Departure"
-        case .level2: "Area Alpha Departure via Selat Bali"
-        case .level3: "BLI Two Charlie (BLI 2C)"
-        case .level4: "SURABAYA One Bravo (SBY 1B)"
-        case .level5: "JOG One Charlie (JOG 1C)"
+        case .level2: "Area Alpha via Selat Bali"
+        case .level3: "BLI Two Charlie"
+        case .level4: "SURABAYA One Bravo"
+        case .level5: "JOG One Charlie"
         }
     }
 
@@ -1134,9 +1134,9 @@ public enum CurriculumLevel: Int, CaseIterable, Identifiable, Comparable, Sendab
         switch self {
         case .level1: "Overhead Join Pattern"
         case .level2: "Right Base Runway 09"
-        case .level3: "POSOP One Alfa (POSOP 1A)"
-        case .level4: "GANDI One Alfa (GANDI 1A)"
-        case .level5: "DOLTA One Alfa (DOLTA 1A)"
+        case .level3: "POSOP One Alfa"
+        case .level4: "GANDI One Alfa"
+        case .level5: "DOLTA One Alfa"
         }
     }
 
@@ -1864,9 +1864,6 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                     if let fourSlot = ex.fourSlotPayload, level == .level1 {
                         output += "  [4-Slot Helper] Stasiun: \(fourSlot.station) | Callsign: \(fourSlot.callsign) | Posisi: \(fourSlot.position) | Aksi: \(fourSlot.action)\n"
                     }
-                    if let cloze = ex.clozePayload, level == .level2 {
-                        output += "  [Cloze Template] \"\(cloze.displayTemplate)\"\n"
-                    }
                     if let hud = ex.hudPayload, level == .level4 {
                         var hudItems: [String] = []
                         if let hdg = hud.headingDeg { hudItems.append("HDG: \(String(format: "%03d", hdg))") }
@@ -1886,6 +1883,10 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                         } else {
                             output += "  [Status] Cockpit Mountain HUD | VHF Partyline Active\n"
                         }
+                    }
+                } else {
+                    if let cloze = ex.clozePayload, level == .level2 {
+                        output += "  [ATC Cloze Masked] \"\(cloze.displayTemplate)\"\n"
                     }
                 }
 

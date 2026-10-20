@@ -853,8 +853,8 @@ public final class ScriptGeneratorEngine {
     }
 
     private static func pickHoldingPoint(from holdingPoints: [String], defaultPoint: String, seed: Int) -> String {
-        guard !holdingPoints.isEmpty else { return defaultPoint }
-        return holdingPoints[abs(seed) % holdingPoints.count]
+        let raw = !holdingPoints.isEmpty ? holdingPoints[abs(seed) % holdingPoints.count] : defaultPoint
+        return SpokenFormFormatter.holdingPoint(raw)
     }
 
     // MARK: - Dynamic Procedures Resolver
@@ -869,7 +869,7 @@ public final class ScriptGeneratorEngine {
 
         switch originICAO {
         case "WADY":
-            sidName = (level == .level1) ? "Circuit Departure" : "Area Alpha Departure via Selat Bali"
+            sidName = (level == .level1) ? "Circuit Departure" : "Area Alpha via Selat Bali"
             waypoints = ("Point Alfa", "Point Charlie")
         case "WICB":
             sidName = (level == .level1) ? "Curug Visual Circuit" : "Mauk One Departure"
@@ -878,16 +878,16 @@ public final class ScriptGeneratorEngine {
             sidName = (level == .level1) ? "Trunojoyo Visual Circuit" : "Madura East Departure"
             waypoints = ("SUP VOR", "Madura South")
         case "WAHI":
-            sidName = "JOG One Charlie (JOG 1C)"
+            sidName = "JOG One Charlie"
             waypoints = ("JOG VOR", "PRAMB")
         case "WARR":
-            sidName = "SURABAYA One Bravo (SBY 1B)"
+            sidName = "SURABAYA One Bravo"
             waypoints = ("SURBA", "GANDI")
         case "WADD":
-            sidName = "BLI Two Charlie (BLI 2C)"
+            sidName = "BLI Two Charlie"
             waypoints = ("POSOP", "BLI VOR")
         case "WIII":
-            sidName = "BUNTA One Alfa (BUNTA 1A)"
+            sidName = "BUNTA One Alfa"
             waypoints = ("BUNTA", "DOLTA")
         default:
             sidName = level.sidName
@@ -902,13 +902,13 @@ public final class ScriptGeneratorEngine {
         case "WART":
             starName = (level == .level1) ? "Overhead Join Runway 12" : "Straight-in Runway 12"
         case "WAHI":
-            starName = "GANDI One Alfa (GANDI 1A)"
+            starName = "GANDI One Alfa"
         case "WARR":
-            starName = "POSOP One Alfa (POSOP 1A)"
+            starName = "POSOP One Alfa"
         case "WADD":
-            starName = "BLI One Bravo (BLI 1B)"
+            starName = "BLI One Bravo"
         case "WIII":
-            starName = "DOLTA One Alfa (DOLTA 1A)"
+            starName = "DOLTA One Alfa"
         default:
             starName = level.starName
         }
@@ -1457,12 +1457,15 @@ public final class ScriptGeneratorEngine {
         seed: Int,
         contingencies: [InjectedContingency]
     ) -> [FilledExchange] {
+        if level == .level2 {
+            return enrichLevel2Exchanges(exchanges: exchanges, context: context)
+        }
         return exchanges.map { ex in
             switch level {
             case .level1:
                 return enrichLevel1(exchange: ex, phase: phase, context: context)
             case .level2:
-                return enrichLevel2(exchange: ex, context: context)
+                return ex // handled in enrichLevel2Exchanges
             case .level3:
                 return enrichLevel3(exchange: ex, phase: phase, context: context)
             case .level4:
@@ -1517,38 +1520,107 @@ public final class ScriptGeneratorEngine {
         return exchange.withScaffolding(type: .fourSlotCard, fourSlot: payload)
     }
 
-    private static func enrichLevel2(exchange: FilledExchange, context: SlotContext) -> FilledExchange {
-        if !exchange.isUserTurn {
-            return exchange.withScaffolding(type: .clozeMasked)
-        }
+    // MARK: - Level 2 Scaffolding: Cloze Masked on ATC Transmissions (Anti-Teleprompter)
+    private static func enrichLevel2Exchanges(exchanges: [FilledExchange], context: SlotContext) -> [FilledExchange] {
+        var enriched: [FilledExchange] = []
 
-        var maskedText = exchange.text
-        var maskedSlots: [MaskedSlot] = []
-
-        if !exchange.criticalSlots.isEmpty {
-            for (idx, slot) in exchange.criticalSlots.enumerated() {
-                let blankId = "BLANK_\(idx + 1)"
-                if maskedText.contains(slot.expectedValue) {
-                    maskedText = maskedText.replacingOccurrences(of: slot.expectedValue, with: "[ ___ ]")
-                    maskedSlots.append(MaskedSlot(slotId: blankId, correctValue: slot.expectedValue, type: slot.type))
-                }
+        for (idx, ex) in exchanges.enumerated() {
+            if ex.isUserTurn {
+                // User pilot turn: Cloze is NOT for the pilot!
+                // Pilot receives clean exchange with objective, and NO cloze template.
+                enriched.append(ex.withScaffolding(type: nil, cloze: nil))
+            } else {
+                // ATC turn: In Level 1, ATC was full. In Level 2, ATC transmission is cloze-masked!
+                let nextPilotTurn = (idx + 1 < exchanges.count && exchanges[idx + 1].isUserTurn) ? exchanges[idx + 1] : nil
+                let atcExchange = enrichATCLevel2Cloze(exchange: ex, nextPilotTurn: nextPilotTurn, context: context)
+                enriched.append(atcExchange)
             }
         }
 
+        return enriched
+    }
+
+    private static func enrichATCLevel2Cloze(
+        exchange: FilledExchange,
+        nextPilotTurn: FilledExchange?,
+        context: SlotContext
+    ) -> FilledExchange {
+        var maskedText = exchange.text
+        var maskedSlots: [MaskedSlot] = []
+
+        // 1. Gather candidate slot values to mask from subsequent pilot readback
+        var candidates: [(value: String, type: String)] = []
+
+        if let next = nextPilotTurn, !next.criticalSlots.isEmpty {
+            for slot in next.criticalSlots {
+                if slot.slot.contains("CALLSIGN") || slot.type.contains("Identifier") {
+                    continue
+                }
+                candidates.append((value: slot.expectedValue, type: slot.type))
+            }
+        }
+
+        // 2. Also check common critical parameters if present in ATC's text
+        let qnhStr = SpokenFormFormatter.qnh(context.weather.qnh)
+        candidates.append((value: qnhStr, type: "mandatoryQnh"))
+
+        if !context.squawk.isEmpty {
+            candidates.append((value: context.squawk, type: "mandatorySquawk"))
+        }
+
+        let rwyStr = SpokenFormFormatter.runway(context.selectedRunway.designator)
+        candidates.append((value: rwyStr, type: "mandatoryRunway"))
+
+        let arrRwyStr = context.arrRunway
+        if !arrRwyStr.isEmpty {
+            candidates.append((value: arrRwyStr, type: "mandatoryRunway"))
+        }
+
+        let hpStr = context.holdingPoint
+        if !hpStr.isEmpty {
+            candidates.append((value: hpStr, type: "mandatoryHoldingPoint"))
+        }
+
+        // Sort candidates by length descending to match full multi-word phrases first
+        candidates.sort { $0.value.count > $1.value.count }
+
+        var blankIdx = 1
+        for cand in candidates {
+            guard !cand.value.isEmpty else { continue }
+            if maskedText.contains(cand.value) && !maskedSlots.contains(where: { $0.correctValue == cand.value }) {
+                maskedText = maskedText.replacingOccurrences(of: cand.value, with: "[ ___ ]")
+                maskedSlots.append(MaskedSlot(slotId: "BLANK_\(blankIdx)", correctValue: cand.value, type: cand.type))
+                blankIdx += 1
+            }
+        }
+
+        // 3. Fallback: mask digit words if no candidate matched
         if maskedSlots.isEmpty {
             let words = exchange.text.components(separatedBy: " ")
-            var replaced = false
             var newWords: [String] = []
-            for w in words {
-                if !replaced && (w.rangeOfCharacter(from: .decimalDigits) != nil || w.lowercased() == "flight" || w.lowercased() == "runway") {
+            var maskedAny = false
+            for (wIdx, w) in words.enumerated() {
+                let lower = w.lowercased()
+                if (lower == "flight" && wIdx + 1 < words.count && words[wIdx + 1].lowercased() == "level") ||
+                   (lower == "heading" && wIdx + 1 < words.count) ||
+                   (lower == "speed" && wIdx + 1 < words.count) {
+                    newWords.append(w)
+                } else if !maskedAny && (w.rangeOfCharacter(from: .decimalDigits) != nil || lower == "one" || lower == "two" || lower == "three" || lower == "four" || lower == "five" || lower == "six" || lower == "seven" || lower == "eight" || lower == "niner" || lower == "zero") {
                     newWords.append("[ ___ ]")
-                    maskedSlots.append(MaskedSlot(slotId: "BLANK_1", correctValue: w, type: "CRITICAL_VALUE"))
-                    replaced = true
+                    maskedSlots.append(MaskedSlot(slotId: "BLANK_\(blankIdx)", correctValue: w, type: "CRITICAL_VALUE"))
+                    blankIdx += 1
+                    maskedAny = true
                 } else {
                     newWords.append(w)
                 }
             }
-            maskedText = newWords.joined(separator: " ")
+            if maskedAny {
+                maskedText = newWords.joined(separator: " ")
+            }
+        }
+
+        guard !maskedSlots.isEmpty else {
+            return exchange.withScaffolding(type: nil, cloze: nil)
         }
 
         let payload = ClozeMaskedPayload(
@@ -3622,7 +3694,7 @@ public final class ScriptGeneratorEngine {
         if let rwyChange = contingencies.first(where: { $0.title.contains("Runway Change") }) {
             let reciprocalDesignator = activeDepRunway.reciprocal
             let reciprocalSpoken = SpokenFormFormatter.runway(reciprocalDesignator)
-            let newHP = activeDepRunway.holdingPoints.last ?? "A2"
+            let newHP = SpokenFormFormatter.holdingPoint(activeDepRunway.holdingPoints.last ?? "Alpha two")
 
             exchanges.append(FilledExchange(
                 exchangeID: "ABN-RWY-CHG-1", templateID: "ABN-RWY-CHG", turn: globalTurn, speaker: "ATC",

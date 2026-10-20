@@ -540,7 +540,7 @@ public struct PrototypeShowcaseView: View {
                 Text("🎯 OBJECTIVE OPERASIONAL:")
                     .font(.system(size: 9, weight: .black))
                     .foregroundColor(.orange)
-                Text("Dengarkan instruksi radar ATC dan lengkapi angka heading dan flight level yang hilang.")
+                Text("Dengarkan transmisi ATC di radio, lengkapi nilai kritis yang rumpang, dan lakukan readback lengkap.")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(themeTextMain)
             }
@@ -548,18 +548,21 @@ public struct PrototypeShowcaseView: View {
             .background(Color.orange.opacity(0.08))
             .cornerRadius(6)
 
-            Text("PROMPT TEKS RUMPANG (CLOZE TEST):")
-                .font(.system(size: 9, weight: .black))
-                .foregroundColor(themeAccent)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("ATC TRANSMISSION (TEKS RUMPANG / CLOZE MASKED):")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(.orange)
+                Text("\"Supergreen 426, turn left heading [ ___ ], maintain flight level [ ___ ], QNH [ ___ ]\"")
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundColor(themeTextMain)
+            }
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(themeSubtleBg)
+            .cornerRadius(6)
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.orange.opacity(0.3), lineWidth: 1))
 
-            Text("Turn left heading [ ___ ], Maintain FL [ ___ ], QNH [ ___ ], Supergreen 426")
-                .font(.system(size: 13, weight: .bold, design: .monospaced))
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(themeSubtleBg)
-                .cornerRadius(6)
-
-            Text("⏱️ PTT Timer: ≤ 8 detik (Melatih working memory)")
+            Text("⏱️ PTT Timer: ≤ 8 detik (Dengarkan audio radio ATC untuk melengkapi slot)")
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }
