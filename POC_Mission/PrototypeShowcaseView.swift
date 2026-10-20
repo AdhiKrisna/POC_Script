@@ -812,7 +812,7 @@ public struct PrototypeShowcaseView: View {
                         .background(Color.orange.opacity(0.08))
                         .cornerRadius(4)
 
-                    Text("Sesuai Doc 9432 §2.8.3, callsign wajib diletakkan di akhir readback.")
+                    Text("Sesuai Doc 9432 Ch.2.8.3, callsign wajib diletakkan di akhir readback.")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
@@ -854,7 +854,7 @@ public struct PrototypeShowcaseView: View {
                         .foregroundColor(.red)
                 }
 
-                Text("ICAO Doc 9432 Bab 2.6 & Doc 4444 §8.3:")
+                Text("ICAO Doc 9432 Bab 2.6 & Doc 4444 Ch.8.3:")
                     .font(.subheadline.weight(.bold))
 
                 Text("\"ROGER under no circumstances to be used in reply to a question requiring READ BACK or a direct answer in the affirmative (AFFIRM) or negative (NEGATIVE).\"")

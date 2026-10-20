@@ -1297,7 +1297,7 @@ struct FlightBriefingSheet: View {
 
             // Voice ATIS Broadcast Transcript
             VStack(alignment: .leading, spacing: 4) {
-                Text("TRANSKRIP SUARA VHF COMM-2 (ICAO DOC 9432 §4.4.3):")
+                Text("TRANSKRIP SUARA VHF COMM-2 (ICAO DOC 9432 Ch.4.4.3):")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundColor(.secondary)
                 Text("\"\(mission.missionContext.depAtisBroadcastText)\"")
@@ -1396,7 +1396,7 @@ struct FlightBriefingSheet: View {
 
             // Voice Arrival ATIS Transcript
             VStack(alignment: .leading, spacing: 4) {
-                Text("TRANSKRIP SUARA VHF COMM-2 (ICAO DOC 9432 §4.6.2):")
+                Text("TRANSKRIP SUARA VHF COMM-2 (ICAO DOC 9432 Ch.4.6.2):")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundColor(.secondary)
                 Text("\"\(mission.missionContext.arrAtisBroadcastText)\"")
@@ -2330,7 +2330,7 @@ struct DiagnosticReportSheet: View {
 
                         VStack(spacing: 6) {
                             rubricBar(
-                                title: "1. Kejelasan & Ketepatan Angka (Doc 4444 §12.3)",
+                                title: "1. Kejelasan & Ketepatan Angka (Doc 4444 Ch.12.3)",
                                 weight: "Bobot 40% (Risiko Fatal)",
                                 score: report.numbersScore,
                                 color: .red
@@ -3510,7 +3510,7 @@ struct ATCContingenciesSheet: View {
     }
 }
 
-// 5. Plain English Explainer Sheet (ICAO Doc 9835 §4.3.1 Layer 2)
+// 5. Plain English Explainer Sheet (ICAO Doc 9835 Ch.4.3.1 Layer 2)
 struct PlainEnglishExplainerSheet: View {
     let exchanges: [FilledExchange]
     let totalTurns: Int
@@ -3531,7 +3531,7 @@ struct PlainEnglishExplainerSheet: View {
                                 Text("Hirarki Bahasa ICAO Doc 9835")
                                     .font(.headline)
                                     .bold()
-                                Text("Panduan Penggunaan Bahasa Inggris Baku & Terbatas (§4.3.1)")
+                                Text("Panduan Penggunaan Bahasa Inggris Baku & Terbatas (Ch.4.3.1)")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }

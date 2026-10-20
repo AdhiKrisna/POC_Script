@@ -98,7 +98,7 @@ Sesuai prinsip *Cognitive Load Theory (Sweller)* dan *ICAO Doc 9835*, antarmuka 
      * `PTT Reflex : 315 ms` *(Responsive)*.
   3. **Review Diagnostic List:**
      * Kartu kesalahan spesifik (misal: penggunaan kata terlarang *"ROGER"* pada izin pushback).
-     * Tautan sitasi regulasi resmi (misal: `Reference : ICAO Doc 4444 §8.3 & Doc 9432 §2.6`).
+     * Tautan sitasi regulasi resmi (misal: `Reference : ICAO Doc 4444 Ch.8.3 & Doc 9432 Ch.2.6`).
      * Kartu kelalaian (misal: tidak menyebutkan *Callsign* di akhir transmisi).
   4. **Action Button:** Tombol **"NEXT / RETRY MISSION ➔"**.
 

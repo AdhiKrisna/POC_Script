@@ -27,7 +27,7 @@
         ]
       }
     ],
-    "_source": "ICAO Doc 9432 Ch.4 §4.7"
+    "_source": "ICAO Doc 9432 Ch.4.7"
   },
   {
     "id": "AP-02",
@@ -64,7 +64,7 @@
         ]
       }
     ],
-    "_source": "ICAO Doc 4444 §4.11.3 & Doc 9432"
+    "_source": "ICAO Doc 4444 Ch.4.11.3 & Doc 9432"
   },
   {
     "id": "AP-03",
@@ -101,7 +101,7 @@
         ]
       }
     ],
-    "_source": "ICAO Doc 9432 Ch.4 §4.7"
+    "_source": "ICAO Doc 9432 Ch.4.7"
   },
   {
     "id": "AP-06",
@@ -139,7 +139,7 @@
         ]
       }
     ],
-    "_source": "Doc 9432 Ch.4 §4.7 / Doc 4444 Ch.12"
+    "_source": "Doc 9432 Ch.4.7 / Doc 4444 Ch.12"
   },
   {
     "id": "AP-07",
@@ -189,7 +189,7 @@
         ]
       }
     ],
-    "_source": "Doc 9432 Ch.4 §4.7 / Doc 4444 Ch.12 p.12-27"
+    "_source": "Doc 9432 Ch.4.7 / Doc 4444 Ch.12 p.12-27"
   },
   {
     "id": "AP-08",
@@ -228,6 +228,6 @@
         ]
       }
     ],
-    "_source": "ICAO Doc 4444 §8.6 Radar Vectoring"
+    "_source": "ICAO Doc 4444 Ch.8.6 Radar Vectoring"
   }
 ]

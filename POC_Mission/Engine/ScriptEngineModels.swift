@@ -79,49 +79,49 @@ public enum ContingencySelection: String, CaseIterable, Identifiable, Sendable {
     case routineOnly = "Routine Only (Normal Flight)"
 
     // MARK: - LEVEL 2: Regional Commuter (15% Probability)
-    case pushbackDelay = "Pushback Delay (Traffic Behind - Doc 9432 §4.3.1)"
-    case stopPushback = "Stop Pushback Immediately (Doc 9432 §4.3.3)"
-    case unableAltitude = "Unable Altitude Profile (Aircraft Performance - Doc 9432 §2.6)"
-    case holdShortExact = "Hold Short Mandatory Readback (Doc 4444 §4.5.7.5b)"
+    case pushbackDelay = "Pushback Delay (Traffic Behind - Doc 9432 Ch.4.3.1)"
+    case stopPushback = "Stop Pushback Immediately (Doc 9432 Ch.4.3.3)"
+    case unableAltitude = "Unable Altitude Profile (Aircraft Performance - Doc 9432 Ch.2.6)"
+    case holdShortExact = "Hold Short Mandatory Readback (Doc 4444 Ch.4.5.7.5b)"
 
     // MARK: - LEVEL 3: Tactical Commercial Operator (35% Probability)
-    case runwayBacktrack = "Runway Backtrack (Doc 9432 §4.4.2)"
-    case wakeTurbulenceLineUp = "Wake Turbulence Line-Up (2 Min Delay - Doc 4444 §5.8)"
-    case conditionalLineUp = "Conditional Line-Up (Doc 9432 §4.5.7)"
-    case immediateTakeoffOrVacate = "Immediate Take-off or Vacate Runway (Doc 9432 §4.5.5)"
-    case holdingPatternEAT = "Holding Pattern & EAT (Doc 4444 §5.5)"
-    case delayingVectorOrbit = "Delaying Vector / Orbit (Doc 9432 §4.6.5)"
-    case continueApproachShortFinal = "Continue Approach on Short Final (Doc 9432 §4.7.1)"
-    case lowPassInspection = "Low Pass Inspection (Gear Check - Doc 9432 §4.7.2)"
+    case runwayBacktrack = "Runway Backtrack (Doc 9432 Ch.4.4.2)"
+    case wakeTurbulenceLineUp = "Wake Turbulence Line-Up (2 Min Delay - Doc 4444 Ch.5.8)"
+    case conditionalLineUp = "Conditional Line-Up (Doc 9432 Ch.4.5.7)"
+    case immediateTakeoffOrVacate = "Immediate Take-off or Vacate Runway (Doc 9432 Ch.4.5.5)"
+    case holdingPatternEAT = "Holding Pattern & EAT (Doc 4444 Ch.5.5)"
+    case delayingVectorOrbit = "Delaying Vector / Orbit (Doc 9432 Ch.4.6.5)"
+    case continueApproachShortFinal = "Continue Approach on Short Final (Doc 9432 Ch.4.7.1)"
+    case lowPassInspection = "Low Pass Inspection (Gear Check - Doc 9432 Ch.4.7.2)"
     case flapFailure = "Flap Asymmetry High-Speed Approach (Doc 9432 Ch 9)"
-    case lightGunSignals = "Light Gun Signals (Ground Comms Failure - Doc 4444 §7.16)"
+    case lightGunSignals = "Light Gun Signals (Ground Comms Failure - Doc 4444 Ch.7.16)"
 
     // MARK: - LEVEL 4: Metropolitan Captain (60% Probability)
     case ctotSlotManagement = "CTOT Slot Management (ATFM Delay - Doc 4444 Ch 3)"
-    case holdShortCrossing = "Dual Runway Crossing (Cross 25L, Hold Short 25R - Doc 4444 §7.6.3.2)"
-    case callsignConfusion = "Callsign Confusion Vigilance (Doc 9432 §2.7.2)"
-    case abortTakeoff = "Rejected Take-Off (RTO High Speed - Doc 9432 §4.5.11)"
-    case tcasRA = "TCAS Resolution Advisory (Doc 4444 §15.7.3)"
-    case slopOceanic = "Strategic Lateral Offset (SLOP - Doc 4444 §16.5)"
-    case fuelDumping = "Fuel Dumping Procedure (Doc 9432 §11.2)"
-    case passengerMedicalEmergency = "In-Flight Medical Diversion (Doc 4444 §15.1)"
-    case communicableDiseases = "Communicable Disease Report (Doc 4444 §16.6)"
-    case blownTireLanding = "Blown Tire Blocking Runway (Doc 4444 §15.1)"
-    case hotBrakesInspection = "Hot Brakes Inspection on Taxiway (Doc 9432 §4.10)"
-    case airborneCommsFailure = "Airborne Comms Failure / Squawk 7600 (Doc 4444 §15.3)"
+    case holdShortCrossing = "Dual Runway Crossing (Cross 25L, Hold Short 25R - Doc 4444 Ch.7.6.3.2)"
+    case callsignConfusion = "Callsign Confusion Vigilance (Doc 9432 Ch.2.7.2)"
+    case abortTakeoff = "Rejected Take-Off (RTO High Speed - Doc 9432 Ch.4.5.11)"
+    case tcasRA = "TCAS Resolution Advisory (Doc 4444 Ch.15.7.3)"
+    case slopOceanic = "Strategic Lateral Offset (SLOP - Doc 4444 Ch.16.5)"
+    case fuelDumping = "Fuel Dumping Procedure (Doc 9432 Ch.11.2)"
+    case passengerMedicalEmergency = "In-Flight Medical Diversion (Doc 4444 Ch.15.1)"
+    case communicableDiseases = "Communicable Disease Report (Doc 4444 Ch.16.6)"
+    case blownTireLanding = "Blown Tire Blocking Runway (Doc 4444 Ch.15.1)"
+    case hotBrakesInspection = "Hot Brakes Inspection on Taxiway (Doc 9432 Ch.4.10)"
+    case airborneCommsFailure = "Airborne Comms Failure / Squawk 7600 (Doc 4444 Ch.15.3)"
 
     // MARK: - LEVEL 5: High-Risk Commander (100% Injected Challenges)
-    case pilotInitiatedGoAround = "Pilot-Initiated Go-Around (Runway Obstruction - Doc 9432 §4.8.3)"
-    case gpwsTerrainAvoidance = "GPWS Terrain Avoidance (UNABLE Heading - Doc 4444 §15.7.4)"
-    case windShearMicroburst = "Severe Wind Shear Microburst (Doc 9432 §11.4)"
-    case emergencyDescentDecompression = "Emergency Descent to FL100 (Cabin Decompression - Doc 4444 §15.1.4)"
-    case efato = "EFATO / Engine Failure Drift-Down (Doc 4444 §15.1, §15.2)"
-    case fuelEmergencyMayday = "MINIMUM FUEL vs MAYDAY FUEL (Doc 4444 §15.5.4)"
-    case volcanicAshAvoidance = "Volcanic Ash Avoidance (Doc 4444 §15.8)"
-    case impositionOfSilence = "Imposition of Silence (STOP TRANSMITTING - Doc 9432 §9.2.2)"
-    case runwayExcursionARFF = "Runway Excursion / ARFF Alerting (Doc 4444 §9.2, §15.1)"
-    case hijack7500 = "Unlawful Interference / Squawk 7500 (Doc 4444 §15.1.3)"
-    case militaryInterception = "Military Interception (WILCO - Doc 4444 §15.4)"
+    case pilotInitiatedGoAround = "Pilot-Initiated Go-Around (Runway Obstruction - Doc 9432 Ch.4.8.3)"
+    case gpwsTerrainAvoidance = "GPWS Terrain Avoidance (UNABLE Heading - Doc 4444 Ch.15.7.4)"
+    case windShearMicroburst = "Severe Wind Shear Microburst (Doc 9432 Ch.11.4)"
+    case emergencyDescentDecompression = "Emergency Descent to FL100 (Cabin Decompression - Doc 4444 Ch.15.1.4)"
+    case efato = "EFATO / Engine Failure Drift-Down (Doc 4444 Ch.15.1, Ch.15.2)"
+    case fuelEmergencyMayday = "MINIMUM FUEL vs MAYDAY FUEL (Doc 4444 Ch.15.5.4)"
+    case volcanicAshAvoidance = "Volcanic Ash Avoidance (Doc 4444 Ch.15.8)"
+    case impositionOfSilence = "Imposition of Silence (STOP TRANSMITTING - Doc 9432 Ch.9.2.2)"
+    case runwayExcursionARFF = "Runway Excursion / ARFF Alerting (Doc 4444 Ch.9.2, Ch.15.1)"
+    case hijack7500 = "Unlawful Interference / Squawk 7500 (Doc 4444 Ch.15.1.3)"
+    case militaryInterception = "Military Interception (WILCO - Doc 4444 Ch.15.4)"
 
     // Legacy Aliases for backward compatibility
     case runwayChange = "Runway Wind Shift (180° Change)"
@@ -147,7 +147,7 @@ public enum ContingencySelection: String, CaseIterable, Identifiable, Sendable {
     public var id: String { rawValue }
 
     /// True if this contingency triggers a transition from standard phraseology to
-    /// constrained plain English (ICAO Doc 9835 §4.3.1 & Appendix B).
+    /// constrained plain English (ICAO Doc 9835 Ch.4.3.1 & Appendix B).
     public var requiresPlainEnglish: Bool {
         switch self {
         case .lowPassInspection, .unsafeGear:
@@ -265,14 +265,14 @@ public enum ContingencySelection: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-// MARK: - Language Layer (ICAO Doc 9835 §4.3.1 Hierarchy)
+// MARK: - Language Layer (ICAO Doc 9835 Ch.4.3.1 Hierarchy)
 /// Distinguishes standard phraseology from plain-English exchanges in a script.
 /// Per Doc 9835: Layer 1 = mandatory standard; Layer 2 = plain English only when
 /// no standard phrase covers the intended transmission.
 public enum LanguageLayer: String, Codable, Sendable {
     /// Layer 1 — ICAO Doc 9432 standard phraseology (mandatory, deterministic readback required)
     case standardPhraseology = "STANDARD"
-    /// Layer 2 — Constrained Plain English (Doc 9835 §4.3.1): used ONLY when no standard phrase covers the situation
+    /// Layer 2 — Constrained Plain English (Doc 9835 Ch.4.3.1): used ONLY when no standard phrase covers the situation
     case constrainedPlainEnglish = "PLAIN_EN"
     /// Anchor word embedded in a plain-English transition (e.g. ROGER, WILCO, AFFIRM)
     case anchorWord = "ANCHOR"
@@ -513,7 +513,7 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
     public let criticalSlots: [CriticalSlot]
     public let severity: EventSeverity
     public let eventTag: String?
-    /// Language layer for this transmission (Doc 9835 §4.3.1)
+    /// Language layer for this transmission (Doc 9835 Ch.4.3.1)
     public let languageLayer: LanguageLayer
     /// Human-readable explanation of WHY plain English is used (nil for standard phraseology)
     public let plainEnglishTrigger: String?
@@ -620,7 +620,7 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         let t = (tag ?? "").uppercased()
 
         if t.contains("ATC HEARBACK CORRECTION") {
-            return "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan sebutkan variabel yang benar (Doc 9432 §2.8.3.9)."
+            return "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan sebutkan variabel yang benar (Doc 9432 Ch.2.8.3.9)."
         }
         if t.contains("GPWS") || t.contains("TERRAIN") || lower.contains("due terrain") || lower.contains("unable heading") {
             return "Tolak instruksi penurunan ATC karena bahaya tebing di depan (Authority Breaker), dan minta izin tanjak ke ketinggian aman."
@@ -632,7 +632,7 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
             return "Laporkan pembatalan pendaratan (going around) akibat rintangan di landasan pacu."
         }
         if t.contains("CALLSIGN CONFUSION CORRECTION") {
-            return "Intersepsi kerancuan callsign (similar callsign confusion): tegur pesawat yang salah ambil izin dengan NEGATIVE dan instruksikan hold position (Doc 9432 §4.3.2)."
+            return "Intersepsi kerancuan callsign (similar callsign confusion): tegur pesawat yang salah ambil izin dengan NEGATIVE dan instruksikan hold position (Doc 9432 Ch.4.3.2)."
         }
         if t.contains("DEPARTURE CHECK-IN") {
             return "Hubungi Departure Control setelah mengudara, laporkan ketinggian saat ini dan ketinggian tuju."
@@ -1788,7 +1788,7 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
         phaseScripts(for: act).flatMap { $0.exchanges }
     }
 
-    /// Exchanges that use constrained plain English (Doc 9835 §4.3.1 Layer 2)
+    /// Exchanges that use constrained plain English (Doc 9835 Ch.4.3.1 Layer 2)
     public var plainEnglishExchanges: [FilledExchange] {
         allExchanges.filter { $0.languageLayer == .constrainedPlainEnglish }
     }
@@ -1967,7 +1967,7 @@ public struct ATCTrafficEntry: Identifiable, Equatable, Sendable {
     public let trafficType: ATCTrafficType
     /// All exchanges for this traffic (ATC speaks, aircraft responds)
     public let exchanges: [FilledExchange]
-    /// Subset: transmissions where plain English is used (Doc 9835 §4.3.1)
+    /// Subset: transmissions where plain English is used (Doc 9835 Ch.4.3.1)
     public var plainEnglishExchanges: [FilledExchange] {
         exchanges.filter { $0.languageLayer == .constrainedPlainEnglish }
     }
@@ -2317,7 +2317,7 @@ public struct CanonicalMissionRegistry: Sendable {
             defaultCallsign: "Supergreen five one two",
             primaryContingency: .conditionalLineUp,
             secondaryContingency: nil,
-            learningObjective: "Izin bersyarat masuk landasan pacu di belakang pesawat lain yang sedang mendarat (Doc 9432 §4.5.7).",
+            learningObjective: "Izin bersyarat masuk landasan pacu di belakang pesawat lain yang sedang mendarat (Doc 9432 Ch.4.5.7).",
             criticalGate: "Wajib menyertakan kata 'BEHIND' di awal dan di akhir transmisi readback.",
             scenarioContext: "Manajemen celah sempit di Runway 08/26 Solo saat traffic inbound Citilink mendekat.",
             routeCategory: "Busy Single-Runway Jet"
