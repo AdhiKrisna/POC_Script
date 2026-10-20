@@ -27,7 +27,7 @@ Berbeda dengan Pilot yang menjalani navigasi linier satu pesawat dari Asal ke Tu
 
 ## 3. Fitur Realistis ATC yang Telah Diimplementasikan
 
-### A. Slip of the Tongue & Hearback Error Correction (ICAO Doc 9432 §2.8.3.9)
+### A. Slip of the Tongue & Hearback Error Correction (ICAO Doc 9432 Ch.2.8.3.9)
 Ketika pilot salah membaca nomor runway atau ketinggian:
 ```text
 ATC [USER]: "Batik 6001, Jakarta Ground, taxi to holding point NP2 via Papa, hold short runway two five right, QNH one zero one two."
@@ -36,7 +36,7 @@ ATC [USER]: "Batik 6001, Jakarta Ground, NEGATIVE, I SAY AGAIN, hold short runwa
 PILOT:      "Hold short runway two five right, apologies, Batik 6001."
 ```
 
-### B. Callsign Confusion Interception (ICAO Doc 9432 §4.3.2)
+### B. Callsign Confusion Interception (ICAO Doc 9432 Ch.4.3.2)
 Ketika pesawat lain yang memiliki kemiripan nomor penerbangan salah mengambil izin line-up:
 ```text
 ATC [USER]: "Batik 6002, Jakarta Tower, runway two five right, line up and wait."

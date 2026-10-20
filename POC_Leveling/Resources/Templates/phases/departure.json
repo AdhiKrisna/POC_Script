@@ -34,7 +34,7 @@
         "criticalReadback": []
       }
     ],
-    "_source": "Doc 9432 Ch.4 §4.5 / Doc 4444 §4.11.3"
+    "_source": "Doc 9432 Ch.4.5 / Doc 4444 Ch.4.11.3"
   },
   {
     "id": "DP-03",
@@ -64,7 +64,7 @@
         ]
       }
     ],
-    "_source": "Doc 4444 Ch.12 p.12-25 / Doc 9432 Ch.4 §4.5"
+    "_source": "Doc 4444 Ch.12 p.12-25 / Doc 9432 Ch.4.5"
   },
   {
     "id": "DP-04",
@@ -94,7 +94,7 @@
         ]
       }
     ],
-    "_source": "Doc 9432 Ch.4 §4.5 / Doc 4444 Ch.12 p.12-25"
+    "_source": "Doc 9432 Ch.4.5 / Doc 4444 Ch.12 p.12-25"
   },
   {
     "id": "DP-05",
@@ -127,7 +127,7 @@
         ]
       }
     ],
-    "_source": "Doc 9432 Ch.4 §4.5"
+    "_source": "Doc 9432 Ch.4.5"
   },
   {
     "id": "DP-06",
@@ -183,6 +183,6 @@
         ]
       }
     ],
-    "_source": "ICAO Doc 9432 Ch.4 §4.6 / Doc 4444 §4.11"
+    "_source": "ICAO Doc 9432 Ch.4.6 / Doc 4444 Ch.4.11"
   }
 ]

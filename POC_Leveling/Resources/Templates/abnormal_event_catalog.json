@@ -77,7 +77,7 @@
     "followUpPilotTemplate": "Climb straight ahead {MISSED_ALTITUDE}, {MISSED_INSTRUCTION}, {CALLSIGN}.",
     "criticalSlots": ["GOING_AROUND", "MISSED_ALTITUDE", "MISSED_INSTRUCTION", "CALLSIGN"],
     "nextState": "GO_AROUND",
-    "source": "Doc 9432 Ch.4 §4.7 / Doc 4444 Ch.12",
+    "source": "Doc 9432 Ch.4.7 / Doc 4444 Ch.12",
     "requiresLocalData": true
   }
 ]

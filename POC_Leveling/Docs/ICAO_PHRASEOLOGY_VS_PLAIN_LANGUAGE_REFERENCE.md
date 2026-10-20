@@ -10,14 +10,14 @@
 Under international civil aviation regulations, radiotelephony (RTF) communication operates under a strict two-layer hierarchy:
 
 1. **Layer 1: Formulaic Sub-Language (ICAO Standardized Phraseology)**
-   * **Mandate:** Shall be used in **all situations for which it has been specified** (Annex 10, Vol. II, §5.1.1.1; Doc 9835 §4.3.1; Doc 9432 §3.2.2).
+   * **Mandate:** Shall be used in **all situations for which it has been specified** (Annex 10, Vol. II, Ch.5.1.1.1; Doc 9835 Ch.4.3.1; Doc 9432 Ch.3.2.2).
    * **Purpose:** To provide maximum brevity, clarity, and uniformity; to eliminate phonological ambiguity and grammatical clutter across half-duplex, narrow-bandwidth VHF channels.
-   * **Scope:** Covers ~400 standardized lexical words and rigid syntactic routines (Doc 9835 §3.3.10; Doc 4444 Chapter 12).
+   * **Scope:** Covers ~400 standardized lexical words and rigid syntactic routines (Doc 9835 Ch.3.3.10; Doc 4444 Chapter 12).
 
 2. **Layer 2: Constrained Plain Language (Aviation Plain English)**
-   * **Mandate:** Shall be used **"only when standardized phraseology cannot serve an intended transmission"** (Annex 10, Vol. II, §5.1.1.1; Doc 9835 Glossary p. x & §3.3.13; Doc 4444 §12.2.1; Doc 9432 Foreword & §3.2.2).
+   * **Mandate:** Shall be used **"only when standardized phraseology cannot serve an intended transmission"** (Annex 10, Vol. II, Ch.5.1.1.1; Doc 9835 Glossary p. x & Ch.3.3.13; Doc 4444 Ch.12.2.1; Doc 9432 Foreword & Ch.3.2.2).
    * **Official Definition:** *"The spontaneous, creative and non-coded use of a given natural language"* (Doc 9835 Glossary, p. x).
-   * **Crucial Restriction:** Plain language in aviation is **not** an authorization for social conversation, casual chit-chat, or colloquial banter. It must strictly adhere to the same principles governing phraseology: **clear, concise, direct, and unambiguous** (Doc 9432 §3.2.4; Doc 9835 §3.3.20).
+   * **Crucial Restriction:** Plain language in aviation is **not** an authorization for social conversation, casual chit-chat, or colloquial banter. It must strictly adhere to the same principles governing phraseology: **clear, concise, direct, and unambiguous** (Doc 9432 Ch.3.2.4; Doc 9835 Ch.3.3.20).
 
 ---
 
@@ -30,44 +30,44 @@ The official documents distinguish between two major operational categories requ
 ---
 
 ### Category A: Non-Routine, Abnormal & Emergency Situations
-*(Primary Reference: Doc 9835 §3.3.13, Appendix B Part II; Doc 4444 Chapter 15; Doc 9432 Chapter 8; Cir 323 §3.8.3)*
+*(Primary Reference: Doc 9835 Ch.3.3.13, Appendix B Part II; Doc 4444 Chapter 15; Doc 9432 Chapter 8; Cir 323 Ch.3.8.3)*
 
 Standard phraseology is inherently incapable of anticipating every technical, physical, or human anomaly. In these cases, pilots and controllers must switch into constrained plain English:
 
 #### 1. Medical Emergencies & Crew/Passenger Health Complications
 * **Pilot/Crew Incapacitation:** Describing pilot temporary disability (hypoxia, cardiac distress, sudden vision loss, food poisoning).
 * **Injured or Critically Ill Passengers:**
-  * Describing specific symptoms, vital signs, or injuries (e.g. Doc 9835 §3.3.15 transcript: *"Our patient is a victim of an automobile accident. Requesting immediate orthopaedic surgery for her severe condition... with transportation by ambulance and immediate transport to surgery"*).
+  * Describing specific symptoms, vital signs, or injuries (e.g. Doc 9835 Ch.3.3.15 transcript: *"Our patient is a victim of an automobile accident. Requesting immediate orthopaedic surgery for her severe condition... with transportation by ambulance and immediate transport to surgery"*).
   * Requesting quarantine, port health services, or medical advice on frequency.
   * Death or violent psychiatric episode in flight.
 
 #### 2. Unscheduled Aircraft Technical Failures & System Malfunctions
-* **Landing Gear Malfunctions (Doc 9835 §3.3.19 Case Study):**
+* **Landing Gear Malfunctions (Doc 9835 Ch.3.3.19 Case Study):**
   * In actual gear failure incidents, **fully 60% of the entire pilot-controller exchange requires plain language**.
   * Explaining specific indications: gear stuck in wells, unsafe gear lights, manual gravity extension attempts, requesting low pass / flyby for tower visual inspection (e.g., *"We'll try to let the gear down again and if it remains up and I'm unable to release the nose gear then we'll land with all three up"*).
 * **Powerplant & Airframe Anomalies:**
   * Engine vibrations, unusual noises, structural vibrations, asymmetric flap deployment.
   * Smoke, fumes, or burning electrical smells in the cockpit/cabin (describing color, density, source).
   * Structural damage from mid-air collisions, lightning strikes, or hail (control surface flutter, depressurization).
-* **Unprecedented Fuel Scenarios (Doc 9835 §3.4.14):**
+* **Unprecedented Fuel Scenarios (Doc 9835 Ch.3.4.14):**
   * Nuanced endurance descriptions when standard phrases like `MINIMUM FUEL` or `MAYDAY FUEL` require operational expansion:
   * Example: *"I've got an emergency, short on fuel, and I'm steering to the beacon on 112.3... I have less than 15 minutes fuel supply sir."*
 
 #### 3. Loss of Situational Awareness & Navigational Complications
-* **Lost or Disoriented VFR/IFR Flights (Doc 9835 §3.3.13, Appendix B):**
+* **Lost or Disoriented VFR/IFR Flights (Doc 9835 Ch.3.3.13, Appendix B):**
   * Describing visual landmarks (rivers, highways, mountain ridges, coastline, transmission towers).
   * Pilot unsure of heading or altitude in deteriorating weather (inadvertent VMC into IMC).
-* **Cross-Checking Position Incongruencies (Doc 9835 §1.2.4):**
+* **Cross-Checking Position Incongruencies (Doc 9835 Ch.1.2.4):**
   * When a controller observes radar targets diverging from assigned fixes or terrain clearances, plain language is vital to probe and resolve the ambiguity before Controlled Flight Into Terrain (CFIT).
 
 #### 4. Security, Unlawful Interference & Passenger Disruptions
-* **Bomb Threats & Security Alerts (Doc 9835 §3.3.13, Appendix B):**
+* **Bomb Threats & Security Alerts (Doc 9835 Ch.3.3.13, Appendix B):**
   * Describing suspicious luggage, unclaimed baggage, security code-words, bomb disposal staging areas.
 * **Unlawful Interference / Hijacking / Unruly Passengers (Doc 9835 Appendix B):**
   * Violent, intoxicated, or threatening passengers; weapons onboard; physical restraint in progress.
   * Specialized coordination with law enforcement, tactical negotiators, or special forces upon rollout.
 
-#### 5. Aerodrome & Runway Hazards (Cir 323 §3.8.3, Doc 9835 Appendix B Part II)
+#### 5. Aerodrome & Runway Hazards (Cir 323 Ch.3.8.3, Doc 9835 Appendix B Part II)
 * **Wildlife Hazards:**
   * Describing specific flock behavior, bird species, location relative to runway threshold (e.g. flock of large sea gulls lingering 500m past touchdown zone).
 * **Foreign Object Debris (FOD) & Runway Contamination:**
@@ -82,12 +82,12 @@ Standard phraseology is inherently incapable of anticipating every technical, ph
 ---
 
 ### Category B: Routine Operational Negotiations & Everyday Inquiries
-*(Primary Reference: Doc 9835 §3.3.17 & §3.3.18; Doc 9432 §3.2.3; Doc 4444 §12.2.1)*
+*(Primary Reference: Doc 9835 Ch.3.3.17 & Ch.3.3.18; Doc 9432 Ch.3.2.3; Doc 4444 Ch.12.2.1)*
 
 Doc 9835 explicitly rejects the misconception that plain language is exclusively confined to emergencies. In daily airline and ATC operations, pilot and controller standpoints diverge (controller manages traffic flow/safety of all aircraft; pilot manages safety, economy, and comfort of one aircraft). This creates frequent needs for **routine negotiation and information exchange** where no phraseology exists:
 
 #### 1. Performance & Flight Profile Requests
-* **Speed Management (Doc 9835 §3.3.17 Transcript):**
+* **Speed Management (Doc 9835 Ch.3.3.17 Transcript):**
   * Pilot: *"Direct Kerky 02, Midland Five November Zulu. Can we keep high speed?"*
   * ATC: *"For the time, yes."*
   * *ICAO Note:* There is no standard phraseology for a pilot requesting permission to fly high speed for flight efficiency.
@@ -95,13 +95,13 @@ Doc 9835 explicitly rejects the misconception that plain language is exclusively
   * Negotiating stepped climbs, early descent to smooth air, or holding off descent due to cabin service or turbulence.
 
 #### 2. Traffic Sequencing & Situational Awareness Probes
-* **Relative Position Inquiries (Doc 9835 §3.3.18 Transcript):**
+* **Relative Position Inquiries (Doc 9835 Ch.3.3.18 Transcript):**
   * Pilot: *"Who's ahead? Us or the Air Europe?"*
   * *ICAO Note:* No ICAO phraseology covers this conversational probe, yet pilots frequently ask to anticipate approach sequencing, wake turbulence delays, or taxi queues.
 
 #### 3. Resolving Misunderstandings & Ambiguities (The "Check, Confirm, Clarify" Strategy)
 * When a pilot or controller senses hesitation, acoustic clipping, homophony, or contradictory information, standard `SAY AGAIN` may fail to diagnose the root misunderstanding.
-* Plain language paraphrasing is used to unpack numbers, verify intentions, or confirm whether an instruction was understood (Doc 9835 §4.5.1(c)).
+* Plain language paraphrasing is used to unpack numbers, verify intentions, or confirm whether an instruction was understood (Doc 9835 Ch.4.5.1(c)).
 
 #### 4. Ground Handling & Aerodrome Nuances
 * Inquiring about gate availability, jet bridge unserviceability, specialized ground electrical power (GPU/ASU), customs processing delays, or de-icing truck wait times.
@@ -114,16 +114,16 @@ Whenever pilot or ATC transitions into plain English, the following regulatory c
 
 | Constraint | Regulatory Reference | Operational Implication |
 |---|---|---|
-| **No Casual Chatting / Joking** | Doc 9432 §3.2.4; Doc 9835 §4.3.4 | Radiotelephony is a safety channel. Plain language is strictly professional and task-bound. |
-| **Brevity & Concision** | Doc 9432 §2.2.1; Doc 4444 §12.2.1 | Transmissions must stay under ~100 words per minute. Do not deliver rambling narratives. |
-| **No Idioms / Colloquialisms** | Doc 9432 Foreword (p. iii); Doc 9835 §4.6.4 | Avoid culture-bound metaphors ("ballpark figure", "hang tight", "heads up"). Speak literally. |
-| **Avoid Social Courtesies** | Doc 9432 §3.1.4 | "Good morning", "please", "thank you", and "have a nice day" must be omitted when frequency is busy. |
-| **Strict Meaning of "IMMEDIATELY"** | Doc 9432 §3.1.5 | Must only be used when immediate compliance is mandatory for imminent safety reasons. |
-| **Controlled Code-Switching** | Doc 9835 §3.3.21 | Speakers must seamlessly blend standard call signs, readback items, and plain English without syntactic collapse. |
+| **No Casual Chatting / Joking** | Doc 9432 Ch.3.2.4; Doc 9835 Ch.4.3.4 | Radiotelephony is a safety channel. Plain language is strictly professional and task-bound. |
+| **Brevity & Concision** | Doc 9432 Ch.2.2.1; Doc 4444 Ch.12.2.1 | Transmissions must stay under ~100 words per minute. Do not deliver rambling narratives. |
+| **No Idioms / Colloquialisms** | Doc 9432 Foreword (p. iii); Doc 9835 Ch.4.6.4 | Avoid culture-bound metaphors ("ballpark figure", "hang tight", "heads up"). Speak literally. |
+| **Avoid Social Courtesies** | Doc 9432 Ch.3.1.4 | "Good morning", "please", "thank you", and "have a nice day" must be omitted when frequency is busy. |
+| **Strict Meaning of "IMMEDIATELY"** | Doc 9432 Ch.3.1.5 | Must only be used when immediate compliance is mandatory for imminent safety reasons. |
+| **Controlled Code-Switching** | Doc 9835 Ch.3.3.21 | Speakers must seamlessly blend standard call signs, readback items, and plain English without syntactic collapse. |
 
 ---
 
-## 4. Key Standard Words & Phrases (Doc 9432 §2.6)
+## 4. Key Standard Words & Phrases (Doc 9432 Ch.2.6)
 
 When using plain language, speakers must continue anchoring their speech around standardized operational markers:
 

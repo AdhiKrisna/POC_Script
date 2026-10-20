@@ -843,67 +843,196 @@ public final class ScriptGeneratorEngine {
     }
 
     private static func pickHoldingPoint(from holdingPoints: [String], defaultPoint: String, seed: Int) -> String {
-        guard !holdingPoints.isEmpty else { return defaultPoint }
-        return holdingPoints[abs(seed) % holdingPoints.count]
+        let raw = !holdingPoints.isEmpty ? holdingPoints[abs(seed) % holdingPoints.count] : defaultPoint
+        return SpokenFormFormatter.holdingPoint(raw)
     }
 
     // MARK: - Dynamic Procedures Resolver
+    public static func cleanProcedureName(_ raw: String) -> String {
+        var cleaned = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if cleaned.hasSuffix(" Departure") {
+            cleaned = String(cleaned.dropLast(" Departure".count))
+        } else if cleaned.hasSuffix(" departure") {
+            cleaned = String(cleaned.dropLast(" departure".count))
+        } else if cleaned.hasSuffix(" Arrival") {
+            cleaned = String(cleaned.dropLast(" Arrival".count))
+        } else if cleaned.hasSuffix(" arrival") {
+            cleaned = String(cleaned.dropLast(" arrival".count))
+        }
+        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    public static func resolveProcedures(
+        originAirport: Airport,
+        destinationAirport: Airport,
+        level: CurriculumLevel
+    ) -> (sid: String, star: String, waypoints: (curr: String, next: String)) {
+        if level == .level1 {
+            let sidName: String
+            let starName: String
+            let waypoints: (curr: String, next: String)
+
+            switch originAirport.icao {
+            case "WADY":
+                sidName = "Circuit Departure"
+                starName = "Overhead Join Pattern"
+                waypoints = ("Point Alfa", "Point Charlie")
+            case "WICB":
+                sidName = "Curug Visual Circuit"
+                starName = "Downwind Join Runway 12"
+                waypoints = ("CURUG", "Area Alfa")
+            case "WADE":
+                sidName = "Wisnu Visual Circuit"
+                starName = "Coastal Visual Join"
+                waypoints = ("Sumberkima", "Teluk Terima")
+            default:
+                sidName = "Visual Circuit Departure"
+                starName = "Overhead Join Pattern"
+                waypoints = ("Local Training Area", "Overhead Aerodrome")
+            }
+            return (sid: sidName, star: starName, waypoints: waypoints)
+        }
+
+        let sidName: String
+        if let s = originAirport.procedures.sids.first {
+            sidName = cleanProcedureName(s.name)
+        } else {
+            sidName = fallbackSid(for: originAirport.icao, level: level)
+        }
+
+        let starName: String
+        if let s = destinationAirport.procedures.stars.first {
+            starName = cleanProcedureName(s.name)
+        } else {
+            starName = fallbackStar(for: destinationAirport.icao, level: level)
+        }
+
+        let waypoints = resolveWaypoints(originICAO: originAirport.icao, destinationICAO: destinationAirport.icao)
+        return (sid: sidName, star: starName, waypoints: waypoints)
+    }
+
+    public static func fallbackSid(for icao: String, level: CurriculumLevel) -> String {
+        switch icao {
+        case "WAAA": return "Makassar One Alfa"
+        case "WABP": return "Grasberg One Alfa"
+        case "WADD": return "Bali One Delta"
+        case "WADE": return "Wisnu Visual Circuit"
+        case "WADL": return "Praya One Alfa"
+        case "WADY": return "Banyuwangi One Alfa"
+        case "WAFB": return "Rante One Alfa"
+        case "WAHI": return "Bantul Two"
+        case "WALL": return "Sepinggan One Alfa"
+        case "WALR": return "Juwata One Alfa"
+        case "WAOO": return "Martapura One Alfa"
+        case "WARQ": return "Solo One Alfa"
+        case "WARR": return "Surabaya One Alfa"
+        case "WARS": return "Ahmad Yani One Alfa"
+        case "WAVV": return "Baliem Valley One"
+        case "WICB": return "Curug One Alfa"
+        case "WICC": return "Tangku One Alfa"
+        case "WIDD": return "Batam One Alfa"
+        case "WIHH": return "Halim One Alfa"
+        case "WIII": return "Cengkareng Two Alfa"
+        case "WIMM": return "Kualanamu One Alfa"
+        case "WIPP": return "Musi One Alfa"
+        case "WIPT": return "Padang One Alfa"
+        default: return level.sidName
+        }
+    }
+
+    public static func fallbackStar(for icao: String, level: CurriculumLevel) -> String {
+        switch icao {
+        case "WAAA": return "Makassar One Bravo"
+        case "WABP": return "Carstensz One"
+        case "WADD": return "LAKUP One Alfa"
+        case "WADE": return "Coastal Visual Join"
+        case "WADL": return "Praya One Bravo"
+        case "WADY": return "Banyuwangi One Bravo"
+        case "WAFB": return "Toraja Ridge One"
+        case "WAHI": return "Bantul One Alfa"
+        case "WALL": return "Sepinggan One Bravo"
+        case "WALR": return "Border One Bravo"
+        case "WAOO": return "Martapura One Bravo"
+        case "WARQ": return "Solo One Bravo"
+        case "WARR": return "Surabaya One Bravo"
+        case "WARS": return "Ahmad Yani One Bravo"
+        case "WAVV": return "Baliem Pass One"
+        case "WICB": return "Curug One Bravo"
+        case "WICC": return "Kawah One"
+        case "WIDD": return "Batam One Bravo"
+        case "WIHH": return "Halim One Bravo"
+        case "WIII": return "DOLTA One Alfa"
+        case "WIMM": return "Kualanamu One Bravo"
+        case "WIPP": return "Musi One Bravo"
+        case "WIPT": return "Padang One Bravo"
+        default: return level.starName
+        }
+    }
+
+    public static func resolveWaypoints(originICAO: String, destinationICAO: String) -> (curr: String, next: String) {
+        switch originICAO {
+        case "WAAA": return ("UPG VOR", "MAROS")
+        case "WABP": return ("TIMIKA", "CARSTENSZ")
+        case "WADD": return ("POSOP", "BLI VOR")
+        case "WADE": return ("Sumberkima", "Teluk Terima")
+        case "WADL": return ("PRAYA", "GILI")
+        case "WADY": return ("Point Alfa", "Point Charlie")
+        case "WAFB": return ("RANTEPAO", "MAKALE")
+        case "WAHI": return ("JOG VOR", "PRAMB")
+        case "WALL": return ("BPN VOR", "SEPINGGAN")
+        case "WALR": return ("JUWATA", "TARAKAN")
+        case "WAOO": return ("BDJ VOR", "MARTAPURA")
+        case "WARQ": return ("SLO VOR", "PALUR")
+        case "WARR": return ("SURBA", "GANDI")
+        case "WARS": return ("ANY VOR", "KENDAL")
+        case "WAVV": return ("BALIEM", "TIOM")
+        case "WICB": return ("CURUG", "Area Alfa")
+        case "WICC": return ("BDO VOR", "LEMBANG")
+        case "WIDD": return ("BTH VOR", "NONGSA")
+        case "WIHH": return ("HLP VOR", "CILILITAN")
+        case "WIII": return ("BUNTA", "DOLTA")
+        case "WIMM": return ("KNO VOR", "DELI")
+        case "WIPP": return ("PLM VOR", "MUSI")
+        case "WIPT": return ("PDG VOR", "PARIAMAN")
+        default: return ("BUNTA", "DOLTA")
+        }
+    }
+
     public static func resolveProcedures(
         originICAO: String,
         destinationICAO: String,
         level: CurriculumLevel
     ) -> (sid: String, star: String, waypoints: (curr: String, next: String)) {
-        let sidName: String
-        let starName: String
-        let waypoints: (curr: String, next: String)
+        if level == .level1 {
+            let sidName: String
+            let starName: String
+            let waypoints: (curr: String, next: String)
 
-        switch originICAO {
-        case "WADY":
-            sidName = (level == .level1) ? "Circuit Departure" : "Area Alpha Departure via Selat Bali"
-            waypoints = ("Point Alfa", "Point Charlie")
-        case "WICB":
-            sidName = (level == .level1) ? "Curug Visual Circuit" : "Mauk One Departure"
-            waypoints = ("CURUG", "Area Alfa")
-        case "WART":
-            sidName = (level == .level1) ? "Trunojoyo Visual Circuit" : "Madura East Departure"
-            waypoints = ("SUP VOR", "Madura South")
-        case "WAHI":
-            sidName = "JOG One Charlie (JOG 1C)"
-            waypoints = ("JOG VOR", "PRAMB")
-        case "WARR":
-            sidName = "SURABAYA One Bravo (SBY 1B)"
-            waypoints = ("SURBA", "GANDI")
-        case "WADD":
-            sidName = "BLI Two Charlie (BLI 2C)"
-            waypoints = ("POSOP", "BLI VOR")
-        case "WIII":
-            sidName = "BUNTA One Alfa (BUNTA 1A)"
-            waypoints = ("BUNTA", "DOLTA")
-        default:
-            sidName = level.sidName
-            waypoints = ("BUNTA", "DOLTA")
+            switch originICAO {
+            case "WADY":
+                sidName = "Circuit Departure"
+                starName = "Overhead Join Pattern"
+                waypoints = ("Point Alfa", "Point Charlie")
+            case "WICB":
+                sidName = "Curug Visual Circuit"
+                starName = "Downwind Join Runway 12"
+                waypoints = ("CURUG", "Area Alfa")
+            case "WADE":
+                sidName = "Wisnu Visual Circuit"
+                starName = "Coastal Visual Join"
+                waypoints = ("Sumberkima", "Teluk Terima")
+            default:
+                sidName = "Visual Circuit Departure"
+                starName = "Overhead Join Pattern"
+                waypoints = ("Local Training Area", "Overhead Aerodrome")
+            }
+            return (sid: sidName, star: starName, waypoints: waypoints)
         }
 
-        switch destinationICAO {
-        case "WADY":
-            starName = (level == .level1) ? "Overhead Join Pattern" : "Right Base Runway 08"
-        case "WICB":
-            starName = (level == .level1) ? "Downwind Join Runway 12" : "CR NDB Inbound Runway 30"
-        case "WART":
-            starName = (level == .level1) ? "Overhead Join Runway 12" : "Straight-in Runway 12"
-        case "WAHI":
-            starName = "GANDI One Alfa (GANDI 1A)"
-        case "WARR":
-            starName = "POSOP One Alfa (POSOP 1A)"
-        case "WADD":
-            starName = "BLI One Bravo (BLI 1B)"
-        case "WIII":
-            starName = "DOLTA One Alfa (DOLTA 1A)"
-        default:
-            starName = level.starName
-        }
-
-        return (sid: sidName, star: starName, waypoints: waypoints)
+        let sid = fallbackSid(for: originICAO, level: level)
+        let star = fallbackStar(for: destinationICAO, level: level)
+        let waypoints = resolveWaypoints(originICAO: originICAO, destinationICAO: destinationICAO)
+        return (sid: sid, star: star, waypoints: waypoints)
     }
 
     // MARK: - Dynamic Airport-Driven Mission Generator
@@ -992,7 +1121,7 @@ public final class ScriptGeneratorEngine {
             initialAlt = "flight level one zero zero"
         }
 
-        let procs = Self.resolveProcedures(originICAO: originAirport.icao, destinationICAO: destinationAirport.icao, level: level)
+        let procs = Self.resolveProcedures(originAirport: originAirport, destinationAirport: destinationAirport, level: level)
         let sidName = procs.sid
         let starName = procs.star
 
@@ -1988,7 +2117,7 @@ public final class ScriptGeneratorEngine {
         // MARK: - LEVEL 2 NEW CASES
         case .pushbackDelay:
             return InjectedContingency(
-                title: "Pushback Delay (Traffic Behind - Doc 9432 §4.3.1)",
+                title: "Pushback Delay (Traffic Behind - Doc 9432 Ch.4.3.1)",
                 severity: .urgency,
                 triggerPhase: .preDeparture,
                 summary: "Penundaan pushback karena ada lalu lintas taxi pesawat lain yang sedang melintas tepat di belakang stand parkir.",
@@ -1997,7 +2126,7 @@ public final class ScriptGeneratorEngine {
 
         case .stopPushback:
             return InjectedContingency(
-                title: "Stop Pushback Immediately (Doc 9432 §4.3.3)",
+                title: "Stop Pushback Immediately (Doc 9432 Ch.4.3.3)",
                 severity: .urgency,
                 triggerPhase: .preDeparture,
                 summary: "Pembatalan pushback mendadak oleh ATC Ground karena ada pergerakan kendaraan apron liar yang memotong jalur dorong.",
@@ -2006,7 +2135,7 @@ public final class ScriptGeneratorEngine {
 
         case .unableAltitude:
             return InjectedContingency(
-                title: "Unable Altitude Profile (Aircraft Performance - Doc 9432 §2.6)",
+                title: "Unable Altitude Profile (Aircraft Performance - Doc 9432 Ch.2.6)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
                 summary: "ATC menginstruksikan percepatan laju tanjak melewati waypoint, namun pesawat dengan bobot penuh tidak sanggup memenuhi gradien tanjak.",
@@ -2015,7 +2144,7 @@ public final class ScriptGeneratorEngine {
 
         case .holdShortExact:
             return InjectedContingency(
-                title: "Hold Short Mandatory Readback (Doc 4444 §4.5.7.5b)",
+                title: "Hold Short Mandatory Readback (Doc 4444 Ch.4.5.7.5b)",
                 severity: .abnormal,
                 triggerPhase: .preDeparture,
                 summary: "Instruksi taxi menuju batas aman holding point yang mewajibkan penegasan ulang batas berhenti landasan aktif.",
@@ -2025,7 +2154,7 @@ public final class ScriptGeneratorEngine {
         // MARK: - LEVEL 3 NEW CASES
         case .runwayBacktrack:
             return InjectedContingency(
-                title: "Runway Backtrack Maneuver (Doc 9432 §4.4.2)",
+                title: "Runway Backtrack Maneuver (Doc 9432 Ch.4.4.2)",
                 severity: .abnormal,
                 triggerPhase: .departure,
                 summary: "Bandara tanpa parallel taxiway penuh menuntut pesawat memasuki landasan dan berputar 180 derajat di turning loop ujung landasan.",
@@ -2034,7 +2163,7 @@ public final class ScriptGeneratorEngine {
 
         case .conditionalLineUp:
             return InjectedContingency(
-                title: "Conditional Line-Up and Wait (Doc 9432 §4.5.7)",
+                title: "Conditional Line-Up and Wait (Doc 9432 Ch.4.5.7)",
                 severity: .abnormal,
                 triggerPhase: .departure,
                 summary: "Izin masuk landasan bersyarat di belakang pesawat yang sedang mendarat di short final.",
@@ -2043,7 +2172,7 @@ public final class ScriptGeneratorEngine {
 
         case .holdingPatternEAT:
             return InjectedContingency(
-                title: "Holding Pattern & EAT (Doc 4444 §5.5)",
+                title: "Holding Pattern & EAT (Doc 4444 Ch.5.5)",
                 severity: .abnormal,
                 triggerPhase: .enRoute,
                 summary: "Kepadatan lalu lintas di bandara kedatangan memicu perintah holding di atas fix/VOR dengan estimasi waktu pendekatan (Expected Approach Time).",
@@ -2052,7 +2181,7 @@ public final class ScriptGeneratorEngine {
 
         case .delayingVectorOrbit:
             return InjectedContingency(
-                title: "Delaying Vector / Orbit (Doc 9432 §4.6.5)",
+                title: "Delaying Vector / Orbit (Doc 9432 Ch.4.6.5)",
                 severity: .abnormal,
                 triggerPhase: .approach,
                 summary: "ATC memberikan putaran tunda 360 derajat (orbit) atau vektor radar tambahan untuk mengatur separasi kedatangan.",
@@ -2061,7 +2190,7 @@ public final class ScriptGeneratorEngine {
 
         case .continueApproachShortFinal:
             return InjectedContingency(
-                title: "Continue Approach on Short Final (Doc 9432 §4.7.1)",
+                title: "Continue Approach on Short Final (Doc 9432 Ch.4.7.1)",
                 severity: .abnormal,
                 triggerPhase: .landing,
                 summary: "Menunda izin mendarat di short final karena pesawat di depan lambat keluar landasan.",
@@ -2070,7 +2199,7 @@ public final class ScriptGeneratorEngine {
 
         case .lightGunSignals:
             return InjectedContingency(
-                title: "Light Gun Signals (Ground Comms Failure - Doc 4444 §7.16)",
+                title: "Light Gun Signals (Ground Comms Failure - Doc 4444 Ch.7.16)",
                 severity: .abnormal,
                 triggerPhase: .landing,
                 summary: "Hilang komunikasi radio di darat, pilot mengamati tembakan pistol lampu hijau/merah dari menara ATC.",
@@ -2089,7 +2218,7 @@ public final class ScriptGeneratorEngine {
 
         case .callsignConfusion:
             return InjectedContingency(
-                title: "Callsign Confusion Vigilance (Doc 9432 §2.7.2)",
+                title: "Callsign Confusion Vigilance (Doc 9432 Ch.2.7.2)",
                 severity: .abnormal,
                 triggerPhase: .departure,
                 summary: "Dua pesawat di frekuensi yang sama memiliki nomor penerbangan mirip. Siswa harus waspada menyaring panggilan suara.",
@@ -2098,7 +2227,7 @@ public final class ScriptGeneratorEngine {
 
         case .slopOceanic:
             return InjectedContingency(
-                title: "Strategic Lateral Offset (SLOP - Doc 4444 §16.5)",
+                title: "Strategic Lateral Offset (SLOP - Doc 4444 Ch.16.5)",
                 severity: .abnormal,
                 triggerPhase: .enRoute,
                 summary: "Penggeseran jalur lateral acak 1-2 NM ke kanan sumbu rute untuk mitigasi turbulensi vorteks dan risiko tabrakan di jalur tanpa radar.",
@@ -2107,7 +2236,7 @@ public final class ScriptGeneratorEngine {
 
         case .fuelDumping:
             return InjectedContingency(
-                title: "Fuel Dumping Procedure (Doc 9432 §11.2)",
+                title: "Fuel Dumping Procedure (Doc 9432 Ch.11.2)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
                 summary: "Pembuangan bahan bakar avtur di ketinggian aman untuk mengurangi bobot pesawat sebelum pendaratan darurat.",
@@ -2116,7 +2245,7 @@ public final class ScriptGeneratorEngine {
 
         case .communicableDiseases:
             return InjectedContingency(
-                title: "Communicable Disease Report (Doc 4444 §16.6)",
+                title: "Communicable Disease Report (Doc 4444 Ch.16.6)",
                 severity: .urgency,
                 triggerPhase: .arrival,
                 summary: "Pelaporan penumpang diduga mengidap penyakit menular sebelum mendarat sesuai regulasi karantina kesehatan internasional.",
@@ -2125,7 +2254,7 @@ public final class ScriptGeneratorEngine {
 
         case .blownTireLanding:
             return InjectedContingency(
-                title: "Blown Tire Blocking Runway (Doc 4444 §15.1)",
+                title: "Blown Tire Blocking Runway (Doc 4444 Ch.15.1)",
                 severity: .urgency,
                 triggerPhase: .landing,
                 summary: "Ban pecah saat mendarat memblokir landasan pacu. Pesawat berhenti darurat dan melapor ke Tower.",
@@ -2134,7 +2263,7 @@ public final class ScriptGeneratorEngine {
 
         case .hotBrakesInspection:
             return InjectedContingency(
-                title: "Hot Brakes Inspection on Taxiway (Doc 9432 §4.10)",
+                title: "Hot Brakes Inspection on Taxiway (Doc 9432 Ch.4.10)",
                 severity: .urgency,
                 triggerPhase: .landing,
                 summary: "Pengereman darurat menyebabkan panas rem roda ekstrem berisiko meledak.",
@@ -2143,7 +2272,7 @@ public final class ScriptGeneratorEngine {
 
         case .airborneCommsFailure:
             return InjectedContingency(
-                title: "Airborne Comms Failure / Squawk 7600 (Doc 4444 §15.3)",
+                title: "Airborne Comms Failure / Squawk 7600 (Doc 4444 Ch.15.3)",
                 severity: .urgency,
                 triggerPhase: .approach,
                 summary: "Hilang kontak radio di wilayah terminal/udara. Pilot menyetel transponder 7600 dan melanjutkan pendekatan instrumen baku.",
@@ -2153,7 +2282,7 @@ public final class ScriptGeneratorEngine {
         // MARK: - LEVEL 5 NEW CASES
         case .pilotInitiatedGoAround:
             return InjectedContingency(
-                title: "Pilot-Initiated Go-Around (Runway Obstruction - Doc 9432 §4.8.3)",
+                title: "Pilot-Initiated Go-Around (Runway Obstruction - Doc 9432 Ch.4.8.3)",
                 severity: .urgency,
                 triggerPhase: .landing,
                 summary: "Tower memberi izin mendarat namun ada kendaraan patroli masuk landasan. Pilot secara mandiri membatalkan pendaratan.",
@@ -2162,7 +2291,7 @@ public final class ScriptGeneratorEngine {
 
         case .gpwsTerrainAvoidance:
             return InjectedContingency(
-                title: "GPWS Terrain Avoidance (UNABLE Heading - Doc 4444 §15.7.4)",
+                title: "GPWS Terrain Avoidance (UNABLE Heading - Doc 4444 Ch.15.7.4)",
                 severity: .urgency,
                 triggerPhase: .approach,
                 summary: "Vektor ATC mengarah ke tebing gunung di lembah. Pilot menolak izin demi keselamatan.",
@@ -2171,7 +2300,7 @@ public final class ScriptGeneratorEngine {
 
         case .windShearMicroburst:
             return InjectedContingency(
-                title: "Severe Wind Shear Microburst (Doc 9432 §11.4)",
+                title: "Severe Wind Shear Microburst (Doc 9432 Ch.11.4)",
                 severity: .urgency,
                 triggerPhase: .approach,
                 summary: "Deteksi geseran angin ekstrem di jalur final approach pegunungan.",
@@ -2180,7 +2309,7 @@ public final class ScriptGeneratorEngine {
 
         case .fuelEmergencyMayday:
             return InjectedContingency(
-                title: "MINIMUM FUEL vs MAYDAY FUEL (Doc 4444 §15.5.4)",
+                title: "MINIMUM FUEL vs MAYDAY FUEL (Doc 4444 Ch.15.5.4)",
                 severity: .distress,
                 triggerPhase: .arrival,
                 summary: "Bahan bakar cadangan kritis menyentuh batas final reserve. Pilot mendeklarasikan MAYDAY FUEL.",
@@ -2189,7 +2318,7 @@ public final class ScriptGeneratorEngine {
 
         case .volcanicAshAvoidance:
             return InjectedContingency(
-                title: "Volcanic Ash Avoidance (Doc 4444 §15.8)",
+                title: "Volcanic Ash Avoidance (Doc 4444 Ch.15.8)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
                 summary: "Awan abu vulkanik pekat terdeteksi di rute penerbangan. Pilot meminta deviasi darurat menjauhi plume abu.",
@@ -2198,7 +2327,7 @@ public final class ScriptGeneratorEngine {
 
         case .runwayExcursionARFF:
             return InjectedContingency(
-                title: "Runway Excursion / ARFF Alerting (Doc 4444 §9.2, §15.1)",
+                title: "Runway Excursion / ARFF Alerting (Doc 4444 Ch.9.2, Ch.15.1)",
                 severity: .distress,
                 triggerPhase: .landing,
                 summary: "Pesawat tergelincir ke rerumputan basah saat pendaratan di landasan pendek lembah.",
@@ -2207,7 +2336,7 @@ public final class ScriptGeneratorEngine {
 
         case .hijack7500:
             return InjectedContingency(
-                title: "Unlawful Interference / Squawk 7500 (Doc 4444 §15.1.3)",
+                title: "Unlawful Interference / Squawk 7500 (Doc 4444 Ch.15.1.3)",
                 severity: .distress,
                 triggerPhase: .enRoute,
                 summary: "Pemberitahuan pembajakan pesawat udara secara diskret via kode transponder 7500.",
@@ -2216,7 +2345,7 @@ public final class ScriptGeneratorEngine {
 
         case .militaryInterception:
             return InjectedContingency(
-                title: "Military Interception (WILCO - Doc 4444 §15.4)",
+                title: "Military Interception (WILCO - Doc 4444 Ch.15.4)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
                 summary: "Pesawat diintersepsi oleh jet tempur militer di wilayah udara sensitif.",
@@ -6427,9 +6556,9 @@ public final class ScriptGeneratorEngine {
                 ? "Sesi ATC \(aerodromeItem.iata) lulus (\(overallScore)%). Seluruh traffic ditangani sesuai ICAO Doc 4444 & 9432."
                 : "Perlu latihan ulang: pastikan readback hold short dan urutan pemanggilan bebas blocking.",
             improvementAreas: [
-                "Pastikan setiap taxi clearance mencakup nama taxiway dan instruksi hold short secara eksplisit (Doc 4444 §7.9).",
-                "Gunakan callsign lengkap di transmisi pertama, singkatan hanya setelah ditetapkan dua arah (Doc 9432 §4.3).",
-                "Saat plain English digunakan (emergencies), tetap gunakan kata jangkar CLEARED, AFFIRM, NEGATIVE (Doc 9432 §2.6)."
+                "Pastikan setiap taxi clearance mencakup nama taxiway dan instruksi hold short secara eksplisit (Doc 4444 Ch.7.9).",
+                "Gunakan callsign lengkap di transmisi pertama, singkatan hanya setelah ditetapkan dua arah (Doc 9432 Ch.4.3).",
+                "Saat plain English digunakan (emergencies), tetap gunakan kata jangkar CLEARED, AFFIRM, NEGATIVE (Doc 9432 Ch.2.6)."
             ],
             actEvaluations: actEvals
         )
@@ -6529,7 +6658,7 @@ public final class ScriptGeneratorEngine {
                         CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")
                     ],
                     severity: .abnormal, eventTag: "ATC HEARBACK CORRECTION",
-                    objective: "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan sebutkan nomor runway yang benar (Doc 9432 §2.8.3.9)."))
+                    objective: "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan sebutkan nomor runway yang benar (Doc 9432 Ch.2.8.3.9)."))
 
                 exchanges.append(ex("DEP-6-ACK", speaker: callsign, isUserTurn: false,
                     text: "Hold short runway \(rwy), apologies, \(callsign)."))
@@ -6570,7 +6699,7 @@ public final class ScriptGeneratorEngine {
                         CriticalSlot(slot: "HOLD_POSITION", expectedValue: "hold position", type: "mandatoryKeyword")
                     ],
                     severity: .abnormal, eventTag: "CALLSIGN CONFUSION CORRECTION",
-                    objective: "Intersepsi kerancuan callsign (similar callsign confusion): tegur pesawat yang salah ambil izin dengan NEGATIVE dan instruksikan hold position (Doc 9432 §4.3.2)."))
+                    objective: "Intersepsi kerancuan callsign (similar callsign confusion): tegur pesawat yang salah ambil izin dengan NEGATIVE dan instruksikan hold position (Doc 9432 Ch.4.3.2)."))
 
                 exchanges.append(ex("DEP-9-CONFUSED-ACK", speaker: confusedCallsign, isUserTurn: false,
                     text: "Holding position, apologies, \(confusedCallsign)."))
@@ -6686,7 +6815,7 @@ public final class ScriptGeneratorEngine {
                             CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")
                         ],
                         severity: .abnormal, eventTag: "ATC HEARBACK CORRECTION",
-                        objective: "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan perjelas nomor runway aktif pendaratan (Doc 9432 §2.8.3.9)."))
+                        objective: "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan perjelas nomor runway aktif pendaratan (Doc 9432 Ch.2.8.3.9)."))
 
                     exchanges.append(ex("ARR-3-ACK", speaker: callsign, isUserTurn: false,
                         text: "Runway \(rwy), cleared to land, apologies, \(callsign)."))
@@ -6743,7 +6872,7 @@ public final class ScriptGeneratorEngine {
                 case 0:
                     emergencyDesc = "PAN PAN, PAN PAN, PAN PAN, \(towerCallsign), \(callsign), hydraulic failure, flight controls degraded, request priority landing, runway \(rwy), souls on board \(pob)."
                     tag = "PAN PAN — HYDRAULIC FAILURE"
-                    peReason = "PAN PAN urgency: pilot communicates degraded flight control per Doc 9835 §3.3.19"
+                    peReason = "PAN PAN urgency: pilot communicates degraded flight control per Doc 9835 Ch.3.3.19"
                 case 1:
                     emergencyDesc = "PAN PAN, PAN PAN, PAN PAN, \(towerCallsign), \(callsign), flap extension failure, unable to extend flaps, approach speed one six zero knots, request priority landing runway \(rwy)."
                     tag = "PAN PAN — FLAP FAILURE"
@@ -6763,28 +6892,28 @@ public final class ScriptGeneratorEngine {
                 text: emergencyDesc, severity: severity, eventTag: tag,
                 layer: .constrainedPlainEnglish, peReason: peReason))
 
-            // ATC responds with correct acknowledgement matching severity (Doc 9432 §8.1 / §9.1)
+            // ATC responds with correct acknowledgement matching severity (Doc 9432 Ch.8.1 / Ch.9.1)
             let atcResponse = "\(callsign), \(towerCallsign), \(ackWord), runway \(rwy) cleared, emergency services are standing by, wind \(wind), cleared to land."
             exchanges.append(ex("EMG-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: atcResponse,
                 criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
                 severity: severity, eventTag: "PRIORITY CLEARANCE",
                 layer: .constrainedPlainEnglish,
-                peReason: "Emergency response: ATC confirms situation understanding and clears runway (Doc 9432 §8.1)",
+                peReason: "Emergency response: ATC confirms situation understanding and clears runway (Doc 9432 Ch.8.1)",
                 objective: "Konfirmasi situasi \(severity == .distress ? "darurat MAYDAY" : "urgensi PAN PAN"), berikan prioritas mutlak pendaratan di runway aktif."))
 
-            // If medical: describe patient (Doc 9835 §3.3.15)
+            // If medical: describe patient (Doc 9835 Ch.3.3.15)
             if isMedical {
                 exchanges.append(ex("EMG-3", speaker: callsign, isUserTurn: false,
                     text: "Tower, \(callsign), we have a passenger with suspected cardiac arrest, request ambulance at the gate.",
                     severity: .urgency, eventTag: "MEDICAL PAN PAN",
                     layer: .constrainedPlainEnglish,
-                    peReason: "Medical situation: patient condition description requires plain English (Doc 9835 §3.3.15)"))
+                    peReason: "Medical situation: patient condition description requires plain English (Doc 9835 Ch.3.3.15)"))
                 exchanges.append(ex("EMG-4", speaker: "TOWER (USER TURN)", isUserTurn: true,
                     text: "\(callsign), \(towerCallsign), understood, ambulance is requested, standby at apron Alpha.",
                     severity: .urgency, eventTag: "AMBULANCE CONFIRMED",
                     layer: .constrainedPlainEnglish,
-                    peReason: "Confirming medical coordination in plain language (Doc 9835 §3.3.15)",
+                    peReason: "Confirming medical coordination in plain language (Doc 9835 Ch.3.3.15)",
                     objective: "Konfirmasi koordinasi bantuan medis ambulans gawat darurat standby di apron."))
             }
 
@@ -6800,7 +6929,7 @@ public final class ScriptGeneratorEngine {
 
         // ---- DIVERSION ARRIVAL ----
         case .diversionArrival:
-            // Aircraft announces diversion — official phraseology: PAN PAN, PAN PAN, PAN PAN (Doc 9432 §9.3.1)
+            // Aircraft announces diversion — official phraseology: PAN PAN, PAN PAN, PAN PAN (Doc 9432 Ch.9.3.1)
             let divReason = (abs(seed) % 2 == 0)
                 ? "diverting from \(airport.name.components(separatedBy: " ").last ?? "destination") due weather, request immediate approach, fuel \(30 + abs(seed) % 30) minutes remaining"
                 : "diverting due passenger medical emergency, request priority straight-in approach and medical team"
@@ -6809,7 +6938,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(ex("DIV-1", speaker: callsign, isUserTurn: false,
                 text: diversionText, severity: .urgency, eventTag: divTag,
                 layer: .constrainedPlainEnglish,
-                peReason: "Diversion declaration: emergency state requires plain English per Doc 9835 §3.4.14"))
+                peReason: "Diversion declaration: emergency state requires plain English per Doc 9835 Ch.3.4.14"))
 
             exchanges.append(ex("DIV-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(callsign), \(towerCallsign), roger PAN PAN, runway \(rwy) clear, you are number one, wind \(wind), QNH \(qnh), cleared to land.",
@@ -6841,15 +6970,16 @@ public final class ScriptGeneratorEngine {
             return local + commercial
         case .level3:
             return ["Pelita \(500 + abs(seed) % 500)", "Batik \(6000 + abs(seed) % 999)",
-                    "Lion \(100 + abs(seed) % 800)", "Garuda \(200 + abs(seed) % 700)"]
+                    "Lion \(100 + abs(seed) % 800)", "Indonesia \(200 + abs(seed) % 700)",
+                    "Supergreen \(500 + abs(seed) % 200)", "Prosper \(100 + abs(seed) % 300)"]
         case .level4:
             return ["Batik \(6000 + abs(seed) % 999)", "Lion \(100 + abs(seed) % 800)",
-                    "Citilink \(800 + abs(seed) % 200)", "Garuda \(200 + abs(seed) % 400)",
-                    "TransNusa \(100 + abs(seed) % 300)"]
+                    "Supergreen \(800 + abs(seed) % 200)", "Indonesia \(200 + abs(seed) % 400) Heavy",
+                    "TransNusa \(100 + abs(seed) % 300)", "Prosper \(100 + abs(seed) % 300)"]
         case .level5:
-            return ["Garuda \(400 + abs(seed) % 400)", "Batik \(6000 + abs(seed) % 999)",
-                    "Singapore \(100 + abs(seed) % 800)", "AirAsia \(600 + abs(seed) % 400)",
-                    "Lion \(700 + abs(seed) % 300)", "Citilink \(800 + abs(seed) % 200)"]
+            return ["Trigana \(200 + abs(seed) % 100)", "Smart \(100 + abs(seed) % 50)",
+                    "Susi Air \(110 + abs(seed) % 20)", "Asian One \(300 + abs(seed) % 50)",
+                    "Wings Air \(1800 + abs(seed) % 100)"]
         }
     }
 
