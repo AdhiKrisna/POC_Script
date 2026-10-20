@@ -620,251 +620,251 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         let t = (tag ?? "").uppercased()
 
         if t.contains("ATC HEARBACK CORRECTION") {
-            return "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan sebutkan variabel yang benar (Doc 9432 Ch.2.8.3.9)."
+            return "Correct pilot readback error: assert NEGATIVE I SAY AGAIN and restate the correct parameter (Doc 9432 Ch.2.8.3.9)."
         }
         if t.contains("GPWS") || t.contains("TERRAIN") || lower.contains("due terrain") || lower.contains("unable heading") {
-            return "Tolak instruksi penurunan ATC karena bahaya tebing di depan (Authority Breaker), dan minta izin tanjak ke ketinggian aman."
+            return "Reject ATC descent instruction due to terrain hazard ahead (Authority Breaker) and request climb to safety altitude."
         }
         if t.contains("WIND SHEAR") || lower.contains("wind shear") {
-            return "Laporkan manuver lolos dari wind shear microburst (WIND SHEAR ESCAPE) dan tanjak tenaga penuh."
+            return "Report wind shear microburst escape maneuver and execute maximum thrust climb."
         }
         if t.contains("GOING AROUND") || t.contains("GO-AROUND") || lower.contains("going around") {
-            return "Laporkan pembatalan pendaratan (going around) akibat rintangan di landasan pacu."
+            return "Report initiating a go-around due to active runway obstruction."
         }
         if t.contains("CALLSIGN CONFUSION CORRECTION") {
-            return "Intersepsi kerancuan callsign (similar callsign confusion): tegur pesawat yang salah ambil izin dengan NEGATIVE dan instruksikan hold position (Doc 9432 Ch.4.3.2)."
+            return "Intercept similar callsign confusion: challenge incorrect aircraft transmission with NEGATIVE and instruct to hold position (Doc 9432 Ch.4.3.2)."
         }
         if t.contains("DEPARTURE CHECK-IN") {
-            return "Hubungi Departure Control setelah mengudara, laporkan ketinggian saat ini dan ketinggian tuju."
+            return "Contact Departure Control after departure, report passing altitude and assigned climb level."
         }
         if t.contains("TRANSFER CONTROL") {
-            return "Readback alih kendali frekuensi ke Area Control Center (ACC)."
+            return "Read back frequency handoff to Area Control Center (ACC)."
         }
         if t.contains("AREA CONTROL CHECK-IN") {
-            return "Check-in awal ke Area Control, laporkan flight level saat ini dan estimasi waypoint."
+            return "Initial check-in with Area Control, report current flight level and next waypoint estimate."
         }
         if t.contains("APPROACH CHECK-IN") {
-            return "Check-in awal ke Approach Control, laporkan ketinggian penurunan dan kode ATIS yang diterima."
+            return "Initial check-in with Approach Control, report passing altitude, descent level, and current ATIS."
         }
         if t.contains("LOCALIZER ESTABLISHED FINAL") {
-            return "Laporkan pesawat telah mengunci garis pemancar localizer ILS pada short final ke Tower."
+            return "Report established on ILS localizer course on short final to Tower."
         }
         if t.contains("GROUND CHECK-IN") {
-            return "Hubungi Ground Control setelah keluar landasan pacu dan minta rute taxi ke stand/gate."
+            return "Contact Ground Control after vacating runway and request taxi routing to gate/stand."
         }
         if t.contains("ROLL OUT") {
-            return "Readback instruksi rollout hingga ujung landasan pacu dengan kawalan armada pemadam PKP-PK."
+            return "Read back runway rollout instruction to the end escorted by ARFF fire services."
         }
         if t.contains("CHECK-IN SINGLE ENGINE") {
-            return "Check-in ke Approach Control, laporkan status single-engine MAYDAY dan minta vektor ILS lurus."
+            return "Check in with Approach Control, report single-engine MAYDAY status, and request straight-in ILS vectors."
         }
         if t.contains("REPORT FINAL MAYDAY") {
-            return "Laporkan posisi final darurat (short final single engine) dan kesiapan konfigurasi roda."
+            return "Report emergency short final on single engine and confirm gear down configuration."
         }
         if t.contains("EXPEDITE VACATE") {
-            return "Readback percepatan pengosongan landasan pacu (expedite vacate) dan kontak Ground."
+            return "Read back expedite vacate instruction and frequency transfer to Ground."
         }
         if t.contains("CANCEL MAYDAY") {
-            return "Batalkan status marabahaya MAYDAY setelah pesawat berhenti aman dan pemeriksaan darat selesai."
+            return "Cancel MAYDAY distress status after aircraft is safely stopped and ground inspection is completed."
         }
         if t.contains("RESUME") || t.contains("NAVIGATION") {
-            return "Readback instruksi resume own navigation kembali ke rute atau waypoint yang ditentukan."
+            return "Read back instruction to resume own navigation to assigned route or waypoint."
         }
         if t.contains("INTERCEPT") {
-            return "Readback penyesuaian kecepatan, heading intersep localizer, dan izin pendekatan ILS."
+            return "Read back speed restriction, localizer intercept heading, and ILS approach clearance."
         }
         if t.contains("TOWER FREQ") {
-            return "Readback pembatalan restriksi kecepatan dan alih kendali frekuensi ke Menara Pengawas (Tower)."
+            return "Read back cancellation of speed restrictions and frequency transfer to Tower."
         }
         if t.contains("BACKTRACK") {
-            return "Readback instruksi backtrack di landasan pacu aktif dan lapor siap lepas landas."
+            return "Read back backtrack instruction on active runway and report ready for departure."
         }
         if t.contains("CONDITIONAL") {
-            return "Readback instruksi conditional line up and wait di belakang pesawat yang mendarat/lepas landas."
+            return "Read back conditional line up and wait instruction behind preceding landing/departing traffic."
         }
         if t.contains("CONSTRAINT") {
-            return "Readback restriksi batas ketinggian dan kecepatan jelajah di waypoint."
+            return "Read back waypoint altitude constraint and airspeed restriction."
         }
         if t.contains("SECOND ILS") {
-            return "Readback izin pendekatan ILS kedua setelah pelaksanaan prosedur missed approach/holding."
+            return "Read back clearance for second ILS approach following missed approach / holding pattern."
         }
         if t.contains("TAXI TO GATE") {
-            return "Readback instruksi taxi menuju apron atau gate kedatangan."
+            return "Read back taxi instructions to designated arrival apron or gate."
         }
         if t.contains("STRAIGHT-IN") {
-            return "Readback izin pendekatan lurus (straight-in approach) dan frekuensi Tower."
+            return "Read back straight-in approach clearance and contact Tower frequency."
         }
         if t.contains("STOPPING") || t.contains("ABORTING") {
-            return "Laporkan pembatalan lepas landas (aborting take-off) di darat dan status pesawat berhenti."
+            return "Report aborting take-off on ground roll and confirm aircraft stopped."
         }
         if t.contains("TAKING OFF IMMEDIATELY") {
-            return "Readback izin lepas landas segera (immediate take-off) tanpa berhenti di landasan."
+            return "Read back immediate take-off clearance without stopping on runway."
         }
         if t.contains("FLAP") {
-            return "Deklarasikan urgensi PAN PAN akibat kegagalan ekstensi flap, laporkan kecepatan pendekatan lebih tinggi (160 kts), dan minta pendaratan prioritas straight-in."
+            return "Declare PAN PAN urgency due to flap extension failure, advise higher approach speed (160 kt), and request straight-in priority."
         }
         if t.contains("LOW PASS") || t.contains("INSPECTION") {
-            return "Minta izin terbang rendah (low pass) di atas menara pengawas untuk inspeksi visual roda pendaratan oleh tower cab."
+            return "Request low pass over tower cab for visual landing gear inspection."
         }
         if t.contains("GEAR") || t.contains("UNSAFE") {
-            return "Laporkan indikasi roda pendaratan tidak mengunci (unsafe gear) dan minta holding untuk menjalankan checklist darurat."
+            return "Report unsafe landing gear indication and request holding to complete non-normal checklists."
         }
         if t.contains("MEDICAL") {
-            return "Deklarasikan urgensi PAN PAN medis penumpang sakit dan minta ambulans siaga di stand/gate kedatangan."
+            return "Declare PAN PAN medical urgency for passenger medical emergency and request standby ambulance at arrival gate."
         }
         if t.contains("ENGINE OUT") || t.contains("ENGINE FAILURE") || t.contains("EFATO") {
-            return "Deklarasikan marabahaya MAYDAY akibat mati mesin, laporkan jumlah jiwa di pesawat (POB) dan sisa bahan bakar (endurance)."
+            return "Declare MAYDAY distress due to engine failure, state souls on board (POB), and fuel endurance."
         }
         if t.contains("DECOMPRESSION") || t.contains("EMERGENCY DESCENT") {
-            return "Deklarasikan MAYDAY dekompresi kabin mendadak dan lakukan penurunan darurat (emergency descent) ke ketinggian aman."
+            return "Declare MAYDAY for rapid cabin decompression and initiate emergency descent to safety altitude."
         }
         if t.contains("AVOIDING ACTION") {
-            return "Laksanakan dan readback manuver menghindar segera dari trafik berlawanan."
+            return "Execute and read back immediate avoiding action maneuver to resolve conflicting traffic."
         }
         if t.contains("IMMEDIATE") || t.contains("EXPEDITE") {
-            return "Readback instruksi lepas landas segera (immediate departure) atau bersiap keluar landasan untuk menjaga separasi trafik final."
+            return "Read back immediate take-off instruction or prepare to vacate to maintain final approach spacing."
         }
         if t.contains("CROSSING") || t.contains("INCURSION") {
-            return "Readback wajib instruksi hold short taxiway crossing sebelum melintasi landasan pacu paralel aktif."
+            return "Read back mandatory hold short instruction at taxiway crossing prior to active runway."
         }
         if t.contains("BRAKING") || t.contains("CONTAMINATED") {
-            return "Readback izin mendarat dan konfirmasi penerimaan informasi landasan basah/pengereman buruk (braking action poor)."
+            return "Read back landing clearance and acknowledge poor runway braking action advisory."
         }
         if t.contains("NORDO") || t.contains("TRANSMITTING BLIND") {
-            return "Lakukan transmisi radio satu arah (transmitting blind) sesuai prosedur kegagalan penerimaan ICAO."
+            return "Conduct blind transmission per ICAO radio receiver failure procedures."
         }
         if t.contains("ABORT") {
-            return "Laporkan pembatalan lepas landas (abort take-off) pada ground roll dan minta bantuan inspeksi di landasan pacu."
+            return "Report aborted take-off on ground roll and request on-runway inspection assistance."
         }
         if t.contains("BIRD") {
-            return "Readback peringatan aktivitas kawanan burung (bird hazard) di area operasi landasan pacu."
+            return "Read back bird strike hazard advisory in active aerodrome runway area."
         }
         if t.contains("RUNWAY CHANGE") {
-            return "Readback perubahan landasan pacu aktif dan sesuaikan konfigurasi rute/prosedur lepas landas."
+            return "Read back active runway change and reconfigure departure procedure and routing."
         }
         if t.contains("CANCEL LINE UP") {
-            return "Readback pembatalan instruksi line-up dan tetap hold short sebelum landasan pacu."
+            return "Read back cancellation of line-up instruction and hold short of active runway."
         }
         if t.contains("TOUCH AND GO") {
-            return "Readback izin touch-and-go di sirkuit visual."
+            return "Read back touch-and-go clearance in visual traffic circuit."
         }
         if t.contains("ORBIT") {
-            return "Readback instruksi orbit visual 360° untuk separasi trafik."
+            return "Read back 360-degree visual orbit instruction for traffic separation."
         }
         if t.contains("DOWNWIND") {
-            return "Laporkan posisi downwind leg di pola sirkuit visual."
+            return "Report downwind leg in visual aerodrome traffic pattern."
         }
         if t.contains("IFR CLEARANCE") {
-            return "Minta izin rute IFR (CRAFT clearance) ke bandara tujuan."
+            return "Request IFR route clearance (CRAFT clearance) to destination airport."
         }
         if t.contains("READBACK CLEARANCE") {
-            return "Lakukan readback lengkap seluruh variabel izin rute IFR."
+            return "Read back complete IFR route clearance items."
         }
         if t.contains("READBACK STANDBY") || t.contains("STANDBY") {
-            return "Konfirmasi status standby menunggu instruksi ATC."
+            return "Acknowledge standby status and monitor frequency for ATC instruction."
         }
         if t.contains("READBACK PUSHBACK") || t.contains("PUSHBACK") {
-            return "Readback izin start-up dan pushback dengan arah hadap pesawat."
+            return "Read back start-up and pushback clearance with designated aircraft heading."
         }
         if t.contains("READBACK TAXI") || t.contains("TAXI") {
-            return "Readback rute taxi dan kepatuhan wajib hold short runway aktif."
+            return "Read back taxi route and mandatory hold short restriction for active runway."
         }
         if t.contains("READY FOR DEPARTURE") {
-            return "Laporkan pesawat siap lepas landas di holding point runway aktif."
+            return "Report ready for departure at active runway holding point."
         }
         if t.contains("WAKE LINE UP") {
-            return "Readback line up and wait dan waspadai turbulensi vorteks (wake turbulence)."
+            return "Read back line up and wait and acknowledge wake turbulence cautionary advisory."
         }
         if t.contains("READBACK LINE UP") || t.contains("LINE UP") {
-            return "Readback instruksi line up and wait di runway aktif."
+            return "Read back line up and wait instruction on active runway."
         }
         if t.contains("READBACK CLEARED TAKEOFF") || t.contains("TAKEOFF") || t.contains("TAKE-OFF") {
-            return "Readback izin lepas landas (take-off clearance) dan nomor runway."
+            return "Read back take-off clearance and active runway designator."
         }
         if t.contains("AIRBORNE") || t.contains("DEPARTURE FREQ") {
-            return "Readback kontak frekuensi Departure Control setelah mengudara."
+            return "Read back Departure Control frequency contact upon becoming airborne."
         }
         if t.contains("CLIMB") {
-            return "Readback instruksi climb ke ketinggian jelajah dan direct waypoint."
+            return "Read back climb instruction to cruising level and direct waypoint routing."
         }
         if t.contains("REACHING") {
-            return "Laporkan pesawat telah mencapai flight level jelajah."
+            return "Report aircraft reaching assigned cruising flight level."
         }
         if t.contains("WEATHER") || t.contains("DEVIATION") {
             if lower.contains("request") {
-                return "Minta izin deviasi arah terbang untuk menghindari awan badai CB."
+                return "Request weather deviation heading to avoid convective thunderstorm clouds (CB)."
             } else if lower.contains("clear") {
-                return "Lapor telah bebas dari awan badai dan minta kembali ke rute penerbangan."
+                return "Report clear of convective weather and request to resume flight planned route."
             }
-            return "Readback persetujuan deviasi cuaca dan pembatasan jarak/arah."
+            return "Read back weather deviation approval with distance and heading limits."
         }
         if t.contains("TCAS") {
-            return "Laporkan respons manuver menghindar TCAS Resolution Advisory (TCAS RA)."
+            return "Report TCAS Resolution Advisory (TCAS RA) avoidance maneuver."
         }
         if t.contains("STAR") || t.contains("DESCENT") {
-            return "Readback izin penurunan bertahap dan rute kedatangan STAR."
+            return "Read back descent clearance and STAR arrival routing."
         }
         if t.contains("LEVEL RESTRICTION") || t.contains("SPEED") {
-            return "Readback restriksi batas ketinggian dan kecepatan di waypoint."
+            return "Read back altitude constraint and airspeed restriction at waypoint."
         }
         if t.contains("LOCALIZER") || t.contains("ESTABLISHED") {
-            return "Laporkan pesawat telah mengunci garis pemancar localizer ILS."
+            return "Report aircraft established on ILS localizer course."
         }
         if t.contains("ILS") || t.contains("APPROACH") {
-            return "Readback vektor radar intersep heading dan izin pendekatan ILS."
+            return "Read back radar vectors, intercept heading, and ILS approach clearance."
         }
         if t.contains("CLEARED TO LAND") || t.contains("LANDING") {
-            return "Readback izin mendarat (cleared to land) dan nomor runway."
+            return "Read back landing clearance and active runway designator."
         }
         if t.contains("VACATE") {
-            return "Readback instruksi keluar landasan (vacate) via taxiway dan kontak Ground."
+            return "Read back runway vacate instructions via taxiway and frequency contact to Ground."
         }
         if t.contains("CLOSE") || t.contains("SHUTDOWN") {
-            return "Lapor mesin telah dimatikan di stand/gate dan minta penutupan flight plan."
+            return "Report engines shut down at parking stand/gate and request flight plan closure."
         }
         if t.contains("GOOD DAY") {
-            return "Tutup komunikasi radio dengan ucapan baku 'good day'."
+            return "Conclude radio transmission with standard 'good day'."
         }
         if t.contains("GO-AROUND") || t.contains("GOING AROUND") {
-            return "Laksanakan manuver pembatalan pendaratan (Go-Around) demi keselamatan."
+            return "Execute and announce go-around maneuver for safety."
         }
         if t.contains("HOLDING") {
-            return "Readback instruksi holding pattern di atas fix dan level tunggu."
+            return "Read back holding pattern clearance over fix and assigned holding level."
         }
 
         // Text heuristics fallback
         if lower.contains("cleared to land") {
-            return "Readback izin mendarat (cleared to land) dan nomor runway."
+            return "Read back landing clearance and active runway designator."
         }
         if lower.contains("cleared for take-off") {
-            return "Readback izin lepas landas dan verifikasi nomor runway."
+            return "Read back take-off clearance and verify runway designator."
         }
         if lower.contains("hold short") {
-            return "Readback wajib instruksi hold short sebelum memasuki runway aktif."
+            return "Read back mandatory hold short instruction before active runway."
         }
         if lower.contains("line up and wait") {
-            return "Readback instruksi line up and wait di runway aktif."
+            return "Read back line up and wait instruction on active runway."
         }
         if lower.contains("going around") {
-            return "Laporkan pembatalan pendaratan mandiri (Go-Around) ke Tower."
+            return "Report pilot-initiated go-around to Tower."
         }
         if lower.contains("standby") || lower.contains("standing by") {
-            return "Konfirmasi status standby menunggu giliran komunikasi."
+            return "Acknowledge standby status and monitor frequency."
         }
         if lower.contains("contact") {
-            return "Readback alih kendali frekuensi ke unit ATC berikutnya."
+            return "Read back frequency handoff to next ATC unit."
         }
         if lower.contains("climb") || lower.contains("descend") {
-            return "Readback instruksi perubahan ketinggian atau flight level."
+            return "Read back altitude or flight level adjustment instruction."
         }
         if lower.contains("qnh") {
-            return "Konfirmasi pengaturan altimeter QNH dan informasi kedatangan/keberangkatan."
+            return "Acknowledge QNH altimeter setting and arrival/departure information."
         }
         if lower.contains("good day") {
-            return "Tutup komunikasi radio dengan ucapan baku."
+            return "Conclude radio communication with standard sign-off."
         }
 
-        return "Sampaikan transmisi komunikasi radio standar ICAO sesuai giliran."
+        return "Deliver standard ICAO radiotelephony transmission according to turn."
     }
 }
 
@@ -1801,7 +1801,7 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
         var output = """
         FLIGHT SCRIPT: \(origIata) → \(destIata) (\(lvlTitle))
         Callsign: \(callsign) | Aircraft: \(missionContext.aircraftType) | Squawk: \(missionContext.squawkCode)
-        Seed: \(seed) | Total Turns: \(totalExchanges) | Durasi: ~\(String(format: "%.1f", totalEstimatedDurationMinutes)) menit
+        Seed: \(seed) | Total Turns: \(totalExchanges) | Duration: ~\(String(format: "%.1f", totalEstimatedDurationMinutes)) mins
 
         [OPERATIONAL FLIGHT PLAN (OFP)]
         • Departure: \(missionContext.originAirport.icao) (\(missionContext.originAirport.name)) | Stand: \(missionContext.standOrigin) | Dep RWY: \(missionContext.depRunway.designator)
@@ -1833,11 +1833,11 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
         }
 
         if !contingencies.isEmpty {
-            output += "\n\n[SKENARIO KONTINJENSI]"
+            output += "\n\n[CONTINGENCY SCENARIOS]"
             for cont in contingencies {
                 output += "\n⚠️ [\(cont.severity.rawValue)] \(cont.title)"
-                output += "\n  Kondisi: \(cont.summary)"
-                output += "\n  Dampak: \(cont.downstreamEffect)"
+                output += "\n  Condition: \(cont.summary)"
+                output += "\n  Operational Impact: \(cont.downstreamEffect)"
             }
         }
 
@@ -1855,14 +1855,14 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                 output += "Turn \(ex.turn) | \(speakerLabel):\n"
 
                 if ex.speaker.contains("TRAFFIC") {
-                    let obj = ex.objective ?? "[MONITOR ONLY] Dengarkan transmisi pesawat lain di frekuensi yang sama. TAHAN TRANSMISI hingga frekuensi bebas."
+                    let obj = ex.objective ?? "[MONITOR ONLY] Listen to traffic on the same frequency. STAND BY and hold transmissions until frequency is clear."
                     output += "  Objective: \(obj)\n"
                 } else if ex.isUserTurn {
-                    let obj = ex.objective ?? (ex.intentPayload?.primaryIntent ?? "Lakukan transmisi komunikasi radio standar ICAO.")
+                    let obj = ex.objective ?? (ex.intentPayload?.primaryIntent ?? "Deliver standard ICAO radiotelephony transmission.")
                     output += "  Objective: \(obj)\n"
 
                     if let fourSlot = ex.fourSlotPayload, level == .level1 {
-                        output += "  [4-Slot Helper] Stasiun: \(fourSlot.station) | Callsign: \(fourSlot.callsign) | Posisi: \(fourSlot.position) | Aksi: \(fourSlot.action)\n"
+                        output += "  [4-Slot Helper] Station: \(fourSlot.station) | Callsign: \(fourSlot.callsign) | Position: \(fourSlot.position) | Action: \(fourSlot.action)\n"
                     }
                     if let hud = ex.hudPayload, level == .level4 {
                         var hudItems: [String] = []
@@ -1879,7 +1879,7 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                         if let haz = ex.hazardPayload {
                             output += "  [Cockpit Alert] ⚠️ \(haz.hazardDescription)\n"
                         } else if let pl = ex.partylinePayload, let c = pl.activeTrafficCallsign {
-                            output += "  [Status] Cockpit Mountain HUD | Trafik di Frekuensi: \(c) (\(pl.activeTrafficAircraft ?? "VHF Traffic"))\n"
+                            output += "  [Status] Cockpit Mountain HUD | Traffic on Frequency: \(c) (\(pl.activeTrafficAircraft ?? "VHF Traffic"))\n"
                         } else {
                             output += "  [Status] Cockpit Mountain HUD | VHF Partyline Active\n"
                         }
@@ -1894,7 +1894,7 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
 
                 if !ex.criticalSlots.isEmpty {
                     let items = ex.criticalSlots.map { "\($0.slot): '\($0.expectedValue)'" }.joined(separator: ", ")
-                    output += "  >> Readback Wajib: [\(items)]\n"
+                    output += "  >> Mandatory Readback: [\(items)]\n"
                 }
                 output += "\n"
             }
@@ -1902,15 +1902,15 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
 
         if let diag = diagnosticReport {
             output += """
-            --- HASIL EVALUASI & DIAGNOSTIK ---
-            Skor: \(diag.overallScore)% | Status: \(diag.isPassed ? "LULUS" : "PERLU LATIHAN ULANG")
-            • Akurasi Readback: \(diag.readbackAccuracyPercent)%
-            • Kepatuhan Fraseologi ICAO: \(diag.phraseologyScorePercent)%
-            • Ketepatan Disiplin Radio & Latensi: \(diag.disciplineScorePercent)%
-            • Ringkasan: \(diag.summaryFeedback)
+            --- EVALUATION & DIAGNOSTIC RESULTS ---
+            Score: \(diag.overallScore)% | Status: \(diag.isPassed ? "PASSED" : "NEEDS RETRAINING")
+            • Readback Accuracy: \(diag.readbackAccuracyPercent)%
+            • ICAO Phraseology Compliance: \(diag.phraseologyScorePercent)%
+            • Radio Discipline & Latency: \(diag.disciplineScorePercent)%
+            • Summary Feedback: \(diag.summaryFeedback)
             """
             if !diag.improvementAreas.isEmpty {
-                output += "\n• Catatan Perbaikan:"
+                output += "\n• Improvement Areas / Debriefing Notes:"
                 for area in diag.improvementAreas {
                     output += "\n  - \(area)"
                 }
@@ -2071,20 +2071,20 @@ public struct ATCSessionScript: Identifiable, Equatable, Sendable {
     public func exportAsPlainText() -> String {
         var output = """
         ATC SESSION SCRIPT: \(aerodrome.icao) (\(aerodrome.name))
-        Level \(level.rawValue): \(level.levelCategory) | Frekuensi: \(aerodrome.primaryFreq)
-        Seed: \(seed) | Trafik: \(trafficEntries.count) pesawat | Total Turns: \(totalExchanges) | Durasi: ~\(String(format: "%.0f", estimatedDurationMinutes)) menit
+        Level \(level.rawValue): \(level.levelCategory) | Frequency: \(aerodrome.primaryFreq)
+        Seed: \(seed) | Traffic: \(trafficEntries.count) aircraft | Total Turns: \(totalExchanges) | Duration: ~\(String(format: "%.0f", estimatedDurationMinutes)) mins
         """
         for traffic in trafficEntries {
             output += """
 
-            \n[TRAFIK \(traffic.trafficID): \(traffic.callsign) (\(traffic.aircraftType)) — \(traffic.trafficType.rawValue)]
-            Fase: \(traffic.act.title)
+            \n[TRAFFIC \(traffic.trafficID): \(traffic.callsign) (\(traffic.aircraftType)) — \(traffic.trafficType.rawValue)]
+            Phase: \(traffic.act.title)
             """
             for ex in traffic.exchanges {
                 let speakerLabel = ex.isUserTurn ? "\(ex.speaker) [USER]" : ex.speaker
                 output += "\nTurn \(ex.turn) | \(speakerLabel):\n"
                 if let obj = ex.objective {
-                    output += "  [Intensi] \(obj)\n"
+                    output += "  [Intent] \(obj)\n"
                 }
                 output += "  \"\(ex.text)\"\n"
             }
@@ -2092,11 +2092,11 @@ public struct ATCSessionScript: Identifiable, Equatable, Sendable {
         if let diag = diagnosticReport {
             output += """
 
-            \n--- HASIL EVALUASI ATC ---
-            Skor: \(diag.overallScore)% | Status: \(diag.isPassed ? "LULUS" : "PERLU LATIHAN")
-            • Akurasi Readback: \(diag.readbackAccuracyPercent)%
-            • Kepatuhan Fraseologi: \(diag.phraseologyScorePercent)%
-            • Disiplin Transmisi: \(diag.disciplineScorePercent)%
+            \n--- ATC EVALUATION RESULTS ---
+            Score: \(diag.overallScore)% | Status: \(diag.isPassed ? "PASSED" : "NEEDS PRACTICE")
+            • Readback Accuracy: \(diag.readbackAccuracyPercent)%
+            • Phraseology Compliance: \(diag.phraseologyScorePercent)%
+            • Transmission Discipline: \(diag.disciplineScorePercent)%
             """
         }
         return output

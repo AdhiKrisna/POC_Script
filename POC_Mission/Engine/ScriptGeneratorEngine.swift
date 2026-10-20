@@ -370,22 +370,22 @@ public final class ScriptGeneratorEngine {
             switch phase {
             case .preDeparture:
                 title = "Phase 1: Pre-Departure"
-                goal = "Penerimaan paket ATIS, CRAFT IFR clearance / engine start, koordinasi pushback, dan izin taxi menuju holding point."
+                goal = "ATIS reception, CRAFT IFR clearance / engine start, pushback coordination, and taxi clearance to holding point."
             case .departure:
                 title = "Phase 2: Departure"
-                goal = "Transfer frekuensi Tower, line-up and wait, izin lepas landas (take-off clearance), dan transisi airborne handoff."
+                goal = "Tower handoff, line-up and wait, take-off clearance, and airborne departure handoff."
             case .enRoute:
                 title = "Phase 3: En-Route"
-                goal = "Radar contact, position report waypoint, dynamic weather deviation (CB avoidance), dan transfer antar sektor ACC."
+                goal = "Radar contact, waypoint position reporting, en-route weather deviation (CB avoidance), and ACC sector transfers."
             case .arrival:
                 title = "Phase 4: Arrival"
-                goal = "Penerimaan ATIS kedatangan, clearance descent bertahap, STAR arrival routing, dan transfer ke Approach Control."
+                goal = "Arrival ATIS reception, stepped descent clearances, STAR arrival routing, and transfer to Approach Control."
             case .approach:
                 title = "Phase 5: Approach"
-                goal = "Otorisasi ILS / Visual Approach, laporan established di localizer, final call Tower, dan cleared to land."
+                goal = "ILS / Visual Approach clearance, localizer established report, final Tower call, and landing clearance."
             case .landing:
                 title = "Phase 6: Landing & Shutdown"
-                goal = "Instruksi keluar landasan (vacate runway), transfer ke Ground, taxi menuju gate/apron, dan penutupan flight plan."
+                goal = "Runway vacating instructions, Ground transfer, taxi to gate/apron, and flight plan closure."
             }
 
             phaseScripts.append(
@@ -1249,24 +1249,24 @@ public final class ScriptGeneratorEngine {
                 switch phase {
                 case .preDeparture:
                     title = "Phase 1: Pre-Departure"
-                    goal = "Penerimaan ATIS, \(level == .level1 ? "Engine start & local brief" : "IFR route clearance via \(sidName)"), pushback & taxi hold short."
+                    goal = "ATIS reception, \(level == .level1 ? "engine start & local briefing" : "IFR route clearance via \(sidName)"), pushback & taxi hold short."
                 case .departure:
                     title = "Phase 2: Departure"
                     goal = isFlightTerminatedEarly
-                        ? "Handoff Tower, take-off roll, dan penanganan kondisi darurat sebelum/sesaat setelah airborne."
-                        : "Handoff Tower, \(level == .level1 ? "circuit ready call" : "conditional line-up"), take-off clearance, dan airborne handoff."
+                        ? "Tower handoff, take-off roll, and ground emergency response procedures."
+                        : "Tower handoff, \(level == .level1 ? "circuit ready call" : "conditional line-up"), take-off clearance, and airborne departure handoff."
                 case .enRoute:
                     title = "Phase 3: En-Route"
-                    goal = "Radar contact, position report over waypoint, cruising level \(cruisingLevel), transfer sektor."
+                    goal = "Radar contact, position report over waypoint, cruising level \(cruisingLevel), sector transfer."
                 case .arrival:
                     title = "Phase 4: Arrival"
-                    goal = "Penerimaan ATIS kedatangan, descent clearance, rute \(starName), transfer Approach."
+                    goal = "Arrival ATIS reception, descent clearance, \(starName) routing, Approach transfer."
                 case .approach:
                     title = "Phase 5: Approach"
                     goal = "\(level == .level1 ? "Visual circuit report (downwind/final)" : "ILS approach established report"), cleared to land."
                 case .landing:
                     title = "Phase 6: Landing & Shutdown"
-                    goal = "Vacate runway via \(arrExitTaxiway) (\(arrExitDirection)), transfer Ground, taxi in ke \(standDest), penutupan flight plan."
+                    goal = "Vacate runway via \(arrExitTaxiway) (\(arrExitDirection)), transfer Ground, taxi in to \(standDest), flight plan closure."
                 }
             }
 
@@ -1302,7 +1302,7 @@ public final class ScriptGeneratorEngine {
             isPassed: act1Score >= 80,
             criticalViolations: [],
             penalties: (act1Score < 90) ? [.phoneticHesitation] : [],
-            feedback: "Kepatuhan clearance departure, verifikasi runway & hold short sesuai ICAO Doc 9432 Bab 4."
+            feedback: "Departure clearance compliance, runway verification, and hold short readback compliant with ICAO Doc 9432 Chapter 4."
         )
 
         let act2Eval = ActEvaluation(
@@ -1311,7 +1311,7 @@ public final class ScriptGeneratorEngine {
             isPassed: act2Score >= 80,
             criticalViolations: [],
             penalties: (act2Score < 85) ? [.longSilence] : [],
-            feedback: "Disiplin pelaporan posisi di fix waypoint dan kepatuhan level jelajah stabil."
+            feedback: "En-route waypoint position reporting discipline and stable cruising level compliance."
         )
 
         let act3Eval = ActEvaluation(
@@ -1320,7 +1320,7 @@ public final class ScriptGeneratorEngine {
             isPassed: act3Score >= 80,
             criticalViolations: [],
             penalties: (act3Score < 85) ? [.wordOrderTransposition] : [],
-            feedback: "Prosedur kedatangan, capture ILS / visual downwind dan vacating runway sesuai Doc 4444."
+            feedback: "Arrival procedures, ILS localizer/glideslope capture or visual circuit downwind, and runway vacating compliant with ICAO Doc 4444."
         )
 
         let actEvals = [act1Eval, act2Eval, act3Eval]
@@ -1339,12 +1339,12 @@ public final class ScriptGeneratorEngine {
             disciplineScorePercent: pttSc,
             isPassed: isPass,
             summaryFeedback: isPass
-                ? "Lulus Evaluasi Rapor Ketertiban Radio (\(finalOverall)%). Kepatuhan frasa dan verifikasi angka ICAO terpenuhi."
-                : "Evaluasi memerlukan perbaikan pada babak tertentu. Ulangi babak yang belum mencapai 80%.",
+                ? "Passed Radiotelephony Evaluation (\(finalOverall)%). ICAO standard phraseology compliance and number transmission verified."
+                : "Evaluation requires remediation in specific flight phases. Repeat acts scoring below 80%.",
             improvementAreas: [
-                "Pastikan nomor runway selalu diucapkan di awal/akhir readback izin take-off & landing (ICAO Doc 4444 Sec 12.2.3).",
-                "Perhatikan instruksi STOP IMMEDIATELY dan konfirmasi status 'stopping/aborting take-off' tanpa jeda.",
-                "Gunakan istilah baku ICAO tanpa penambahan filler kata percakapan bebas."
+                "Ensure runway designator is always stated at the start or end of take-off and landing clearance readbacks (ICAO Doc 4444 Section 12.2.3).",
+                "Acknowledge STOP IMMEDIATELY instructions and immediately confirm 'stopping/aborting take-off' without delay.",
+                "Adhere strictly to standard ICAO phraseology without inserting conversational filler words."
             ],
             actEvaluations: actEvals,
             criticalViolations: [],
@@ -1630,7 +1630,7 @@ public final class ScriptGeneratorEngine {
             pos = "Runway \(rwy) Vacated"
         }
 
-        let action = exchange.objective ?? (exchange.eventTag ?? "Laporkan pesan ke ATC")
+        let action = exchange.objective ?? (exchange.eventTag ?? "Transmit message to ATC")
         let phoneticGuide = "RWY \(rwy) [\(SpokenFormFormatter.digitWords(rwy))], QNH \(context.weather.qnh) [\(SpokenFormFormatter.digitWords(String(context.weather.qnh)))]"
         let numbersGuide: [String: String] = [
             "0": "ZE-RO", "1": "WUN", "2": "TOO", "3": "TREE", "4": "FOW-ER",
@@ -2388,8 +2388,8 @@ public final class ScriptGeneratorEngine {
                 title: "Bird Hazard on Runway (Dispersal Hold)",
                 severity: .abnormal,
                 triggerPhase: .departure,
-                summary: "Menara ATC mendeteksi kawanan burung besar di atas landasan pacu. Pesawat diinstruksikan menahan di holding point sementara armada pengusir burung bandara beroperasi.",
-                downstreamEffect: "Izin lepas landas ditunda sesaat. Setelah pemeriksaan landasan bersih, ATC menerbitkan izin take-off normal."
+                summary: "Tower detects a large flock of birds over the active runway. Aircraft is instructed to hold short at the holding point while aerodrome bird dispersal teams operate.",
+                downstreamEffect: "Take-off clearance is held temporarily. Once the runway inspection confirms all clear, ATC issues standard take-off clearance."
             )
 
         case .birdStrikeAbort:
@@ -2397,8 +2397,8 @@ public final class ScriptGeneratorEngine {
                 title: "Bird Strike on Take-off Roll (Abort)",
                 severity: .distress,
                 triggerPhase: .departure,
-                summary: "Saat melaju di landasan pada kecepatan 80 knot sebelum V1, pesawat menabrak kawanan burung pada mesin. Pilot membatalkan take-off, ATC menerbitkan STOP IMMEDIATELY.",
-                downstreamEffect: "Pesawat batal terbang. Seluruh fase berikutnya dialihkan ke penanganan darurat darat: inspeksi armada ARFF, evaluasi rem, pengosongan landasan, dan taxi ke apron pemeliharaan."
+                summary: "During the take-off roll at 80 knots prior to V1, the aircraft ingests birds into the engine. Pilot aborts take-off; ATC issues STOP IMMEDIATELY.",
+                downstreamEffect: "Flight is aborted. Subsequent phases divert to ground emergency response: ARFF inspection, brake cooling, runway evacuation, and taxi to maintenance."
             )
 
         case .emergencyLandingHold:
@@ -2406,8 +2406,8 @@ public final class ScriptGeneratorEngine {
                 title: "Inbound Emergency Priority (Hold Short / Cancel TO)",
                 severity: .urgency,
                 triggerPhase: .departure,
-                summary: "Pesawat di holding point atau line up and wait harus menunda keberangkatan karena ada pesawat komersial lain di short final mendeklarasikan MAYDAY pendaratan darurat.",
-                downstreamEffect: "Izin masuk landasan atau take-off clearance dibatalkan. Pesawat menahan di posisi aman hingga pesawat darurat mendarat selamat."
+                summary: "Aircraft at holding point or line up must hold departure due to inbound commercial aircraft on short final declaring a MAYDAY emergency landing.",
+                downstreamEffect: "Runway entry or take-off clearance is cancelled. Aircraft holds in safe position until the emergency aircraft lands safely."
             )
 
         case .runwayChange:
@@ -2415,8 +2415,8 @@ public final class ScriptGeneratorEngine {
                 title: "Runway Change Before Departure (Wind Shift 180°)",
                 severity: .abnormal,
                 triggerPhase: .preDeparture,
-                summary: "Saat taxi menuju holding point, arah angin berbalik 180 derajat. ATC membatalkan izin taxi awal dan mengalihkan runway aktif ke reciprocal.",
-                downstreamEffect: "Holding point dan runway keberangkatan diubah. Seluruh perizinan take-off menyesuaikan nomor runway baru."
+                summary: "During taxi to holding point, wind shifts 180 degrees. ATC cancels initial taxi clearance and switches active runway to reciprocal.",
+                downstreamEffect: "Departure runway and holding point change. All subsequent take-off clearances reflect the new active runway."
             )
 
         case .forgottenLandingClearancePrompt:
@@ -2424,8 +2424,8 @@ public final class ScriptGeneratorEngine {
                 title: "Late Landing Clearance (Short Final Prompt)",
                 severity: .abnormal,
                 triggerPhase: .approach,
-                summary: "Pada short final 500 ft AGL, ATC belum memberikan izin mendarat (terdistraksi/koordinasi traffic). Pilot secara proaktif memanggil konfirmasi izin mendarat. ATC menyadari keterlambatan dan menerbitkan clearance tepat sebelum decision height.",
-                downstreamEffect: "ATC meminta maaf dan segera menerbitkan 'cleared to land' dengan info angin terkini. Pilot membaca kembali izin mendarat dan melanjutkan touch-and-go / pendaratan."
+                summary: "On short final 500 ft AGL, ATC has not yet issued landing clearance due to traffic coordination. Pilot proactively prompts for landing clearance. ATC confirms and clears to land before decision height.",
+                downstreamEffect: "ATC apologizes and promptly issues 'cleared to land' with current surface wind. Pilot reads back clearance and continues approach to landing."
             )
 
         case .abortTakeoff:
@@ -2433,8 +2433,8 @@ public final class ScriptGeneratorEngine {
                 title: "Abort Take-Off (Ground Roll Stop)",
                 severity: .abnormal,
                 triggerPhase: .departure,
-                summary: "Saat pesawat melaju di landasan pada take-off roll, terdeteksi runway incursion. ATC menerbitkan instruksi 'STOP IMMEDIATELY'. Pilot membatalkan take-off sebelum V1 dan berhenti di landasan.",
-                downstreamEffect: "Pesawat batal terbang. Fase En-Route, Arrival, dan Approach dibatalkan. Pesawat backtrack dan vacate via exit taxiway menuju maintenance stand untuk inspeksi rem."
+                summary: "During take-off roll, a runway incursion is detected. ATC issues 'STOP IMMEDIATELY'. Pilot aborts take-off prior to V1 and stops on the runway.",
+                downstreamEffect: "Flight is aborted. En-Route, Arrival, and Approach phases are cancelled. Aircraft backtracks and vacates to maintenance stand for brake inspection."
             )
 
         case .efato:
@@ -2442,8 +2442,8 @@ public final class ScriptGeneratorEngine {
                 title: "EFATO (Engine Failure After Takeoff 500ft)",
                 severity: .distress,
                 triggerPhase: .departure,
-                summary: "Pada ketinggian 500 ft AGL sesaat setelah lepas landas, mesin mati mendadak. Pilot mendeklarasikan MAYDAY dan mendarat darurat lurus di sisa landasan pacu.",
-                downstreamEffect: "Fase En-Route dan Arrival dibatalkan. Pesawat mendarat darurat langsung di landasan keberangkatan, armada pemadam ARFF siaga penuh."
+                summary: "At 500 ft AGL shortly after take-off, an engine suffers sudden failure. Pilot declares MAYDAY and conducts straight-ahead emergency forced landing on remaining runway.",
+                downstreamEffect: "En-route and arrival phases cancelled. Aircraft makes immediate forced landing on departure runway with ARFF on full alert."
             )
 
         case .cancelLineUp:
@@ -2451,8 +2451,8 @@ public final class ScriptGeneratorEngine {
                 title: "Cancel Line-Up and Wait (Preceding Traffic Delay)",
                 severity: .abnormal,
                 triggerPhase: .departure,
-                summary: "Pesawat diperintahkan line up, namun dibatalkan mendadak oleh ATC karena pesawat di depan mengalami keterlambatan lepas landas.",
-                downstreamEffect: "Pilot membatalkan masuk landasan dan menahan di holding point short of runway hingga separasi terpenuhi."
+                summary: "Aircraft is instructed to line up, but clearance is abruptly cancelled by ATC due to preceding traffic departure delay.",
+                downstreamEffect: "Pilot cancels runway entry and holds short of the runway until separation is re-established."
             )
 
         case .lowPassInspection:
@@ -2460,8 +2460,8 @@ public final class ScriptGeneratorEngine {
                 title: "Low Pass Inspection (Kencana 191 Style)",
                 severity: .abnormal,
                 triggerPhase: .approach,
-                summary: "Pesawat meminta izin terbang rendah di atas landasan pacu (Low Pass) untuk kalibrasi instrumen atau inspeksi visual roda pendaratan oleh personil menara ATC.",
-                downstreamEffect: "ATC mengizinkan low pass tidak di bawah 200 ft. Setelah lewat depan menara, ATC mengonfirmasi roda terkunci dan memandu pesawat bergabung kembali ke sirkuit untuk mendarat."
+                summary: "Aircraft requests low pass over runway for tower visual landing gear inspection or flight calibration.",
+                downstreamEffect: "ATC approves low pass not below 200 ft. Tower confirms gear locked down, and aircraft rejoins circuit for landing."
             )
 
         case .weatherDeviation:
@@ -2469,8 +2469,8 @@ public final class ScriptGeneratorEngine {
                 title: "Weather Deviation En-Route (CB Avoidance)",
                 severity: .abnormal,
                 triggerPhase: .enRoute,
-                summary: "Prakiraan radar cuaca mendeteksi sel awan Cumulonimbus (CB) aktif di koridor rute. Pilot meminta deviasi 15 NM ke kanan dari jalur airway.",
-                downstreamEffect: "ATC menyetujui deviasi dan menginstruksikan pilot melapor saat dapat kembali ke navigasi mandiri direct fix."
+                summary: "Airborne weather radar detects active Cumulonimbus (CB) cloud cells along flight path. Pilot requests 15 NM right deviation off airway.",
+                downstreamEffect: "ATC approves weather deviation and instructs pilot to report when able to resume own navigation direct fix."
             )
 
         case .flapFailure:
@@ -2478,8 +2478,8 @@ public final class ScriptGeneratorEngine {
                 title: "Flap System Failure (Approach DPS PAN PAN)",
                 severity: .urgency,
                 triggerPhase: .approach,
-                summary: "Sistem flap gagal berekspansi saat mendekati Bali DPS. Pilot mendeklarasikan PAN PAN karena butuh kecepatan pendaratan tinggi 160 knot tanpa flap.",
-                downstreamEffect: "ATC memberikan prioritas straight-in approach Runway 09 tanpa holding dan menyiagakan tim keselamatan."
+                summary: "Flaps fail to extend on approach. Pilot declares PAN PAN requiring high approach speed (160 kt) for a flapless landing.",
+                downstreamEffect: "ATC grants straight-in priority approach for active runway without holding, placing safety equipment on standby."
             )
 
         case .unsafeGear:
@@ -2487,8 +2487,8 @@ public final class ScriptGeneratorEngine {
                 title: "Unsafe Landing Gear Indication (VOR Holding)",
                 severity: .urgency,
                 triggerPhase: .approach,
-                summary: "Indikator roda pendaratan tidak terkunci hijau saat final approach. Pilot melakukan go-around dan meminta holding pattern di atas VOR untuk troubleshooting checklist roda manual.",
-                downstreamEffect: "Pesawat masuk holding pattern untuk checklist darurat. Setelah tiga lampu hijau terkonfirmasi, ATC memandu radar vectors kedua untuk pendaratan."
+                summary: "Landing gear unsafe indication on final approach. Pilot executes go-around and requests holding over VOR to conduct emergency gear extension checklist.",
+                downstreamEffect: "Aircraft enters holding pattern for non-normal checklist. Once three greens confirmed, ATC provides radar vectors for second approach."
             )
 
         case .unclearedGoAround:
@@ -2496,8 +2496,8 @@ public final class ScriptGeneratorEngine {
                 title: "Uncleared Missed Approach (No Clearance Received)",
                 severity: .urgency,
                 triggerPhase: .approach,
-                summary: "Pesawat menembus batas decision height 200 ft tanpa menerima 'Cleared to Land' (runway terhalang / frekuensi tertimpa). Pilot wajib membatalkan pendaratan secara mandiri (Go-Around) demi keselamatan.",
-                downstreamEffect: "Pesawat climb missed approach procedure. ATC Approach mengambil alih pemanduan vektor radar kedua menuju final ILS untuk pendaratan kedua."
+                summary: "Aircraft reaches decision height at 200 ft without receiving landing clearance. Pilot independently initiates a go-around for flight safety.",
+                downstreamEffect: "Aircraft climbs on published missed approach procedure. Approach Radar provides vectors for second ILS approach."
             )
 
         case .midAirEngineOut:
@@ -2505,8 +2505,8 @@ public final class ScriptGeneratorEngine {
                 title: "Mid-Air Engine Failure (Diversion ASSIST)",
                 severity: .distress,
                 triggerPhase: .enRoute,
-                summary: "Di tengah rute jelajah en-route, mesin nomor 1 mengalami kegagalan mekanis. Pilot mendeklarasikan MAYDAY dan meminta rekomendasi bandara terdekat. ATC menerapkan protokol ASSIST (vektor radar ke bandara terdekat, QNH, siagakan ARFF).",
-                downstreamEffect: "Pesawat dialihkan (divert) ke bandara terdekat viable. Rute STAR reguler dibatalkan dan digantikan dengan radar vectors prioritas langsung menuju final ILS."
+                summary: "During en-route cruise, engine number 1 suffers mechanical failure. Pilot declares MAYDAY and requests nearest suitable alternate airport. ATC executes ASSIST protocol.",
+                downstreamEffect: "Flight diverts to nearest suitable airport. Standard STAR is cancelled and replaced with priority radar vectors to final approach."
             )
 
         case .holdShortCrossing:
@@ -2514,8 +2514,8 @@ public final class ScriptGeneratorEngine {
                 title: "Runway Incursion Mitigation (Hold Short Crossing)",
                 severity: .abnormal,
                 triggerPhase: .preDeparture,
-                summary: "Rute taxi menuju holding point melintasi landasan aktif saat ada pesawat mendarat. ATC menginstruksikan hold short crossing.",
-                downstreamEffect: "Pilot wajib melakukan readback hold short di persimpangan landasan aktif sebelum diberikan otorisasi crossing."
+                summary: "Taxi routing to holding point crosses an active runway while landing traffic is on short final. ATC instructs hold short crossing.",
+                downstreamEffect: "Pilot must read back mandatory hold short restriction before crossing authorization is granted."
             )
 
         case .engineFailureFinal:
@@ -2523,8 +2523,8 @@ public final class ScriptGeneratorEngine {
                 title: "Engine Failure on Final (MAYDAY 4 DME)",
                 severity: .distress,
                 triggerPhase: .approach,
-                summary: "Pada 4 DME final, mesin nomor 1 mengalami kegagalan mekanis. Pilot mendeklarasikan MAYDAY dan melanjutkan pendaratan darurat.",
-                downstreamEffect: "ATC memberikan prioritas izin mendarat darurat langsung dan menyiagakan armada ARFF di runway."
+                summary: "At 4 DME final, engine number 1 fails. Pilot declares MAYDAY and continues straight-in emergency landing.",
+                downstreamEffect: "ATC grants absolute emergency landing priority and positions ARFF vehicles along the active runway."
             )
 
         case .tcasRA:
@@ -2532,8 +2532,8 @@ public final class ScriptGeneratorEngine {
                 title: "TCAS Resolution Advisory (TCAS RA)",
                 severity: .distress,
                 triggerPhase: .enRoute,
-                summary: "Instrumen kokpit TCAS membunyikan peringatan tabrakan 'CLIMB, CLIMB'. Pilot melakukan manuver menghindar vertikal darurat mengesampingkan ATC sesaat, lalu melapor 'TCAS RA'.",
-                downstreamEffect: "Setelah 'clear of conflict', pilot meminta kembali ke cruising level dan melanjutkan navigasi normal."
+                summary: "Cockpit TCAS sounds 'CLIMB, CLIMB' Resolution Advisory. Pilot executes immediate vertical avoidance overriding ATC clearance, reporting 'TCAS RA'.",
+                downstreamEffect: "Once clear of conflict, pilot requests return to cruising level and resumes normal navigation."
             )
 
         case .rnavFailure:
@@ -2541,8 +2541,8 @@ public final class ScriptGeneratorEngine {
                 title: "RNAV / GPS Failure (Radar Vectors)",
                 severity: .abnormal,
                 triggerPhase: .arrival,
-                summary: "Sistem satelit GNSS kokpit mengalami degradasi saat kedatangan TMA. Pilot melapor 'Unable RNAV arrival'.",
-                downstreamEffect: "Prosedur kedatangan STAR satelit dibatalkan. ATC mengambil alih menggunakan vektor radar konvensional heading 250 menuju ILS."
+                summary: "Cockpit GNSS satellite positioning degrades on terminal arrival. Pilot reports 'Unable RNAV arrival'.",
+                downstreamEffect: "RNAV STAR is cancelled. ATC provides conventional radar heading vectors to intercept final approach."
             )
 
         case .parallelBreakout:
@@ -2550,8 +2550,8 @@ public final class ScriptGeneratorEngine {
                 title: "Parallel Breakout (Simultaneous ILS Hazard)",
                 severity: .distress,
                 triggerPhase: .approach,
-                summary: "Pesawat di landasan paralel memotong non-transgression zone (NTZ). ATC menerbitkan instruksi breakout darurat belok segera.",
-                downstreamEffect: "Pilot langsung berbelok tajam heading 200 climb 4.000 ft menjauhi bahaya tabrakan di jalur pendekatan paralel."
+                summary: "Aircraft on parallel runway penetrates Non-Transgression Zone (NTZ). ATC issues immediate emergency breakout turn.",
+                downstreamEffect: "Pilot immediately turns heading 200 climbing to 4,000 ft away from conflicting parallel traffic."
             )
 
         case .visualOrbitSpacing:
@@ -2559,8 +2559,8 @@ public final class ScriptGeneratorEngine {
                 title: "Visual Orbit for Spacing (360° Turn)",
                 severity: .abnormal,
                 triggerPhase: .approach,
-                summary: "Pada sirkuit visual downwind, pesawat terlalu dekat dengan traffic di depan. Tower menginstruksikan manuver putaran 360 derajat (orbit) untuk menjaga separasi.",
-                downstreamEffect: "Pilot melakukan orbit 360 derajat di posisi sebelum diizinkan belok ke base leg dan final approach."
+                summary: "In visual downwind circuit, aircraft closes in on preceding traffic. Tower instructs 360-degree orbit for spacing.",
+                downstreamEffect: "Pilot conducts 360-degree orbit at present position before turning base leg and final approach."
             )
 
         case .extendDownwind:
@@ -2568,8 +2568,8 @@ public final class ScriptGeneratorEngine {
                 title: "Extend Downwind (Traffic Spacing)",
                 severity: .abnormal,
                 triggerPhase: .approach,
-                summary: "Landasan pacu masih terisi pesawat lain yang sedang lepas landas. ATC menginstruksikan pilot memperpanjang downwind leg sebelum dipanggil untuk belok base leg.",
-                downstreamEffect: "Base turn ditunda hingga ATC memanggil 'turn base leg', pilot mempertahankan ketinggian sirkuit."
+                summary: "Active runway occupied by departing aircraft. ATC instructs pilot to extend downwind leg before turning base.",
+                downstreamEffect: "Base turn is delayed until ATC calls 'turn base leg'; pilot maintains circuit altitude."
             )
 
         case .nordoBlindTransmission:
@@ -2577,8 +2577,8 @@ public final class ScriptGeneratorEngine {
                 title: "Transmitting Blind (NORDO Receiver Fail)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
-                summary: "Radio penerima kokpit gagal menerima audio ATC. Pilot menerapkan prosedur resmi ICAO Bab 9.5: Squawk 7600 dan memancarkan laporan buta (transmitting blind) dua kali.",
-                downstreamEffect: "ATC merespons via instruksi pengamatan radar (squawk ident / lampu) dan menyiapkan lampu suar hijau (green pyrotechnic light) dari menara."
+                summary: "Cockpit radio receiver fails to receive ATC audio. Pilot squawks 7600 and conducts standard blind transmissions twice per ICAO procedures.",
+                downstreamEffect: "ATC monitors radar (squawk ident/turns) and prepares green pyrotechnic light gun signals from tower cab."
             )
 
         case .wakeTurbulenceLineUp:
@@ -2586,8 +2586,8 @@ public final class ScriptGeneratorEngine {
                 title: "Wake Turbulence Line-Up (2 Min Delay)",
                 severity: .abnormal,
                 triggerPhase: .departure,
-                summary: "Pesawat bersiap lepas landas tepat di belakang pesawat berbadan besar (Heavy B777). ATC mewajibkan jeda waktu separasi turbulensi vorteks 2 menit sebelum take-off.",
-                downstreamEffect: "Pesawat line up and wait di runway selama 2 menit penuh sebelum diizinkan take-off clearance."
+                summary: "Aircraft prepares to depart directly behind a Heavy B777. ATC applies mandatory 2-minute wake turbulence separation delay.",
+                downstreamEffect: "Aircraft lines up and waits on runway for full 2 minutes before take-off clearance is issued."
             )
 
         case .immediateTakeoffOrVacate:
@@ -2595,8 +2595,8 @@ public final class ScriptGeneratorEngine {
                 title: "Immediate Take-off or Vacate Runway",
                 severity: .abnormal,
                 triggerPhase: .departure,
-                summary: "Pesawat berada di runway saat traffic lain mendekat pada 2 NM short final. ATC memberikan pilihan cepat: take off segera tanpa jeda atau kosongkan runway.",
-                downstreamEffect: "Pilot memilih immediate take-off roll cepat untuk menjaga keselamatan arus pergerakan landasan."
+                summary: "Aircraft on runway as traffic approaches on 2 NM short final. ATC offers rapid choice: immediate take-off or vacate runway.",
+                downstreamEffect: "Pilot elects immediate take-off roll to maintain active runway traffic flow and safety."
             )
 
         case .radarAvoidingAction:
@@ -2604,8 +2604,8 @@ public final class ScriptGeneratorEngine {
                 title: "Radar Avoiding Action (Near-Miss Turn)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
-                summary: "Radar mendeteksi pesawat tak teridentifikasi berlawanan arah pada jarak 2 NM. ATC menerbitkan instruksi manuver darurat belok segera (avoiding action).",
-                downstreamEffect: "Pilot langsung berbelok tajam heading 270 menghindari tabrakan udara sebelum diizinkan kembali ke rute semula."
+                summary: "Radar detects unidentified conflicting traffic at 2 NM. ATC issues emergency avoiding action turn.",
+                downstreamEffect: "Pilot immediately executes avoiding action turn to avoid mid-air collision before resuming flight-planned route."
             )
 
         case .emergencyDescentDecompression:
@@ -2613,8 +2613,8 @@ public final class ScriptGeneratorEngine {
                 title: "Emergency Descent (Cabin Decompression)",
                 severity: .distress,
                 triggerPhase: .enRoute,
-                summary: "Kabin mengalami dekompresi mendadak di FL360. Pilot mendeklarasikan MAYDAY dan melakukan emergency descent menukik ke FL100. ATC mem-broadcast peringatan ke airway.",
-                downstreamEffect: "Pesawat menukik turun ke FL100. ATC mengosongkan jalur penerbangan di bawahnya dan mengarahkan pengalihan darurat ke bandara terdekat."
+                summary: "Rapid cabin depressurization at FL360. Pilot declares MAYDAY and initiates emergency descent to FL100.",
+                downstreamEffect: "Aircraft descends rapidly to FL100. ATC clears airspace below and coordinates emergency diversion."
             )
 
         case .impositionOfSilence:
@@ -2622,8 +2622,8 @@ public final class ScriptGeneratorEngine {
                 title: "Imposition of Silence (MAYDAY Traffic)",
                 severity: .urgency,
                 triggerPhase: .approach,
-                summary: "Frekuensi radio mengalami interferensi saat ada pesawat lain darurat. ATC membungkam seluruh stasiun dengan frasa resmi 'STOP TRANSMITTING, MAYDAY'.",
-                downstreamEffect: "Seluruh pilot wajib menjaga keheningan frekuensi radio hingga ATC menyiarkan 'DISTRESS TRAFFIC ENDED'."
+                summary: "Frequency experiencing interference during another aircraft's emergency. ATC imposes silence: 'STOP TRANSMITTING, MAYDAY'.",
+                downstreamEffect: "All aircraft maintain radio silence until ATC broadcasts 'DISTRESS TRAFFIC ENDED'."
             )
 
         case .passengerMedicalEmergency:
@@ -2631,8 +2631,8 @@ public final class ScriptGeneratorEngine {
                 title: "Medical Priority PAN PAN (Heart Attack)",
                 severity: .urgency,
                 triggerPhase: .arrival,
-                summary: "Penumpang mengalami serangan jantung kritis di kabin. Pilot mendeklarasikan PAN PAN meminta prioritas straight-in approach dan armada medis di apron.",
-                downstreamEffect: "Rute STAR dipersingkat menjadi direct final approach dengan prioritas pendaratan nomor satu dan ambulans siaga di stand."
+                summary: "Passenger suffers critical medical emergency in cabin. Pilot declares PAN PAN requesting straight-in approach priority and standby ambulance.",
+                downstreamEffect: "STAR routing is shortened to direct final approach with number one landing priority and emergency medical team on standby."
             )
 
         case .lowVisibilityRVR:
@@ -2640,8 +2640,8 @@ public final class ScriptGeneratorEngine {
                 title: "Low Visibility RVR Breakdown (Cat II ILS)",
                 severity: .abnormal,
                 triggerPhase: .approach,
-                summary: "Hujan sangat lebat menurunkan jarak pandang landasan. ATC mentransmisikan tiga nilai RVR resmi (touchdown, midpoint, stop-end).",
-                downstreamEffect: "Pilot mengonfirmasi kemampuan sistem instrumen Cat II/III dan melanjutkan pendekatan presisi ILS."
+                summary: "Heavy precipitation degrades runway visual range. ATC transmits official three-value RVR (touchdown, midpoint, stop-end).",
+                downstreamEffect: "Pilot confirms aircraft and crew Cat II/III capability and continues precision approach."
             )
 
         case .contaminatedRunwayBraking:
@@ -2649,8 +2649,8 @@ public final class ScriptGeneratorEngine {
                 title: "Contaminated Runway & Braking Action Poor",
                 severity: .abnormal,
                 triggerPhase: .approach,
-                summary: "Genangan air di landasan pacu menyebabkan risiko hydroplaning. ATC meneruskan laporan daya cengkeram rem buruk (braking action poor) dari pesawat sebelumnya.",
-                downstreamEffect: "Pilot mempersiapkan pengereman thrust reverser maksimum dan mengantisipasi jarak henti lebih panjang."
+                summary: "Standing water on runway creates hydroplaning risk. ATC relays poor braking action report from preceding aircraft.",
+                downstreamEffect: "Pilot prepares for maximum reverse thrust braking and anticipates extended landing roll."
             )
 
         // MARK: - LEVEL 2 NEW CASES
@@ -2659,8 +2659,8 @@ public final class ScriptGeneratorEngine {
                 title: "Pushback Delay (Traffic Behind - Doc 9432 Ch.4.3.1)",
                 severity: .urgency,
                 triggerPhase: .preDeparture,
-                summary: "Penundaan pushback karena ada lalu lintas taxi pesawat lain yang sedang melintas tepat di belakang stand parkir.",
-                downstreamEffect: "Pilot wajib menahan pushback di stand: 'Hold position, expect three minutes delay' hingga jalur apron steril."
+                summary: "Pushback delayed due to taxiing aircraft crossing immediately behind parking stand.",
+                downstreamEffect: "Pilot holds position on stand: 'Hold position, expect three minutes delay' until apron taxiway is clear."
             )
 
         case .stopPushback:
@@ -2668,8 +2668,8 @@ public final class ScriptGeneratorEngine {
                 title: "Stop Pushback Immediately (Doc 9432 Ch.4.3.3)",
                 severity: .urgency,
                 triggerPhase: .preDeparture,
-                summary: "Pembatalan pushback mendadak oleh ATC Ground karena ada pergerakan kendaraan apron liar yang memotong jalur dorong.",
-                downstreamEffect: "ATC menerbitkan: 'STOP PUSHBACK IMMEDIATELY'. Pilot mengonfirmasi rem dipasang dan pushback berhenti seketika."
+                summary: "ATC Ground abruptly halts pushback due to unauthorized apron ground vehicle crossing tug path.",
+                downstreamEffect: "ATC instructs: 'STOP PUSHBACK IMMEDIATELY'. Pilot confirms brakes set and pushback halts at once."
             )
 
         case .unableAltitude:
@@ -2677,8 +2677,8 @@ public final class ScriptGeneratorEngine {
                 title: "Unable Altitude Profile (Aircraft Performance - Doc 9432 Ch.2.6)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
-                summary: "ATC menginstruksikan percepatan laju tanjak melewati waypoint, namun pesawat dengan bobot penuh tidak sanggup memenuhi gradien tanjak.",
-                downstreamEffect: "Pilot wajib menolak izin menggunakan kata sakral: 'UNABLE FL... due performance, request maintain lower level'."
+                summary: "ATC instructs expedited climb through waypoint, but heavily loaded aircraft cannot meet climb gradient due to performance limits.",
+                downstreamEffect: "Pilot must reject clearance with standard phraseology: 'UNABLE FL... due performance, request maintain lower level'."
             )
 
         case .holdShortExact:
@@ -2686,8 +2686,8 @@ public final class ScriptGeneratorEngine {
                 title: "Hold Short Mandatory Readback (Doc 4444 Ch.4.5.7.5b)",
                 severity: .abnormal,
                 triggerPhase: .preDeparture,
-                summary: "Instruksi taxi menuju batas aman holding point yang mewajibkan penegasan ulang batas berhenti landasan aktif.",
-                downstreamEffect: "Pilot me-readback titik batas 'HOLD SHORT' secara presisi tanpa melanggar garis marka pembatas."
+                summary: "Taxi instruction to holding point requiring explicit readback of mandatory runway hold short restriction.",
+                downstreamEffect: "Pilot reads back exact 'HOLD SHORT' restriction without crossing runway boundary markings."
             )
 
         // MARK: - LEVEL 3 NEW CASES
@@ -2696,8 +2696,8 @@ public final class ScriptGeneratorEngine {
                 title: "Runway Backtrack Maneuver (Doc 9432 Ch.4.4.2)",
                 severity: .abnormal,
                 triggerPhase: .departure,
-                summary: "Bandara tanpa parallel taxiway penuh menuntut pesawat memasuki landasan dan berputar 180 derajat di turning loop ujung landasan.",
-                downstreamEffect: "Pilot melakukan backtrack dan line up and wait di ujung landasan aktif dengan disiplin waktu tinggi."
+                summary: "Aerodrome without full parallel taxiway requires aircraft to enter active runway and backtrack 180 degrees in turning loop.",
+                downstreamEffect: "Pilot executes backtrack, lines up, and waits at runway threshold with high time discipline."
             )
 
         case .conditionalLineUp:
@@ -2705,8 +2705,8 @@ public final class ScriptGeneratorEngine {
                 title: "Conditional Line-Up and Wait (Doc 9432 Ch.4.5.7)",
                 severity: .abnormal,
                 triggerPhase: .departure,
-                summary: "Izin masuk landasan bersyarat di belakang pesawat yang sedang mendarat di short final.",
-                downstreamEffect: "Pilot mengidentifikasi pesawat pendarat sebelum meluncur masuk ke landasan pacu: 'Behind landing Boeing 737, line up and wait runway...'."
+                summary: "Conditional line-up clearance issued behind landing traffic on short final.",
+                downstreamEffect: "Pilot identifies landing aircraft before entering runway: 'Behind landing Boeing 737, line up and wait runway...'."
             )
 
         case .holdingPatternEAT:
@@ -2714,8 +2714,8 @@ public final class ScriptGeneratorEngine {
                 title: "Holding Pattern & EAT (Doc 4444 Ch.5.5)",
                 severity: .abnormal,
                 triggerPhase: .enRoute,
-                summary: "Kepadatan lalu lintas di bandara kedatangan memicu perintah holding di atas fix/VOR dengan estimasi waktu pendekatan (Expected Approach Time).",
-                downstreamEffect: "Pilot me-readback titik hold, inbound track, arah putaran, level, dan waktu EAT."
+                summary: "Heavy terminal arrival congestion requires holding over navigation fix with assigned Expected Approach Time (EAT).",
+                downstreamEffect: "Pilot reads back holding fix, inbound track, turn direction, level, and assigned EAT."
             )
 
         case .delayingVectorOrbit:
@@ -2723,8 +2723,8 @@ public final class ScriptGeneratorEngine {
                 title: "Delaying Vector / Orbit (Doc 9432 Ch.4.6.5)",
                 severity: .abnormal,
                 triggerPhase: .approach,
-                summary: "ATC memberikan putaran tunda 360 derajat (orbit) atau vektor radar tambahan untuk mengatur separasi kedatangan.",
-                downstreamEffect: "Pesawat melakukan 360° turn sebelum diarahkan kembali ke jalur pendekatan final."
+                summary: "ATC issues 360-degree delaying orbit or radar vectors for arrival traffic sequencing.",
+                downstreamEffect: "Aircraft performs 360-degree orbit before being vectored back to final approach course."
             )
 
         case .continueApproachShortFinal:
@@ -2732,8 +2732,8 @@ public final class ScriptGeneratorEngine {
                 title: "Continue Approach on Short Final (Doc 9432 Ch.4.7.1)",
                 severity: .abnormal,
                 triggerPhase: .landing,
-                summary: "Menunda izin mendarat di short final karena pesawat di depan lambat keluar landasan.",
-                downstreamEffect: "Pilot mempertahankan pendekatan dan me-readback 'CONTINUE APPROACH' hingga izin pendaratan terbit."
+                summary: "Landing clearance delayed on short final due to preceding traffic slow to vacate active runway.",
+                downstreamEffect: "Pilot maintains approach and reads back 'CONTINUE APPROACH' until landing clearance is issued."
             )
 
         case .lightGunSignals:
@@ -2741,8 +2741,8 @@ public final class ScriptGeneratorEngine {
                 title: "Light Gun Signals (Ground Comms Failure - Doc 4444 Ch.7.16)",
                 severity: .abnormal,
                 triggerPhase: .landing,
-                summary: "Hilang komunikasi radio di darat, pilot mengamati tembakan pistol lampu hijau/merah dari menara ATC.",
-                downstreamEffect: "Pilot mengonfirmasi izin taksi/mendarat via kilatan lampu suar kontrol menara."
+                summary: "Total radio communication failure on ground; pilot watches for red/green light gun signals from tower cab.",
+                downstreamEffect: "Pilot confirms taxi/landing clearances via tower light gun flash signals."
             )
 
         // MARK: - LEVEL 4 NEW CASES
@@ -2751,8 +2751,8 @@ public final class ScriptGeneratorEngine {
                 title: "CTOT Slot Management (ATFM Delay - Doc 4444 Ch 3)",
                 severity: .abnormal,
                 triggerPhase: .preDeparture,
-                summary: "Kepatuhan slot waktu keberangkatan ATFM yang sangat ketat untuk menghindari penumpukan di koridor udara padat.",
-                downstreamEffect: "Koordinasi waktu start-up dengan toleransi slot CTOT -5 / +10 menit."
+                summary: "Strict ATFM departure slot compliance to prevent airway corridor congestion.",
+                downstreamEffect: "Start-up time coordination adhering strictly to CTOT slot tolerance (-5 / +10 minutes)."
             )
 
         case .callsignConfusion:
@@ -2760,8 +2760,8 @@ public final class ScriptGeneratorEngine {
                 title: "Callsign Confusion Vigilance (Doc 9432 Ch.2.7.2)",
                 severity: .abnormal,
                 triggerPhase: .departure,
-                summary: "Dua pesawat di frekuensi yang sama memiliki nomor penerbangan mirip. Siswa harus waspada menyaring panggilan suara.",
-                downstreamEffect: "Siswa menolak instruksi yang bukan untuk dirinya menggunakan frasa baku: 'NEGATIVE, confirm instruction for...'."
+                summary: "Two aircraft on same frequency share similar flight numbers. Trainee must exercise selective listening.",
+                downstreamEffect: "Trainee rejects misdirected clearances with standard phraseology: 'NEGATIVE, confirm instruction for...'."
             )
 
         case .slopOceanic:
@@ -2769,8 +2769,8 @@ public final class ScriptGeneratorEngine {
                 title: "Strategic Lateral Offset (SLOP - Doc 4444 Ch.16.5)",
                 severity: .abnormal,
                 triggerPhase: .enRoute,
-                summary: "Penggeseran jalur lateral acak 1-2 NM ke kanan sumbu rute untuk mitigasi turbulensi vorteks dan risiko tabrakan di jalur tanpa radar.",
-                downstreamEffect: "Pilot melapor eksekusi SLOP 1 NM right of track di koridor jelajah."
+                summary: "Strategic Lateral Offset Procedure of 1-2 NM right of centerline for wake turbulence and collision risk mitigation.",
+                downstreamEffect: "Pilot reports executing SLOP 1 NM right of track in cruise corridor."
             )
 
         case .fuelDumping:
@@ -2778,8 +2778,8 @@ public final class ScriptGeneratorEngine {
                 title: "Fuel Dumping Procedure (Doc 9432 Ch.11.2)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
-                summary: "Pembuangan bahan bakar avtur di ketinggian aman untuk mengurangi bobot pesawat sebelum pendaratan darurat.",
-                downstreamEffect: "ATC menetapkan area pembuangan bahan bakar dan menyiarkan peringatan ke pesawat lain di sekitarnya."
+                summary: "Fuel jettison procedure at safe altitude to reduce landing weight prior to emergency landing.",
+                downstreamEffect: "ATC designates fuel dumping area and broadcasts safety advisories to nearby traffic."
             )
 
         case .communicableDiseases:
@@ -2787,8 +2787,8 @@ public final class ScriptGeneratorEngine {
                 title: "Communicable Disease Report (Doc 4444 Ch.16.6)",
                 severity: .urgency,
                 triggerPhase: .arrival,
-                summary: "Pelaporan penumpang diduga mengidap penyakit menular sebelum mendarat sesuai regulasi karantina kesehatan internasional.",
-                downstreamEffect: "ATC menyiagakan otoritas karantina bandara dan mengarahkan parkir di stand isolasi khusus."
+                summary: "Report of suspected communicable disease on board prior to arrival per international health regulations.",
+                downstreamEffect: "ATC alerts airport health quarantine authorities and directs aircraft to designated isolation stand."
             )
 
         case .blownTireLanding:
@@ -2796,8 +2796,8 @@ public final class ScriptGeneratorEngine {
                 title: "Blown Tire Blocking Runway (Doc 4444 Ch.15.1)",
                 severity: .urgency,
                 triggerPhase: .landing,
-                summary: "Ban pecah saat mendarat memblokir landasan pacu. Pesawat berhenti darurat dan melapor ke Tower.",
-                downstreamEffect: "Runway ditutup sesaat, armada ARFF memeriksa serpihan karet ban dan membantu penarikan pesawat."
+                summary: "Blown tire on landing roll disables aircraft on active runway. Aircraft comes to emergency stop and reports to Tower.",
+                downstreamEffect: "Runway closed temporarily; ARFF inspects tire debris and coordinates towing operations."
             )
 
         case .hotBrakesInspection:
@@ -2805,8 +2805,8 @@ public final class ScriptGeneratorEngine {
                 title: "Hot Brakes Inspection on Taxiway (Doc 9432 Ch.4.10)",
                 severity: .urgency,
                 triggerPhase: .landing,
-                summary: "Pengereman darurat menyebabkan panas rem roda ekstrem berisiko meledak.",
-                downstreamEffect: "Pesawat berhenti di taxiway terbuka dan menunggu tim pemadam menyemprotkan pendingin."
+                summary: "Emergency braking creates extreme wheel brake temperatures and fire risk.",
+                downstreamEffect: "Aircraft stops on open taxiway awaiting fire rescue team to apply cooling."
             )
 
         case .airborneCommsFailure:
@@ -2814,8 +2814,8 @@ public final class ScriptGeneratorEngine {
                 title: "Airborne Comms Failure / Squawk 7600 (Doc 4444 Ch.15.3)",
                 severity: .urgency,
                 triggerPhase: .approach,
-                summary: "Hilang kontak radio di wilayah terminal/udara. Pilot menyetel transponder 7600 dan melanjutkan pendekatan instrumen baku.",
-                downstreamEffect: "ATC mengosongkan jalur pendekatan dan memandu via pengamatan radar visual."
+                summary: "Radio communication failure in terminal/airborne airspace. Pilot sets transponder code 7600 and follows standard instrument approach.",
+                downstreamEffect: "ATC clears approach corridor and provides radar monitoring."
             )
 
         // MARK: - LEVEL 5 NEW CASES
@@ -2824,8 +2824,8 @@ public final class ScriptGeneratorEngine {
                 title: "Pilot-Initiated Go-Around (Runway Obstruction - Doc 9432 Ch.4.8.3)",
                 severity: .urgency,
                 triggerPhase: .landing,
-                summary: "Tower memberi izin mendarat namun ada kendaraan patroli masuk landasan. Pilot secara mandiri membatalkan pendaratan.",
-                downstreamEffect: "Pilot menekan PTT refleks: 'GOING AROUND, vehicle on runway' dan menanjak missed approach."
+                summary: "Tower cleared to land, but ground vehicle enters runway. Pilot independently executes a go-around.",
+                downstreamEffect: "Pilot keys mic: 'GOING AROUND, vehicle on runway' and initiates published missed approach."
             )
 
         case .gpwsTerrainAvoidance:
@@ -2833,8 +2833,8 @@ public final class ScriptGeneratorEngine {
                 title: "GPWS Terrain Avoidance (UNABLE Heading - Doc 4444 Ch.15.7.4)",
                 severity: .urgency,
                 triggerPhase: .approach,
-                summary: "Vektor ATC mengarah ke tebing gunung di lembah. Pilot menolak izin demi keselamatan.",
-                downstreamEffect: "Pilot menyatakan: 'UNABLE heading... due terrain' dan langsung naik menanjak aman."
+                summary: "ATC radar vector directs aircraft toward mountainous valley terrain. Pilot rejects clearance for safety.",
+                downstreamEffect: "Pilot asserts: 'UNABLE heading... due terrain' and immediately climbs to safe altitude."
             )
 
         case .windShearMicroburst:
@@ -2842,8 +2842,8 @@ public final class ScriptGeneratorEngine {
                 title: "Severe Wind Shear Microburst (Doc 9432 Ch.11.4)",
                 severity: .urgency,
                 triggerPhase: .approach,
-                summary: "Deteksi geseran angin ekstrem di jalur final approach pegunungan.",
-                downstreamEffect: "Pilot mengeksekusi escape maneuver dan melapor wind shear gain/loss of airspeed ke menara."
+                summary: "Detection of severe microburst wind shear on mountainous final approach course.",
+                downstreamEffect: "Pilot executes escape maneuver and reports airspeed gain/loss to tower."
             )
 
         case .fuelEmergencyMayday:
@@ -2851,8 +2851,8 @@ public final class ScriptGeneratorEngine {
                 title: "MINIMUM FUEL vs MAYDAY FUEL (Doc 4444 Ch.15.5.4)",
                 severity: .distress,
                 triggerPhase: .arrival,
-                summary: "Bahan bakar cadangan kritis menyentuh batas final reserve. Pilot mendeklarasikan MAYDAY FUEL.",
-                downstreamEffect: "ATC memberikan prioritas pendaratan nomor satu langsung direct final runway."
+                summary: "Usable fuel reaches critical final reserve limits. Pilot declares MAYDAY FUEL.",
+                downstreamEffect: "ATC grants absolute number one priority direct final to active runway."
             )
 
         case .volcanicAshAvoidance:
@@ -2860,8 +2860,8 @@ public final class ScriptGeneratorEngine {
                 title: "Volcanic Ash Avoidance (Doc 4444 Ch.15.8)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
-                summary: "Awan abu vulkanik pekat terdeteksi di rute penerbangan. Pilot meminta deviasi darurat menjauhi plume abu.",
-                downstreamEffect: "ATC segera menyetujui deviasi darurat dan meneruskan SIGMET abu vulkanik ke stasiun lain."
+                summary: "Dense volcanic ash plume detected along flight route. Pilot requests emergency deviation clear of ash.",
+                downstreamEffect: "ATC approves emergency deviation immediately and broadcasts volcanic ash SIGMET to all stations."
             )
 
         case .runwayExcursionARFF:
@@ -2869,8 +2869,8 @@ public final class ScriptGeneratorEngine {
                 title: "Runway Excursion / ARFF Alerting (Doc 4444 Ch.9.2, Ch.15.1)",
                 severity: .distress,
                 triggerPhase: .landing,
-                summary: "Pesawat tergelincir ke rerumputan basah saat pendaratan di landasan pendek lembah.",
-                downstreamEffect: "Menara membunyikan crash bell (DETRESFA) dan mengerahkan seluruh armada pertolongan darurat pemadam."
+                summary: "Aircraft overruns short valley runway onto wet grass on landing roll.",
+                downstreamEffect: "Tower sounds crash bell (DETRESFA) and deploys full ARFF response units."
             )
 
         case .hijack7500:
@@ -2878,8 +2878,8 @@ public final class ScriptGeneratorEngine {
                 title: "Unlawful Interference / Squawk 7500 (Doc 4444 Ch.15.1.3)",
                 severity: .distress,
                 triggerPhase: .enRoute,
-                summary: "Pemberitahuan pembajakan pesawat udara secara diskret via kode transponder 7500.",
-                downstreamEffect: "ATC merespons dengan fraseologi diskret dan mengkoordinasikan keamanan pertahanan militer."
+                summary: "Unlawful interference discreetly notified via transponder code 7500.",
+                downstreamEffect: "ATC responds with discrete phraseology and coordinates air defense military interception."
             )
 
         case .militaryInterception:
@@ -2887,8 +2887,8 @@ public final class ScriptGeneratorEngine {
                 title: "Military Interception (WILCO - Doc 4444 Ch.15.4)",
                 severity: .urgency,
                 triggerPhase: .enRoute,
-                summary: "Pesawat diintersepsi oleh jet tempur militer di wilayah udara sensitif.",
-                downstreamEffect: "Pilot mematuhi sinyal visual pesawat pencegat dan merespons via frekuensi darurat 121.5 MHz: 'WILCO'."
+                summary: "Aircraft intercepted by military fighter jets in sensitive airspace.",
+                downstreamEffect: "Pilot adheres to visual signals of interceptor and responds on 121.5 MHz: 'WILCO'."
             )
 
         }
@@ -2919,7 +2919,7 @@ public final class ScriptGeneratorEngine {
         case .enRoute:
             if isAbort {
                 title = "Phase 3: Runway Assessment & Brake Inspection"
-                goal = "Koordinasi darat di runway pasca-abort, penilaian suhu rem panas (hot brakes), dan instruksi penahanan lalu lintas di final."
+                goal = "Post-abort ground coordination on runway, hot brakes temperature assessment, and final traffic hold instructions."
 
                 exchanges.append(FilledExchange(
                     exchangeID: "ABT-P3-1", templateID: "ABT-P3", turn: currentGlobalTurn, speaker: "ATC",
@@ -2961,7 +2961,7 @@ public final class ScriptGeneratorEngine {
                 currentGlobalTurn += 1
             } else {
                 title = "Phase 3: Immediate Ground Safety & Evacuation Assessment"
-                goal = "Pengamanan pesawat di runway pasca-EFATO forced landing, evaluasi kebocoran bahan bakar, dan konfirmasi kondisi penumpang."
+                goal = "Aircraft securing on runway post-EFATO forced landing, fuel leak assessment, and passenger status confirmation."
 
                 exchanges.append(FilledExchange(
                     exchangeID: "EFA-P3-1", templateID: "EFA-P3", turn: currentGlobalTurn, speaker: "ATC",
@@ -3006,7 +3006,7 @@ public final class ScriptGeneratorEngine {
         case .arrival:
             if isAbort {
                 title = "Phase 4: ARFF & Safety Operations Escort"
-                goal = "Inspeksi eksternal visual roda dan rem oleh armada ARFF (Tender One), konfirmasi tidak ada deflasi ban atau kebocoran hidrolik."
+                goal = "Visual external wheel and brake inspection by ARFF units (Tender One), confirmation of no tire deflation or hydraulic leaks."
 
                 exchanges.append(FilledExchange(
                     exchangeID: "ABT-P4-1", templateID: "ABT-P4", turn: currentGlobalTurn, speaker: "ATC",
@@ -3047,7 +3047,7 @@ public final class ScriptGeneratorEngine {
                 currentGlobalTurn += 1
             } else {
                 title = "Phase 4: Crash Site Containment & Runway Sterilization"
-                goal = "Koordinasi pengamanan lokasi insiden oleh Chief Fire Officer, sterilisasi debris, dan penyiapan evakuasi airframe."
+                goal = "Incident scene securing by Chief Fire Officer, debris sterilization, and airframe evacuation preparations."
 
                 exchanges.append(FilledExchange(
                     exchangeID: "EFA-P4-1", templateID: "EFA-P4", turn: currentGlobalTurn, speaker: "ATC",
@@ -3091,7 +3091,7 @@ public final class ScriptGeneratorEngine {
         case .approach:
             if isAbort {
                 title = "Phase 5: Runway Vacated & Aerodrome Reopening"
-                goal = "Laporan pengosongan landasan pacu, pembukaan kembali landasan untuk trafik, dan transfer ke frekuensi Ground."
+                goal = "Runway vacate report, active runway reopening for traffic, and transfer to Ground frequency."
 
                 exchanges.append(FilledExchange(
                     exchangeID: "ABT-P5-1", templateID: "ABT-P5", turn: currentGlobalTurn, speaker: "ATC",
@@ -3151,7 +3151,7 @@ public final class ScriptGeneratorEngine {
                 currentGlobalTurn += 1
             } else {
                 title = "Phase 5: Airfield NOTAM & Runway Closure Coordination"
-                goal = "Penerbitan NOTAM penutupan aerodrome sementara, pengalihan penerbangan masuk (inbound holding/diversion)."
+                goal = "Issuance of temporary aerodrome closure NOTAM, inbound flight diversions and holdings."
 
                 exchanges.append(FilledExchange(
                     exchangeID: "EFA-P5-1", templateID: "EFA-P5", turn: currentGlobalTurn, speaker: "ATC",
@@ -3195,7 +3195,7 @@ public final class ScriptGeneratorEngine {
         case .landing:
             if isAbort {
                 title = "Phase 6: Maintenance Stand & Flight Plan Cancellation"
-                goal = "Parkir di stand perawatan teknis, pendinginan rem total, dan penutupan/pembatalan resmi flight plan."
+                goal = "Parking at technical maintenance stand, complete brake cooling, and official flight plan closure."
 
                 exchanges.append(FilledExchange(
                     exchangeID: "ABT-P6-1", templateID: "ABT-P6", turn: currentGlobalTurn, speaker: "ATC",
@@ -3236,7 +3236,7 @@ public final class ScriptGeneratorEngine {
                 currentGlobalTurn += 1
             } else {
                 title = "Phase 6: Accident Investigation Handover & Official Filing"
-                goal = "Serah terima lokasi kejadian kepada tim investigasi kecelakaan (KNKT/DGCA) dan penutupan resmi rencana penerbangan."
+                goal = "Handover of incident scene to accident investigation team (KNKT/DGCA) and official flight plan cancellation."
 
                 exchanges.append(FilledExchange(
                     exchangeID: "EFA-P6-1", templateID: "EFA-P6", turn: currentGlobalTurn, speaker: "ATC",
@@ -3454,7 +3454,7 @@ public final class ScriptGeneratorEngine {
                     CriticalSlot(slot: "DESTINATION", expectedValue: destName, type: "mandatoryAirport"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                 ], severity: .normal, eventTag: "IFR CLEARANCE REQ",
-                objective: "Frekuensi kini telah bebas (Silence observed). Minta izin rute IFR ke bandara tujuan."
+                objective: "Frequency is now clear (Radio silence observed). Request IFR route clearance to destination airport."
             ))
             globalTurn += 1
 
@@ -5926,7 +5926,7 @@ public final class ScriptGeneratorEngine {
                     CriticalSlot(slot: "MISSED_APPROACH", expectedValue: "missed approach", type: "mandatoryKeyword"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                 ], severity: .urgency, eventTag: "MISSED APPROACH CHECK-IN",
-                objective: "Hubungi Approach Control, laporkan ketinggian saat ini dan konfirmasi pelaksanaan missed approach."
+                objective: "Contact Approach Control, report passing altitude and confirm executing missed approach procedure."
             ))
             globalTurn += 1
 
@@ -7104,19 +7104,19 @@ public final class ScriptGeneratorEngine {
             ActEvaluation(
                 act: .act1Departure,
                 score: act1Score, isPassed: act1Score >= 80,
-                feedback: "Startup approval, taxi clearance, hold short readback, dan handoff Tower (\(act1Entries.count) pesawat)."
+                feedback: "Startup approval, taxi clearance, hold short readback, and Tower handoff (\(act1Entries.count) aircraft)."
             ),
             ActEvaluation(
                 act: .act2EnRoute,
                 score: act2Score, isPassed: act2Score >= 80,
                 feedback: act2Entries.isEmpty
-                    ? "Tidak ada traffic transit di level ini."
-                    : "Koordinasi sektor, conditional separation, relay posisi (\(act2Entries.count) pesawat)."
+                    ? "No transit traffic in this scenario."
+                    : "Sector coordination, conditional separation, and position relays (\(act2Entries.count) aircraft)."
             ),
             ActEvaluation(
                 act: .act3Arrival,
                 score: act3Score, isPassed: act3Score >= 80,
-                feedback: "Sequencing arrival, landing clearance, vacate instructions, emergency priority (\(act3Entries.count) pesawat)."
+                feedback: "Arrival sequencing, landing clearance, runway vacating instructions, and emergency priority handling (\(act3Entries.count) aircraft)."
             )
         ]
 
@@ -7127,12 +7127,12 @@ public final class ScriptGeneratorEngine {
             disciplineScorePercent: 83 + (abs(chosenSeed) % 14),
             isPassed: overallScore >= 80,
             summaryFeedback: overallScore >= 80
-                ? "Sesi ATC \(aerodromeItem.iata) lulus (\(overallScore)%). Seluruh traffic ditangani sesuai ICAO Doc 4444 & 9432."
-                : "Perlu latihan ulang: pastikan readback hold short dan urutan pemanggilan bebas blocking.",
+                ? "ATC session at \(aerodromeItem.iata) passed (\(overallScore)%). All traffic managed in compliance with ICAO Doc 4444 & Doc 9432."
+                : "Needs retraining: ensure prompt hold short verifications and conflict-free calling sequences.",
             improvementAreas: [
-                "Pastikan setiap taxi clearance mencakup nama taxiway dan instruksi hold short secara eksplisit (Doc 4444 Ch.7.9).",
-                "Gunakan callsign lengkap di transmisi pertama, singkatan hanya setelah ditetapkan dua arah (Doc 9432 Ch.4.3).",
-                "Saat plain English digunakan (emergencies), tetap gunakan kata jangkar CLEARED, AFFIRM, NEGATIVE (Doc 9432 Ch.2.6)."
+                "Ensure every taxi clearance explicitly includes taxiway routing and mandatory hold short instructions (Doc 4444 Ch.7.9).",
+                "Use full callsign on initial contact; abbreviate only after two-way communication is established (Doc 9432 Ch.4.3).",
+                "When plain English is required during emergencies, maintain core operational anchor words: CLEARED, AFFIRM, NEGATIVE (Doc 9432 Ch.2.6)."
             ],
             actEvaluations: actEvals
         )
@@ -7201,7 +7201,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(ex("DEP-2", speaker: "GROUND (USER TURN)", isUserTurn: true,
                 text: "\(callsign), \(groundCallsign), start-up approved, QNH \(qnh), information \(atisId).",
                 criticalSlots: [CriticalSlot(slot: "QNH", expectedValue: qnh, type: "mandatoryReadback")],
-                objective: "Setujui permintaan start-up mesin, infokan QNH dan konfirmasi kode ATIS."))
+                objective: "Approve engine start-up request, state QNH, and acknowledge ATIS designator."))
             // Pilot reads back QNH
             exchanges.append(ex("DEP-3", speaker: callsign, isUserTurn: false,
                 text: "Start-up approved, QNH \(qnh), \(callsign)."))
@@ -7215,7 +7215,7 @@ public final class ScriptGeneratorEngine {
                     CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "mandatoryReadback"),
                     CriticalSlot(slot: "HOLD_SHORT", expectedValue: "hold short runway \(rwy)", type: "instantFail")
                 ],
-                objective: "Berikan rute taxi ke holding point via taxiway dan instruksikan hold short sebelum runway aktif."))
+                objective: "Issue taxi clearance to holding point via taxiway and instruct hold short before active runway."))
 
             // Hearback Error / Slip of the tongue challenge (Riza Januar / @sangpemandu style)
             let hasHearbackTaxi = (level >= .level2 && abs(seed) % 3 == 1)
@@ -7232,7 +7232,7 @@ public final class ScriptGeneratorEngine {
                         CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")
                     ],
                     severity: .abnormal, eventTag: "ATC HEARBACK CORRECTION",
-                    objective: "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan sebutkan nomor runway yang benar (Doc 9432 Ch.2.8.3.9)."))
+                    objective: "Correct pilot readback error (slip of the tongue): assert NEGATIVE I SAY AGAIN and restate correct runway designator (Doc 9432 Ch.2.8.3.9)."))
 
                 exchanges.append(ex("DEP-6-ACK", speaker: callsign, isUserTurn: false,
                     text: "Hold short runway \(rwy), apologies, \(callsign)."))
@@ -7251,8 +7251,8 @@ public final class ScriptGeneratorEngine {
                 ? "\(callsign), \(towerCallsign), runway \(rwy), line up and wait."
                 : "\(callsign), \(towerCallsign), wind \(wind), runway \(rwy), cleared for take-off."
             let lineUpObjective = isLineUp
-                ? "Instruksikan pesawat masuk dan menunggu di landasan (line up and wait) karena ada lalu lintas."
-                : "Berikan izin lepas landas (take-off clearance) beserta informasi arah dan kecepatan angin permukaan."
+                ? "Instruct aircraft to line up and wait on active runway due to traffic spacing."
+                : "Issue take-off clearance with surface wind direction and speed."
             exchanges.append(ex("DEP-8", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: lineUpOrTO,
                 criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
@@ -7273,7 +7273,7 @@ public final class ScriptGeneratorEngine {
                         CriticalSlot(slot: "HOLD_POSITION", expectedValue: "hold position", type: "mandatoryKeyword")
                     ],
                     severity: .abnormal, eventTag: "CALLSIGN CONFUSION CORRECTION",
-                    objective: "Intersepsi kerancuan callsign (similar callsign confusion): tegur pesawat yang salah ambil izin dengan NEGATIVE dan instruksikan hold position (Doc 9432 Ch.4.3.2)."))
+                    objective: "Intercept similar callsign confusion: challenge incorrect aircraft transmission with NEGATIVE and instruct to hold position (Doc 9432 Ch.4.3.2)."))
 
                 exchanges.append(ex("DEP-9-CONFUSED-ACK", speaker: confusedCallsign, isUserTurn: false,
                     text: "Holding position, apologies, \(confusedCallsign)."))
@@ -7299,7 +7299,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(ex("DEP-10", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(callsign), airborne, contact \(depRadarTarget) \(depRadarFreqSpoken), good day.",
                 criticalSlots: [],
-                objective: "Konfirmasi pesawat telah mengudara (airborne) dan alihkan kendali ke \(depRadarTarget)."))
+                objective: "Confirm aircraft airborne and transfer control to \(depRadarTarget)."))
             exchanges.append(ex("DEP-11", speaker: callsign, isUserTurn: false,
                 text: "Contacting \(depRadarTarget) \(depRadarFreqSpoken), good day, \(callsign)."))
 
@@ -7312,7 +7312,7 @@ public final class ScriptGeneratorEngine {
             let spacing = (abs(seed) % 2 == 0) ? "Number two, follow the \(aircraftType) on final." : "Number one, runway \(rwy)."
             exchanges.append(ex("TNG-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(callsign), \(towerCallsign), \(spacing)",
-                objective: "Atur urutan pendekatan sirkuit visual (traffic sequencing & spacing)."))
+                objective: "Manage visual circuit arrival sequence and spacing (traffic sequencing)."))
             // Aircraft on base
             exchanges.append(ex("TNG-3", speaker: callsign, isUserTurn: false,
                 text: "\(callsign), base runway \(rwy)."))
@@ -7320,7 +7320,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(ex("TNG-4", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(callsign), \(towerCallsign), wind \(wind), runway \(rwy), cleared touch and go.",
                 criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
-                objective: "Berikan izin touch-and-go di landasan aktif beserta info angin permukaan."))
+                objective: "Issue touch-and-go clearance on active runway with surface wind info."))
             exchanges.append(ex("TNG-5", speaker: callsign, isUserTurn: false,
                 text: "Runway \(rwy), cleared touch and go, \(callsign)."))
             // Aircraft airborne again
@@ -7328,7 +7328,7 @@ public final class ScriptGeneratorEngine {
                 text: "\(callsign), airborne, turning crosswind."))
             exchanges.append(ex("TNG-7", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(callsign), \(towerCallsign), roger, report downwind.",
-                objective: "Instruksikan pesawat latih untuk melapor kembali saat posisi downwind leg."))
+                objective: "Instruct training aircraft to report downwind leg."))
             exchanges.append(ex("TNG-8", speaker: callsign, isUserTurn: false,
                 text: "Report downwind, \(callsign)."))
 
@@ -7340,14 +7340,14 @@ public final class ScriptGeneratorEngine {
                 text: "\(towerCallsign), \(transitCallsign), overhead \(reportFix) at three thousand five hundred feet, VFR, request traffic information."))
             exchanges.append(ex("TRN-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(transitCallsign), \(towerCallsign), traffic information: one \(aircraftType) on final runway \(rwy), one departing. Report clear of zone.",
-                objective: "Sampaikan advisory lalu lintas di aerodrome dan minta lapor saat keluar aerodrome zone."))
+                objective: "Provide aerodrome traffic advisory and request report clear of zone."))
             exchanges.append(ex("TRN-3", speaker: transitCallsign, isUserTurn: false,
                 text: "Traffic in sight, will report clear, \(transitCallsign)."))
             exchanges.append(ex("TRN-4", speaker: transitCallsign, isUserTurn: false,
                 text: "\(towerCallsign), \(transitCallsign), clear of zone, changing to area frequency, good day."))
             exchanges.append(ex("TRN-5", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(transitCallsign), \(towerCallsign), roger, frequency change approved, good day.",
-                objective: "Izinkan pergantian frekuensi ke area kontrol berikutnya."))
+                objective: "Approve frequency change to next area control unit."))
 
         // ---- FULL ARRIVAL ----
         case .fullArrival:
@@ -7358,13 +7358,13 @@ public final class ScriptGeneratorEngine {
                     text: "\(towerCallsign), \(callsign), inbound, information \(atisId), request approach."))
                 exchanges.append(ex("ARR-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
                     text: "\(callsign), \(towerCallsign), expect runway \(rwy), orbit right present position, traffic on final.",
-                    objective: "Tahan pesawat dengan instruksi orbit 360° kanan untuk menjaga separasi lalu lintas."))
+                    objective: "Instruct aircraft to make 360-degree right orbit for traffic separation."))
                 exchanges.append(ex("ARR-3", speaker: callsign, isUserTurn: false,
                     text: "Orbiting right, \(callsign)."))
                 exchanges.append(ex("ARR-4", speaker: "TOWER (USER TURN)", isUserTurn: true,
                     text: "\(callsign), \(towerCallsign), continue approach, runway \(rwy), cleared to land, wind \(wind).",
                     criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
-                    objective: "Berikan izin mendarat (landing clearance) dan info angin setelah separasi tercapai."))
+                    objective: "Issue landing clearance and wind information once traffic separation is achieved."))
                 exchanges.append(ex("ARR-5", speaker: callsign, isUserTurn: false,
                     text: "Runway \(rwy), cleared to land, \(callsign)."))
             } else {
@@ -7373,7 +7373,7 @@ public final class ScriptGeneratorEngine {
                 exchanges.append(ex("ARR-2", speaker: "TOWER (USER TURN)", isUserTurn: true,
                     text: "\(callsign), \(towerCallsign), wind \(wind), runway \(rwy), cleared to land.",
                     criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
-                    objective: "Berikan izin mendarat (landing clearance) dan informasi angin permukaan."))
+                    objective: "Issue landing clearance and surface wind information."))
 
                 let hasHearbackLanding = (level >= .level3 && abs(seed) % 4 == 2)
                 if hasHearbackLanding {
@@ -7389,7 +7389,7 @@ public final class ScriptGeneratorEngine {
                             CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")
                         ],
                         severity: .abnormal, eventTag: "ATC HEARBACK CORRECTION",
-                        objective: "Koreksi kesalahan readback (slip of the tongue) pilot: tegaskan NEGATIVE I SAY AGAIN dan perjelas nomor runway aktif pendaratan (Doc 9432 Ch.2.8.3.9)."))
+                        objective: "Correct pilot readback error (slip of the tongue): assert NEGATIVE I SAY AGAIN and clarify active landing runway (Doc 9432 Ch.2.8.3.9)."))
 
                     exchanges.append(ex("ARR-3-ACK", speaker: callsign, isUserTurn: false,
                         text: "Runway \(rwy), cleared to land, apologies, \(callsign)."))
@@ -7403,7 +7403,7 @@ public final class ScriptGeneratorEngine {
                 text: "\(callsign), runway vacated, \(exitTaxiway)."))
             exchanges.append(ex("ARR-V2", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(callsign), \(towerCallsign), taxi to apron via \(exitTaxiway), contact Ground.",
-                objective: "Instruksikan keluar landasan pacu (vacate) via taxiway dan transfer ke Ground Control."))
+                objective: "Instruct runway vacate via taxiway and transfer to Ground Control."))
             exchanges.append(ex("ARR-V3", speaker: callsign, isUserTurn: false,
                 text: "Taxi via \(exitTaxiway), contacting Ground, \(callsign)."))
 
@@ -7488,7 +7488,7 @@ public final class ScriptGeneratorEngine {
                     severity: .urgency, eventTag: "AMBULANCE CONFIRMED",
                     layer: .constrainedPlainEnglish,
                     peReason: "Confirming medical coordination in plain language (Doc 9835 Ch.3.3.15)",
-                    objective: "Konfirmasi koordinasi bantuan medis ambulans gawat darurat standby di apron."))
+                    objective: "Confirm emergency ambulance medical coordination standing by at apron."))
             }
 
             // Return to standard phrase for landing sequence
@@ -7499,7 +7499,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(ex("EMG-F3", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(callsign), \(towerCallsign), taxi to apron, emergency services will meet you. Cancel emergency if able.",
                 criticalSlots: [],
-                objective: "Pandu pesawat darurat ke apron dan koordinasikan penanganan dengan tim PKP-PK."))
+                objective: "Guide emergency aircraft to apron and coordinate handling with ARFF fire services."))
 
         // ---- DIVERSION ARRIVAL ----
         case .diversionArrival:
@@ -7518,7 +7518,7 @@ public final class ScriptGeneratorEngine {
                 text: "\(callsign), \(towerCallsign), roger PAN PAN, runway \(rwy) clear, you are number one, wind \(wind), QNH \(qnh), cleared to land.",
                 criticalSlots: [CriticalSlot(slot: "RUNWAY", expectedValue: rwy, type: "instantFail")],
                 severity: .urgency, eventTag: "PRIORITY CLEARED",
-                objective: "Terima urgensi pengalihan (diversion), prioritaskan urutan nomor satu dan berikan izin mendarat."))
+                objective: "Acknowledge diversion urgency, assign number one priority, and issue landing clearance."))
 
             exchanges.append(ex("DIV-3", speaker: callsign, isUserTurn: false,
                 text: "Runway \(rwy), cleared to land, QNH \(qnh), \(callsign)."))
@@ -7526,7 +7526,7 @@ public final class ScriptGeneratorEngine {
                 text: "\(callsign), runway vacated."))
             exchanges.append(ex("DIV-5", speaker: "TOWER (USER TURN)", isUserTurn: true,
                 text: "\(callsign), \(towerCallsign), taxi to apron, contact Ground on \(SpokenFormFormatter.frequency(airport.units.ground?.frequency ?? "121.600")).",
-                objective: "Instruksikan taxi ke apron dan arahkan kontak ke Ground Control."))
+                objective: "Instruct taxi to apron and direct frequency contact to Ground Control."))
         }
 
         return exchanges
@@ -7641,7 +7641,7 @@ public final class ScriptGeneratorEngine {
             frequencyStatus: "CHANNEL_OCCUPIED_MONITOR_ONLY"
         )
 
-        let monitorObjective = "[MONITOR ONLY] Dengarkan transmisi pesawat lain di frekuensi yang sama. TAHAN TRANSMISI (jangan tekan PTT) hingga frekuensi bebas."
+        let monitorObjective = "[MONITOR ONLY] Listen to traffic on the same frequency. STAND BY and hold transmission (do not key PTT) until frequency is clear."
 
         if phase == .preDeparture {
             let variant = abs(seed / 19) % 2
@@ -7880,8 +7880,8 @@ public final class ScriptGeneratorEngine {
             let pax = 168 + (abs(seed) % 20)
             return MissionStoryBriefing(
                 title: "Peak-Hour Metro Hub Flight & A-CDM Slot Management",
-                roleContext: "Captaincy Candidate / Pilot Flying — High-Density Metro Hub",
-                narrativeText: "You are acting as Pilot Flying on a high-density late afternoon peak flight from \(origName) to \(destName) operating \(aircraftType) (\(callsign)). The aircraft is fully booked with \(pax) passengers and priority commercial cargo. The departure aerodrome operates under strict Airport Collaborative Decision Making (A-CDM) protocols with tight Target Start-Up Times (TSAT) amidst heavy ramp congestion. Weather is CAVOK with horizontal visibility greater than 10 km. Your mission demands razor-sharp radiotelephony, uncompromising holding point compliance, and precision RNAV navigation.",
+                roleContext: "Captaincy Candidate / Pilot Monitoring (PM) — High-Density Metro Hub",
+                narrativeText: "You are acting as Pilot Monitoring (PM) on a high-density late afternoon peak flight from \(origName) to \(destName) operating \(aircraftType) (\(callsign)). The aircraft is fully booked with \(pax) passengers and priority commercial cargo. The departure aerodrome operates under strict Airport Collaborative Decision Making (A-CDM) protocols with tight Target Start-Up Times (TSAT) amidst heavy ramp congestion. Weather is CAVOK with horizontal visibility greater than 10 km. In the multi-crew cockpit, your primary duty is managing all ATC communications, RNAV departure/arrival verifications, and holding point compliance while your Captain / Pilot Flying navigates the busy metro corridor.",
                 passengerCount: pax,
                 flightRule: "IFR (Instrument Flight Rules)",
                 missionTypeDescription: "Scheduled Major Hub Commercial Flight",
