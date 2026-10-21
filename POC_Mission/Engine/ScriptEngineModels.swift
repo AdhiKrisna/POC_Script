@@ -766,6 +766,9 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         if t.contains("READBACK PUSHBACK") || t.contains("PUSHBACK") {
             return "Read back start-up and pushback clearance with designated aircraft heading."
         }
+        if t.contains("TAXI REQ") || t.contains("INITIAL CONTACT") {
+            return "Report aircraft type, stand position, received ATIS code, and request taxi clearance."
+        }
         if t.contains("READBACK TAXI") || t.contains("TAXI") {
             return "Read back taxi route and mandatory hold short restriction for active runway."
         }

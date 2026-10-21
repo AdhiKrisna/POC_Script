@@ -458,7 +458,7 @@ public final class ScriptGeneratorEngine {
             unitControl: resolvedCenter,
             stand: missionContext.standOrigin,
             aircraftType: missionContext.aircraftType,
-            pob: missionContext.profile == .vfrLocal ? 2 : 168,
+            pob: missionContext.profile == .vfrLocal ? 2 : (missionContext.aircraftType.contains("Twin Otter") || missionContext.aircraftType.contains("DHC") ? 19 : (missionContext.aircraftType.contains("ATR") ? 72 : (missionContext.aircraftType.contains("Boeing") || missionContext.aircraftType.contains("B737") ? 120 : 168))),
             airportName: activeAirport.name,
             destinationName: missionContext.destinationAirport.name,
             sidProcedure: missionContext.sidProcedure,
@@ -1916,28 +1916,29 @@ public final class ScriptGeneratorEngine {
 
         var hazard: HazardousInstructionPayload? = nil
         if tag.contains("TERRAIN") || tag.contains("GPWS") || lower.contains("unable heading") || lower.contains("malabar") {
+            let mountainName = (context.airport.icao == "WICC") ? "Gunung Malabar" : ((context.airport.icao == "WAFB") ? "Pegunungan Latimojong" : "tebing pegunungan")
             hazard = HazardousInstructionPayload(
                 isHazardous: true,
                 hazardType: "TERRAIN_CFIT_MOUNTAIN",
-                hazardDescription: "Instruksi radar ATC keliru mengarah ke Gunung Malabar (elevasi > 6.000 ft). Dilarang patuh!",
+                hazardDescription: "Instruksi radar ATC keliru mengarah ke \(mountainName) (elevasi > 6.000 ft). Dilarang patuh!",
                 expectedPilotReaction: "REJECT_UNABLE",
-                rejectionPhraseology: "UNABLE heading two one zero and descend due terrain, climbing Flight Level zero nine zero, \(context.callsign)!",
+                rejectionPhraseology: "UNABLE heading two five zero due terrain, climbing altitude eight thousand feet, \(context.callsign)!",
                 timeoutSeconds: 3.0
             )
         } else if tag.contains("WIND SHEAR") || lower.contains("wind shear escape") {
             hazard = HazardousInstructionPayload(
                 isHazardous: true,
                 hazardType: "SEVERE_WIND_SHEAR_MICROBURST",
-                hazardDescription: "Microburst angin jatuh mendadak di bibir tebing Toraja (1 NM). Lolos seketika!",
+                hazardDescription: "Microburst angin jatuh mendadak di bibir landasan \(context.airport.name) (1 NM). Lolos seketika!",
                 expectedPilotReaction: "WIND_SHEAR_ESCAPE",
-                rejectionPhraseology: "\(context.callsign), WIND SHEAR ESCAPE, climbing straight ahead to six thousand feet!",
+                rejectionPhraseology: "\(context.callsign), WIND SHEAR ESCAPE, climbing straight ahead to four thousand feet!",
                 timeoutSeconds: 3.0
             )
         } else if tag.contains("GO-AROUND") || lower.contains("going around") || lower.contains("vehicle on runway") {
             hazard = HazardousInstructionPayload(
                 isHazardous: true,
                 hazardType: "RUNWAY_OBSTRUCTION",
-                hazardDescription: "Tampak kendaraan teknisi melintas di runway Wamena. Batal mendarat mandiri!",
+                hazardDescription: "Tampak kendaraan teknisi melintas di runway \(context.airport.name). Batal mendarat mandiri!",
                 expectedPilotReaction: "PILOT_INITIATED_GO_AROUND",
                 rejectionPhraseology: "GOING AROUND, vehicle on runway, \(context.callsign)!",
                 timeoutSeconds: 3.0
@@ -2000,7 +2001,7 @@ public final class ScriptGeneratorEngine {
             unitControl: resolvedCenter,
             stand: missionContext.standOrigin,
             aircraftType: missionContext.aircraftType,
-            pob: missionContext.profile == .vfrLocal ? 2 : 168,
+            pob: missionContext.profile == .vfrLocal ? 2 : (missionContext.aircraftType.contains("Twin Otter") || missionContext.aircraftType.contains("DHC") ? 19 : (missionContext.aircraftType.contains("ATR") ? 72 : (missionContext.aircraftType.contains("Boeing") || missionContext.aircraftType.contains("B737") ? 120 : 168))),
             airportName: activeAirport.name,
             destinationName: missionContext.destinationAirport.name,
             sidProcedure: missionContext.sidProcedure,
@@ -2186,28 +2187,50 @@ public final class ScriptGeneratorEngine {
 
             case .level5:
                 // Level 5 Exam: 100% Kedaruratan Mutlak 3 Pola Trajektori (11 Variasi)
-                // 1 Abort + 4 Diversion (2x2) + 6 Recovery (3x2) = 11 Variasi
-                let trajectory = abs(seed) % 3
-                switch trajectory {
+                // 1 Abort + 4 Diversion (2x2) + 6 Recovery (3x2) = 11 Variasi Logis Anti-Patah
+                let varIdx = abs(seed) % 11
+                switch varIdx {
                 case 0:
                     // Pola 1: Immediate Abort (1 variasi: EFATO Air-Turn-Back + Excursion ARFF)
                     examRolled.append(.efato)
                     examRolled.append(.runwayExcursionARFF)
                 case 1:
-                    // Pola 2: In-Flight Diversion (4 variasi: 2 primary x 2 secondary)
-                    let divChoices: [ContingencySelection] = [.emergencyDescentDecompression, .fuelEmergencyMayday]
-                    let primary = divChoices[abs(seed / 3) % divChoices.count]
-                    examRolled.append(primary)
-                    let secondary = (abs(seed / 5) % 2 == 0) ? ContingencySelection.volcanicAshAvoidance : ContingencySelection.impositionOfSilence
-                    examRolled.append(secondary)
+                    // Pola 2 (Var 1): Cabin Decompression FL170 + Volcanic Ash Deviation
+                    examRolled.append(.emergencyDescentDecompression)
+                    examRolled.append(.volcanicAshAvoidance)
+                case 2:
+                    // Pola 2 (Var 2): Cabin Decompression FL170 + Holding Bypass Silence
+                    examRolled.append(.emergencyDescentDecompression)
+                    examRolled.append(.impositionOfSilence)
+                case 3:
+                    // Pola 2 (Var 3): MAYDAY FUEL + Volcanic Ash Plume Deviation
+                    examRolled.append(.fuelEmergencyMayday)
+                    examRolled.append(.volcanicAshAvoidance)
+                case 4:
+                    // Pola 2 (Var 4): MAYDAY FUEL + Weather Severe Holding Bypass Straight-in
+                    examRolled.append(.fuelEmergencyMayday)
+                    examRolled.append(.impositionOfSilence)
+                case 5:
+                    // Pola 3 (Var 1): GPWS Terrain Avoidance ("UNABLE") + Re-cleared Radar Vectoring
+                    examRolled.append(.gpwsTerrainAvoidance)
+                case 6:
+                    // Pola 3 (Var 2): GPWS Terrain Avoidance + Frequency Silence Discipline
+                    examRolled.append(.gpwsTerrainAvoidance)
+                    examRolled.append(.impositionOfSilence)
+                case 7:
+                    // Pola 3 (Var 3): Severe Wind Shear Escape + Second ILS Approach
+                    examRolled.append(.windShearMicroburst)
+                case 8:
+                    // Pola 3 (Var 4): Severe Wind Shear Escape + Frequency Silence
+                    examRolled.append(.windShearMicroburst)
+                    examRolled.append(.impositionOfSilence)
+                case 9:
+                    // Pola 3 (Var 5): Pilot-Initiated Go-Around (Vehicle on Runway) + Visual Circuit Loop
+                    examRolled.append(.pilotInitiatedGoAround)
                 default:
-                    // Pola 3: Tactical Recovery (6 variasi: 3 primary x 2 tactical complications)
-                    let recChoices: [ContingencySelection] = [.gpwsTerrainAvoidance, .windShearMicroburst, .pilotInitiatedGoAround]
-                    let primary = recChoices[abs(seed / 3) % recChoices.count]
-                    examRolled.append(primary)
-                    if (abs(seed / 7) % 2 == 0) {
-                        examRolled.append(.impositionOfSilence)
-                    }
+                    // Pola 3 (Var 6): Pilot-Initiated Go-Around + Emergency Silence Coordination
+                    examRolled.append(.pilotInitiatedGoAround)
+                    examRolled.append(.impositionOfSilence)
                 }
             }
             return sanitizeRolledContingencies(examRolled)
@@ -2974,9 +2997,9 @@ public final class ScriptGeneratorEngine {
                 exchanges.append(FilledExchange(
                     exchangeID: "EFA-P3-2", templateID: "EFA-P3", turn: currentGlobalTurn, speaker: "PILOT",
                     isUserTurn: (role == .pilot),
-                    text: "Two persons on board, zero hazardous cargo, master switch off, no fire, precautionary evacuation in progress, \(callsign).",
+                    text: "\(context.pob) persons on board, zero hazardous cargo, master switch off, no fire, precautionary evacuation in progress, \(callsign).",
                     criticalSlots: [
-                        CriticalSlot(slot: "POB", expectedValue: "two persons on board", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "POB", expectedValue: "\(context.pob) persons on board", type: "mandatoryKeyword"),
                         CriticalSlot(slot: "EVACUATION", expectedValue: "evacuation in progress", type: "mandatoryKeyword"),
                         CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                     ], severity: .distress, eventTag: "EVACUATION IN PROGRESS"
@@ -4070,20 +4093,20 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "DP-VFR-LU-1", templateID: "DP-03", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
-                text: "\(callsign), \(prefixConditionText)backtrack runway \(rwySpoken), line up and wait.",
-                criticalSlots: [], severity: .normal, eventTag: prefixConditionText.isEmpty ? "BACKTRACK & LINE UP" : "RUNWAY CLEAR & LINE UP"
+                text: "\(callsign), \(prefixConditionText)runway \(rwySpoken), line up and wait.",
+                criticalSlots: [], severity: .normal, eventTag: "LINE UP & WAIT"
             ))
             globalTurn += 1
 
             exchanges.append(FilledExchange(
                 exchangeID: "DP-VFR-LU-2", templateID: "DP-03", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "Backtrack runway \(rwySpoken), line up and wait, \(callsign).",
+                text: "Runway \(rwySpoken), line up and wait, \(callsign).",
                 criticalSlots: [
                     CriticalSlot(slot: "RUNWAY", expectedValue: rwySpoken, type: "mandatoryRunway"),
                     CriticalSlot(slot: "LINE_UP_WAIT", expectedValue: "line up and wait", type: "mandatoryKeyword"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                ], severity: .normal, eventTag: "READBACK BACKTRACK & LINE UP"
+                ], severity: .normal, eventTag: "READBACK LINE UP & WAIT"
             ))
             globalTurn += 1
 
@@ -4413,10 +4436,11 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "DIS-EFA-2", templateID: "DIS-EFA", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "MAYDAY MAYDAY MAYDAY, \(twrUnit), \(callsign), engine failure after takeoff at five hundred feet, forced landing straight ahead runway \(rwySpoken), two persons on board!",
+                text: "MAYDAY MAYDAY MAYDAY, \(twrUnit), \(callsign), engine failure after takeoff at five hundred feet, forced landing straight ahead runway \(rwySpoken), \(context.pob) persons on board!",
                 criticalSlots: [
                     CriticalSlot(slot: "DISTRESS", expectedValue: "mayday mayday mayday", type: "mandatoryDistress"),
                     CriticalSlot(slot: "RUNWAY", expectedValue: rwySpoken, type: "mandatoryRunway"),
+                    CriticalSlot(slot: "POB", expectedValue: "\(context.pob) persons on board", type: "mandatoryKeyword"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                 ], severity: .distress, eventTag: "MAYDAY EFATO"
             ))
@@ -5885,12 +5909,17 @@ public final class ScriptGeneratorEngine {
             ))
             globalTurn += 1
 
+            let isObstruction = gaCont.title.contains("Obstruction") || gaCont.title.contains("Pilot-Initiated")
+            let gaPilotText = isObstruction ? "GOING AROUND, vehicle on runway, \(callsign)!" : "Going around, no landing clearance received at decision altitude, \(callsign)!"
+            let gaReasonSlot = isObstruction ? CriticalSlot(slot: "REASON", expectedValue: "vehicle on runway", type: "mandatoryKeyword") : CriticalSlot(slot: "REASON", expectedValue: "no landing clearance", type: "mandatoryKeyword")
+
             exchanges.append(FilledExchange(
                 exchangeID: "AP-GA-7", templateID: "AP-04", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "Going around, no landing clearance received at decision altitude, \(callsign)!",
+                text: gaPilotText,
                 criticalSlots: [
                     CriticalSlot(slot: "GOING_AROUND", expectedValue: "going around", type: "mandatoryKeyword"),
+                    gaReasonSlot,
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                 ], severity: .urgency, eventTag: "PILOT INITIATED GO-AROUND"
             ))
@@ -6099,7 +6128,7 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "AP-VFR-2", templateID: "AP-01", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "Turning base runway \(arrRwySpoken), gear down, three green, \(callsign).",
+                text: "Turning base runway \(arrRwySpoken), \(callsign).",
                 criticalSlots: [
                     CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
@@ -6417,10 +6446,10 @@ public final class ScriptGeneratorEngine {
                 exchanges.append(FilledExchange(
                     exchangeID: "ABN-WS-1", templateID: "ABN-WS", turn: globalTurn, speaker: "PILOT",
                     isUserTurn: (role == .pilot),
-                    text: "Wind shear warning, maximum thrust, going around, \(callsign)!",
+                    text: "\(callsign), WIND SHEAR ESCAPE, climbing straight ahead four thousand feet!",
                     criticalSlots: [
-                        CriticalSlot(slot: "WIND_SHEAR", expectedValue: "wind shear warning", type: "mandatoryKeyword"),
-                        CriticalSlot(slot: "GOING_AROUND", expectedValue: "going around", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "WIND_SHEAR", expectedValue: "wind shear escape", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "ALTITUDE", expectedValue: "four thousand feet", type: "mandatoryAltitude"),
                         CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                     ], severity: .distress, eventTag: "WIND SHEAR ESCAPE"
                 ))
@@ -7889,8 +7918,19 @@ public final class ScriptGeneratorEngine {
             )
 
         case .level5:
+            let defaultPax: Int
+            if aircraftType.contains("Twin Otter") || aircraftType.contains("DHC") {
+                defaultPax = 14 + (abs(seed) % 5) // Max 18 pax for Twin Otter
+            } else if aircraftType.contains("ATR") {
+                defaultPax = 64 + (abs(seed) % 8) // 64-71 pax for ATR-72
+            } else if aircraftType.contains("Boeing") || aircraftType.contains("B737") {
+                defaultPax = 105 + (abs(seed) % 15) // 105-119 pax for B735 STOL
+            } else {
+                defaultPax = 18
+            }
+
             if origICAO == "WAVV" || origICAO == "WABP" {
-                let pax = 16 + (abs(seed) % 4)
+                let pax = (aircraftType.contains("Twin Otter") || aircraftType.contains("DHC")) ? (14 + (abs(seed) % 5)) : defaultPax
                 return MissionStoryBriefing(
                     title: "Highland Valley Pioneer Logistics & Passenger Flight",
                     roleContext: "Pioneer Mountain Pilot — Highland Remote Operations",
@@ -7901,29 +7941,29 @@ public final class ScriptGeneratorEngine {
                     weatherBriefingSummary: "Mountain gap open, cool valley breeze 15-20 kt, good visual reference"
                 )
             } else if origICAO == "WAFB" {
-                let pax = 42 + (abs(seed) % 8)
+                let pax = (aircraftType.contains("Twin Otter") || aircraftType.contains("DHC")) ? (14 + (abs(seed) % 5)) : defaultPax
                 return MissionStoryBriefing(
-                    title: "Highland Commuter Service: Toraja Valley to Makassar",
+                    title: "Highland Commuter Service: Toraja Valley to \(destName)",
                     roleContext: "First Officer — Sulawesi Mountain Route Operations",
-                    narrativeText: "You are flying a scheduled morning service departing from the Toraja highlands at \(origName) bound for \(destName) aboard \(aircraftType) (\(callsign)). The flight is booked with \(pax) passengers and full baggage allowance. Morning mountain mist in the Toraja basin is lifting under early sunlight, and winds are light at 12 knots off the ridges. You have planned your initial departure climb along the valley corridor before establishing standard cruising altitude over the western Sulawesi coastline.",
+                    narrativeText: "You are flying a scheduled morning service departing from the Toraja highlands at \(origName) bound for \(destName) aboard \(aircraftType) (\(callsign)). The flight is booked with \(pax) passengers and full baggage allowance. Morning mountain mist in the Toraja basin is lifting under early sunlight, and winds are light at 12 knots off the ridges. You have planned your initial departure climb along the valley corridor before establishing cruising altitude along the designated mountain airway.",
                     passengerCount: pax,
                     flightRule: "IFR Mountain Departure",
                     missionTypeDescription: "Highland Commuter Regional Service",
                     weatherBriefingSummary: "Valley mist dispersing, gentle ridge winds, visual visibility > 8 km"
                 )
             } else if origICAO == "WICC" {
-                let pax = 68 + (abs(seed) % 6)
+                let pax = defaultPax
                 return MissionStoryBriefing(
-                    title: "Morning Commuter Flight: Bandung Basin to Capital Gateway",
-                    roleContext: "First Officer — Capital Corridor Commercial Commuter",
-                    narrativeText: "You are piloting a morning commuter flight from Husein Sastranegara Airport (\(origName)) to \(destName) carrying \(pax) business travelers. The volcanic basin surrounding Bandung reports scattered cloud cover, calm surface winds, and 9 km visibility. You are preparing for pushback from the shared military ramp, climbing out on an instrument departure profile, and cruising smoothly into the Jakarta TMA corridor.",
+                    title: "Mountain Corridor Commercial Commuter Flight",
+                    roleContext: "First Officer — Mountain Corridor Commercial Commuter",
+                    narrativeText: "You are piloting a scheduled commercial commuter flight from Husein Sastranegara Airport (\(origName)) to \(destName) carrying \(pax) passengers aboard \(aircraftType) (\(callsign)). The volcanic basin surrounding Bandung reports scattered cloud cover, calm surface winds, and 9 km visibility. You are preparing for pushback from the shared ramp, climbing out on an instrument departure profile, and cruising smoothly along the airway corridor towards \(destName).",
                     passengerCount: pax,
                     flightRule: "IFR (Instrument Flight Rules)",
                     missionTypeDescription: "Scheduled Commercial Commuter Flight",
                     weatherBriefingSummary: "Partly cloudy over ridges, calm surface wind, visibility 9 km"
                 )
             } else {
-                let pax = 50 + (abs(seed) % 10)
+                let pax = defaultPax
                 return MissionStoryBriefing(
                     title: "Coastal & Outer-Island Pioneer Regional Flight",
                     roleContext: "Pioneer Captain — Island Air Service",
