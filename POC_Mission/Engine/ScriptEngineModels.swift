@@ -78,6 +78,9 @@ public enum ContingencySelection: String, CaseIterable, Identifiable, Sendable {
     case auto = "Auto (Random by Difficulty)"
     case routineOnly = "Routine Only (Normal Flight)"
 
+    // MARK: - LEVEL 1: Flight Cadet (VFR Circuit)
+    case vfrTouchAndGo = "VFR Circuit Touch-and-Go (Doc 9432 Ch.4.4.3)"
+
     // MARK: - LEVEL 2: Regional Commuter (15% Probability)
     case pushbackDelay = "Pushback Delay (Traffic Behind - Doc 9432 Ch.4.3.1)"
     case stopPushback = "Stop Pushback Immediately (Doc 9432 Ch.4.3.3)"
@@ -175,6 +178,8 @@ public enum ContingencySelection: String, CaseIterable, Identifiable, Sendable {
 
     public var defaultSeverity: EventSeverity {
         switch self {
+        case .auto, .routineOnly, .vfrTouchAndGo:
+            return .normal
         case .efato, .midAirEngineOut, .engineFailureFinal, .tcasRA, .parallelBreakout, .birdStrikeAbort, .emergencyDescentDecompression, .fuelEmergencyMayday, .runwayExcursionARFF, .hijack7500, .abortTakeoff:
             return .distress
         case .flapFailure, .lowPassInspection, .passengerMedicalEmergency, .fuelDumping, .communicableDiseases, .blownTireLanding, .hotBrakesInspection, .airborneCommsFailure, .nordoBlindTransmission, .gpwsTerrainAvoidance, .windShearMicroburst, .volcanicAshAvoidance, .impositionOfSilence, .militaryInterception, .unsafeGear, .unclearedGoAround, .radarAvoidingAction:
@@ -194,7 +199,7 @@ public enum ContingencySelection: String, CaseIterable, Identifiable, Sendable {
             return .enRoute
         case .rnavFailure, .passengerMedicalEmergency, .communicableDiseases, .fuelEmergencyMayday:
             return .arrival
-        case .lowPassInspection, .forgottenLandingClearancePrompt, .flapFailure, .unsafeGear, .unclearedGoAround, .engineFailureFinal, .parallelBreakout, .visualOrbitSpacing, .extendDownwind, .impositionOfSilence, .lowVisibilityRVR, .contaminatedRunwayBraking, .delayingVectorOrbit, .airborneCommsFailure, .gpwsTerrainAvoidance, .windShearMicroburst:
+        case .vfrTouchAndGo, .lowPassInspection, .forgottenLandingClearancePrompt, .flapFailure, .unsafeGear, .unclearedGoAround, .engineFailureFinal, .parallelBreakout, .visualOrbitSpacing, .extendDownwind, .impositionOfSilence, .lowVisibilityRVR, .contaminatedRunwayBraking, .delayingVectorOrbit, .airborneCommsFailure, .gpwsTerrainAvoidance, .windShearMicroburst:
             return .approach
         case .continueApproachShortFinal, .lightGunSignals, .blownTireLanding, .hotBrakesInspection, .pilotInitiatedGoAround, .runwayExcursionARFF:
             return .landing
@@ -205,6 +210,7 @@ public enum ContingencySelection: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .auto: "Auto"
         case .routineOnly: "Routine Only"
+        case .vfrTouchAndGo: "Touch-and-Go"
         case .pushbackDelay: "Pushback Delay"
         case .stopPushback: "Stop Pushback"
         case .unableAltitude: "Unable Climb Rate"
@@ -1161,9 +1167,10 @@ public enum CurriculumLevel: Int, CaseIterable, Identifiable, Comparable, Sendab
     public var allowedContingencies: [ContingencySelection] {
         switch self {
         case .level1:
-            // LEVEL 1: Ab-Initio Cadet (100% Prosedur Rutin Murni, zero anomalies)
+            // LEVEL 1: Ab-Initio Cadet (100% Prosedur Rutin Murni)
             return [
-                .routineOnly
+                .routineOnly,
+                .vfrTouchAndGo
             ]
         case .level2:
             // LEVEL 2: Regional Commuter (Peluang 15%)
@@ -2154,7 +2161,7 @@ public struct CanonicalMissionRegistry: Sendable {
             destinationICAO: "WADY",
             defaultAircraft: "Cessna one seven two Skyhawk",
             defaultCallsign: "Skyfox two four",
-            primaryContingency: .routineOnly,
+            primaryContingency: .vfrTouchAndGo,
             secondaryContingency: nil,
             learningObjective: "Lapor posisi wajib sirkuit (downwind, base, final) dan izin touch-and-go.",
             criticalGate: "Menyebutkan nomor runway di akhir setiap readback izin mendarat/lepas landas.",
