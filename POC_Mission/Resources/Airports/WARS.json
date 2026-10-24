@@ -71,12 +71,23 @@
         "name": "Ahmad Yani One Alfa",
         "runway": "13",
         "initialAltFt": 4000
+      },
+      {
+        "id": "KEND1A",
+        "name": "KENDAL One Alfa Departure",
+        "runway": "13",
+        "initialAltFt": 4000
       }
     ],
     "stars": [
       {
         "id": "ANY1B",
         "name": "Ahmad Yani One Bravo",
+        "runway": "13"
+      },
+      {
+        "id": "DEMA1A",
+        "name": "DEMAK One Alfa Arrival",
         "runway": "13"
       }
     ],
@@ -95,12 +106,43 @@
         "turns": "right",
         "altFt": 5000
       }
+    ],
+    "waypoints": [
+      "SRG",
+      "ANY",
+      "KENDAL",
+      "DEMAK",
+      "UNGARAN",
+      "KUDUS"
     ]
   },
   "_meta": {
     "curriculumLevel": 3,
     "curriculumCategory": "Busy Single-Runway & Backtrack",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.278)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "SRG",
+    "ANY",
+    "KENDAL",
+    "DEMAK",
+    "UNGARAN",
+    "KUDUS"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 278,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "SRG",
+      "ANY",
+      "KENDAL",
+      "DEMAK",
+      "UNGARAN",
+      "KUDUS"
+    ]
   }
 }

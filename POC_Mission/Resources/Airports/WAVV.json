@@ -67,12 +67,23 @@
         "name": "Baliem Valley One Departure",
         "runway": "15",
         "initialAltFt": 9000
+      },
+      {
+        "id": "BALI1A",
+        "name": "BALIEM One Alfa Departure",
+        "runway": "15",
+        "initialAltFt": 9000
       }
     ],
     "stars": [
       {
         "id": "WMX1B",
         "name": "Baliem Pass One Arrival",
+        "runway": "15"
+      },
+      {
+        "id": "PASS1A",
+        "name": "PASS One Alfa Arrival",
         "runway": "15"
       }
     ],
@@ -91,12 +102,43 @@
         "turns": "right",
         "altFt": 10000
       }
+    ],
+    "waypoints": [
+      "BALIEM",
+      "TIOM",
+      "KURIMA",
+      "PASS",
+      "PYRAMID",
+      "ELELIM"
     ]
   },
   "_meta": {
     "curriculumLevel": 5,
     "curriculumCategory": "High-Risk Valley & Extreme Terrain",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.508)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "BALIEM",
+    "TIOM",
+    "KURIMA",
+    "PASS",
+    "PYRAMID",
+    "ELELIM"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 508,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "BALIEM",
+      "TIOM",
+      "KURIMA",
+      "PASS",
+      "PYRAMID",
+      "ELELIM"
+    ]
   }
 }

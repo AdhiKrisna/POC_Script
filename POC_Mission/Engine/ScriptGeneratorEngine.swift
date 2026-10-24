@@ -479,9 +479,9 @@ public final class ScriptGeneratorEngine {
             levelStatus: "maintaining",
             currentLevel: missionContext.cruisingLevel,
             routeContext: "flight planned route via airway",
-            currentPosition: "BUNTA",
+            currentPosition: Self.airportWaypoints(for: activeAirport, seed: isArrivalOrLater ? 11 : 3).curr,
             timeUTC: "zero one two zero",
-            nextPosition: "DOLTA",
+            nextPosition: Self.airportWaypoints(for: activeAirport, seed: isArrivalOrLater ? 11 : 3).next,
             nextETA: "zero one four five",
             requestedLevel: "flight level three seven zero",
             requestedDeviationDistance: missionContext.weatherDeviationDistance ?? "two zero",
@@ -489,7 +489,8 @@ public final class ScriptGeneratorEngine {
             approvedDeviationDistance: missionContext.weatherDeviationDistance ?? "two zero",
             approvedDeviationDirection: missionContext.weatherDeviationDirection ?? "right",
             descentLevel: "altitude five thousand feet",
-            holdingFix: missionContext.destinationAirport.procedures.holdings.first?.fix ?? "BLI VOR",
+            holdingFix: missionContext.destinationAirport.procedures.holdings.first?.fix
+                ?? Self.arrivalCrossingFix(for: missionContext.destinationAirport, seed: 23),
             holdingLevel: "seven thousand feet",
             inboundTrack: "zero niner zero",
             eat: "zero three zero five",
@@ -564,10 +565,10 @@ public final class ScriptGeneratorEngine {
             initialAlt: "altitude four thousand feet",
             levelStatus: "maintaining",
             currentLevel: "flight level one five zero",
-            routeContext: "direct DOLTA",
-            currentPosition: "BUNTA",
+            routeContext: "direct \(Self.airportWaypoints(for: airport, seed: 3).next)",
+            currentPosition: Self.airportWaypoints(for: airport, seed: 3).curr,
             timeUTC: "zero three one zero",
-            nextPosition: "DOLTA",
+            nextPosition: Self.airportWaypoints(for: airport, seed: 3).next,
             nextETA: "zero three four zero",
             requestedLevel: "flight level one niner zero",
             requestedDeviationDistance: "two zero",
@@ -979,6 +980,63 @@ public final class ScriptGeneratorEngine {
         }
     }
 
+    // MARK: - Airport-Data-Driven Waypoint Resolver (reads Resources/Airports/{ICAO}.json)
+    // Doc 4444 Ch.4.5.7.2: position reports and route clearances must name fixes that
+    // actually belong to that aerodrome's published procedures.
+    private static let localVisualWaypoints: [String: (curr: String, next: String)] = [
+        "WADY": ("Point Alfa", "Point Charlie"),
+        "WICB": ("CURUG", "PARUNG"),
+        "WADE": ("SUMBERKIMA", "TELUK TERIMA"),
+        "WART": ("SUP VOR", "Madura South")
+    ]
+
+    /// Picks published 5LNC fixes for an aerodrome from its JSON `waypoints` array.
+    /// Falls back to the legacy hardcoded table only when the dataset carries no fixes.
+    public static func airportWaypoints(
+        for airport: Airport,
+        seed: Int = 0,
+        excluding excluded: Set<String> = []
+    ) -> (curr: String, next: String) {
+        // 5-letter name codes only (Doc 4444 Annex: ICAO 5LNC), skip 3-letter navaid idents
+        // and skip anything already used elsewhere in the same script.
+        let pool = (airport.waypoints ?? airport.procedures.waypoints ?? [])
+            .filter { $0.count == 5 && $0.allSatisfy { ch in ch.isLetter } }
+            .filter { !excluded.contains($0) }
+
+        if pool.count >= 2 {
+            let i = abs(seed) % pool.count
+            var j = abs(seed / 3 + 1) % pool.count
+            if j == i { j = (i + 1) % pool.count }
+            return (pool[i], pool[j])
+        }
+        if pool.count == 1, let only = pool.first {
+            return (only, only)
+        }
+        if let local = localVisualWaypoints[airport.icao] {
+            return local
+        }
+        let navaid = airport.procedures.holdings.first?.fix
+            ?? airport.waypoints?.first
+            ?? airport.icao
+        return (navaid, navaid)
+    }
+
+    /// Single en-route fix used for STAR crossing restrictions at the destination.
+    public static func arrivalCrossingFix(for airport: Airport, seed: Int = 0) -> String {
+        if let holdFix = airport.procedures.holdings.first?.fix, holdFix.count == 5 {
+            return holdFix
+        }
+        return airportWaypoints(for: airport, seed: seed).curr
+    }
+
+    /// True when the aerodrome is served by an AFIS / Information station instead of a
+    /// control tower. Such stations give INFORMATION, never clearances
+    /// (Doc 4444 Ch.4.1; Doc 9432 Ch.4 — "land at your discretion", not "cleared to land").
+    public static func isAdvisoryStation(_ airport: Airport) -> Bool {
+        guard let twr = airport.units.tower?.callsign.lowercased() else { return false }
+        return twr.contains("information") || twr.contains("radio") || twr.contains("afis")
+    }
+
     public static func resolveWaypoints(originICAO: String, destinationICAO: String) -> (curr: String, next: String) {
         switch originICAO {
         case "WAAA": return ("UPG VOR", "MAROS")
@@ -1053,7 +1111,8 @@ public final class ScriptGeneratorEngine {
         mode: SimulationMode = .mission,
         seed: Int? = nil,
         selectedContingencies: Set<ContingencySelection> = [],
-        retryAct: MissionAct? = nil
+        retryAct: MissionAct? = nil,
+        forceExplicitContingencies: Bool = false
     ) throws -> FlightMissionScript {
         let chosenSeed = seed ?? Int.random(in: 1000...9999)
         let resolvedDestICAO: String
@@ -1139,12 +1198,14 @@ public final class ScriptGeneratorEngine {
 
         // Multi-contingency resolution: Mission rehearses; Exam follows the prescribed assessment distribution.
         let effectiveContingencies = selectedContingencies.isEmpty ? Set(level.allowedScenarios) : selectedContingencies
-        let chosenContingencies: [InjectedContingency] = resolveMultipleContingencies(
-            selectedOptions: effectiveContingencies,
-            level: level,
-            mode: mode,
-            seed: chosenSeed
-        )
+        let chosenContingencies: [InjectedContingency] = forceExplicitContingencies
+            ? sanitizeRolledContingencies(level.allowedScenarios.filter { effectiveContingencies.contains($0) })
+            : resolveMultipleContingencies(
+                selectedOptions: effectiveContingencies,
+                level: level,
+                mode: mode,
+                seed: chosenSeed
+            )
 
         let archetype: MissionArchetype
         if chosenContingencies.contains(where: { $0.severity == .distress }) {
@@ -1582,7 +1643,8 @@ public final class ScriptGeneratorEngine {
             role: role,
             mode: mode,
             seed: seed,
-            selectedContingencies: set
+            selectedContingencies: set,
+            forceExplicitContingencies: !set.isEmpty
         )
     }
 
@@ -1979,15 +2041,14 @@ public final class ScriptGeneratorEngine {
         )
 
         let waypoints: (curr: String, next: String)
-        switch missionContext.originAirport.icao {
-        case "WADY": waypoints = ("Point Alfa", "Point Charlie")
-        case "WICB": waypoints = ("CURUG", "Area Alfa")
-        case "WART": waypoints = ("SUP VOR", "Madura South")
-        case "WADD": waypoints = ("POSOP", "BLI VOR")
-        case "WARR": waypoints = ("SURBA", "GANDI")
-        case "WAHI": waypoints = ("JOG VOR", "PRAMB")
-        case "WIII": waypoints = ("BUNTA", "DOLTA")
-        default: waypoints = ("BUNTA", "DOLTA")
+        if missionContext.profile == .vfrLocal {
+            waypoints = Self.localVisualWaypoints[missionContext.originAirport.icao]
+                ?? Self.airportWaypoints(for: missionContext.originAirport, seed: 0)
+        } else if isArrivalOrLater {
+            // Arrival/approach position reports must use DESTINATION fixes (Doc 4444 Ch.4.5.7.2)
+            waypoints = Self.airportWaypoints(for: missionContext.destinationAirport, seed: 11)
+        } else {
+            waypoints = Self.airportWaypoints(for: missionContext.originAirport, seed: 3)
         }
 
         let resolvedDepRadar = activeAirport.units.departure
@@ -2041,7 +2102,8 @@ public final class ScriptGeneratorEngine {
             approvedDeviationDistance: missionContext.weatherDeviationDistance ?? "two zero",
             approvedDeviationDirection: missionContext.weatherDeviationDirection ?? "right",
             descentLevel: "altitude five thousand feet",
-            holdingFix: missionContext.destinationAirport.procedures.holdings.first?.fix ?? "BLI VOR",
+            holdingFix: missionContext.destinationAirport.procedures.holdings.first?.fix
+                ?? Self.arrivalCrossingFix(for: missionContext.destinationAirport, seed: 23),
             holdingLevel: "seven thousand feet",
             inboundTrack: "zero niner zero",
             eat: "zero three zero five",
@@ -3436,11 +3498,18 @@ public final class ScriptGeneratorEngine {
         let gndFreq = SpokenFormFormatter.frequency(context.unitGround?.frequency ?? "121.700")
 
         if level == .level1 {
+            // Intent must match the actual mission: only M-102 flies a touch-and-go circuit.
+            // Other Level 1 missions are full-stop circuits / local airwork (Doc 9432 Ch.4.4.3).
+            let isTouchAndGoMission = contingencies.contains(where: { $0.title.contains("Touch-and-Go") })
+            let vfrIntent = isTouchAndGoMission
+                ? "request taxi for local circuit touch-and-go"
+                : "request taxi for local visual circuit"
+
             // Turn 1: PILOT Initial Contact with Tower incorporating ATIS code
             exchanges.append(FilledExchange(
                 exchangeID: "PD-VFR-INIT-1", templateID: "PD-01", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "\(context.unitTower?.callsign ?? "Tower"), \(callsign), \(acftType) at GA apron, information \(atisLetter) received, QNH \(qnhSpoken), request taxi for local circuit touch-and-go.",
+                text: "\(context.unitTower?.callsign ?? "Tower"), \(callsign), \(acftType) at GA apron, information \(atisLetter) received, QNH \(qnhSpoken), \(vfrIntent).",
                 criticalSlots: [
                     CriticalSlot(slot: "ATIS_ID", expectedValue: atisLetter, type: "mandatoryAtis"),
                     CriticalSlot(slot: "QNH", expectedValue: qnhSpoken, type: "mandatoryQnh"),
@@ -4334,7 +4403,20 @@ public final class ScriptGeneratorEngine {
             executedContingencies.append(immCont)
 
         } else {
-            let toText = (level == .level1) ? "cleared for take-off, make left traffic" : "cleared for take-off"
+            // "Make left traffic" is a circuit instruction — only valid when the aircraft is
+            // actually staying in the visual pattern (Doc 9432 Ch.4.4.3). Level 1 missions that
+            // depart to the training area or fly a straight-out circuit get a plain clearance.
+            let staysInCircuit = contingencies.contains(where: { $0.title.contains("Touch-and-Go") })
+            // AFIS stations cannot issue a take-off clearance (Doc 4444 Ch.4.1).
+            let advisoryDep = Self.isAdvisoryStation(context.airport)
+            let toText: String
+            if advisoryDep {
+                toText = "take-off at your discretion"
+            } else if level == .level1 && staysInCircuit {
+                toText = "cleared for take-off, make left traffic"
+            } else {
+                toText = "cleared for take-off"
+            }
             exchanges.append(FilledExchange(
                 exchangeID: "DP-TO-CLR-1", templateID: "DP-04", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
@@ -4893,7 +4975,7 @@ public final class ScriptGeneratorEngine {
                 exchanges.append(FilledExchange(
                     exchangeID: "ER-VFR-1", templateID: "ER-01", turn: globalTurn, speaker: "ATC",
                     isUserTurn: (role == .atc),
-                    text: "\(callsign), \(context.unitTower?.callsign ?? "Tower"), radar contact south training area, maintain visual flight rules three thousand feet, report maneuvers completed.",
+                    text: "\(callsign), \(context.unitTower?.callsign ?? "Tower"), \(Self.isAdvisoryStation(context.airport) ? "roger" : "radar contact") south training area, maintain visual flight rules three thousand feet, report maneuvers completed.",
                     criticalSlots: [], severity: .normal, eventTag: "RADAR CONTACT VFR"
                 ))
                 globalTurn += 1
@@ -5557,7 +5639,9 @@ public final class ScriptGeneratorEngine {
             globalTurn += 1
 
         } else if level == .level2 {
-            // Level 2: Point-to-Point BWX -> DPS (Cruising FL080 -> Descent to 4000ft, BLI VOR constraint, 6 turns)
+            // Level 2 (Junior FO / turboprop): single altitude constraint over a published
+            // destination fix. No compound speed control at this level (Doc 9835 scaffolding).
+            let arrFix = Self.arrivalCrossingFix(for: context.airport, seed: 7)
             exchanges.append(FilledExchange(
                 exchangeID: "AR-L2-1", templateID: "AR-01", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
@@ -5582,21 +5666,21 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "AR-L2-3", templateID: "AR-02", turn: globalTurn, speaker: "ATC",
                 isUserTurn: (role == .atc),
-                text: "\(callsign), cross BLI VOR at altitude four thousand feet, speed two zero zero knots or less.",
-                criticalSlots: [], severity: .normal, eventTag: "WAYPOINT & SPEED CONSTRAINT"
+                text: "\(callsign), cross \(arrFix) at altitude four thousand feet.",
+                criticalSlots: [], severity: .normal, eventTag: "WAYPOINT ALTITUDE CONSTRAINT"
             ))
             globalTurn += 1
 
             exchanges.append(FilledExchange(
                 exchangeID: "AR-L2-4", templateID: "AR-02", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "Cross BLI VOR at altitude four thousand feet, speed two zero zero knots, \(callsign).",
+                text: "Cross \(arrFix) at altitude four thousand feet, \(callsign).",
                 criticalSlots: [
-                    CriticalSlot(slot: "WAYPOINT", expectedValue: "BLI VOR", type: "mandatoryWaypoint"),
+                    CriticalSlot(slot: "WAYPOINT", expectedValue: arrFix, type: "mandatoryWaypoint"),
                     CriticalSlot(slot: "ALTITUDE", expectedValue: "four thousand feet", type: "mandatoryAltitude"),
-                    CriticalSlot(slot: "SPEED", expectedValue: "two zero zero knots", type: "mandatoryKeyword"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                ], severity: .normal, eventTag: "READBACK CONSTRAINT"
+                ], severity: .normal, eventTag: "READBACK CONSTRAINT",
+                objective: "Read back the published arrival fix and its altitude restriction (Doc 4444 Ch.4.5.7.4). Level 2 carries a single altitude constraint only; compound speed control belongs to Level 3 and above."
             ))
             globalTurn += 1
 
@@ -5621,13 +5705,9 @@ public final class ScriptGeneratorEngine {
 
         } else {
             // Jet Commercial Routes (Levels 3, 4, 5): Full ICAO STAR & Descent Step-Down Profile (8 turns)
-            let starFix: String
-            switch level {
-            case .level3: starFix = "POSOP"
-            case .level4: starFix = "GANDI"
-            case .level5: starFix = "BUNTA"
-            default: starFix = "DOLTA"
-            }
+            // Crossing fix is read from the DESTINATION aerodrome dataset so the restriction is
+            // geographically valid for this route (Doc 4444 Ch.4.5.7.4).
+            let starFix = Self.arrivalCrossingFix(for: context.airport, seed: 13)
 
             // Step 1: Top of Descent Clearance to FL100 via STAR
             exchanges.append(FilledExchange(
@@ -6284,6 +6364,17 @@ public final class ScriptGeneratorEngine {
 
             } else {
                 // Level 1: Visual traffic pattern turning base, final, and full-stop landing (6 turns)
+                // At an AFIS/Information aerodrome the station passes traffic information and the
+                // landing decision rests with the pilot (Doc 4444 Ch.4.1; Doc 9432 Ch.4).
+                let advisory = Self.isAdvisoryStation(context.airport)
+                let landClearATC = advisory
+                    ? "\(callsign), runway \(arrRwySpoken), wind \(windSpoken), no reported traffic, land at your discretion."
+                    : "\(callsign), runway \(arrRwySpoken), wind \(windSpoken), cleared to land."
+                let landReadback = advisory
+                    ? "Runway \(arrRwySpoken), landing at my discretion, \(callsign)."
+                    : "Runway \(arrRwySpoken), cleared to land, \(callsign)."
+                let landKeyword = advisory ? "land at your discretion" : "cleared to land"
+
                 exchanges.append(FilledExchange(
                     exchangeID: "AP-VFR-1", templateID: "AP-01", turn: globalTurn, speaker: "ATC",
                     isUserTurn: (role == .atc),
@@ -6325,20 +6416,24 @@ public final class ScriptGeneratorEngine {
                 exchanges.append(FilledExchange(
                     exchangeID: "AP-VFR-5", templateID: "AP-03", turn: globalTurn, speaker: "ATC",
                     isUserTurn: (role == .atc),
-                    text: "\(callsign), runway \(arrRwySpoken), wind \(windSpoken), cleared to land.",
-                    criticalSlots: [], severity: .normal, eventTag: "CLEARED TO LAND"
+                    text: landClearATC,
+                    criticalSlots: [], severity: .normal, eventTag: advisory ? "LAND AT DISCRETION" : "CLEARED TO LAND"
                 ))
                 globalTurn += 1
 
                 exchanges.append(FilledExchange(
                     exchangeID: "AP-VFR-6", templateID: "AP-03", turn: globalTurn, speaker: "PILOT",
                     isUserTurn: (role == .pilot),
-                    text: "Runway \(arrRwySpoken), cleared to land, \(callsign).",
+                    text: landReadback,
                     criticalSlots: [
                         CriticalSlot(slot: "RUNWAY", expectedValue: arrRwySpoken, type: "mandatoryRunway"),
-                        CriticalSlot(slot: "CLEARED_TO_LAND", expectedValue: "cleared to land", type: "mandatoryKeyword"),
+                        CriticalSlot(slot: "CLEARED_TO_LAND", expectedValue: landKeyword, type: "mandatoryKeyword"),
                         CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
-                    ], severity: .normal, eventTag: "READBACK CLEARED TO LAND"
+                    ], severity: .normal,
+                    eventTag: advisory ? "ACKNOWLEDGE DISCRETION" : "READBACK CLEARED TO LAND",
+                    objective: advisory
+                        ? "At an AFIS aerodrome the station gives information only; acknowledge without reading back a clearance that was never issued (Doc 4444 Ch.4.1)."
+                        : nil
                 ))
                 globalTurn += 1
             }
@@ -6791,8 +6886,13 @@ public final class ScriptGeneratorEngine {
         var exchanges: [FilledExchange] = []
         let callsign = context.callsign
         let twrUnit = context.unitTower?.callsign ?? "Tower"
-        let gndUnit = context.unitGround?.callsign ?? "Ground"
-        let gndFreq = SpokenFormFormatter.frequency(context.unitGround?.frequency ?? "121.700")
+        // At an AFIS aerodrome there is no Ground controller: taxi-in stays with the
+        // Information station on the same frequency (Doc 4444 Ch.4.1).
+        let hasGround = context.unitGround != nil
+        let gndUnit = context.unitGround?.callsign ?? twrUnit
+        let gndFreq = SpokenFormFormatter.frequency(
+            context.unitGround?.frequency ?? context.unitTower?.frequency ?? "121.700"
+        )
         let exitTaxiway = context.exitTaxiway
         let exitDir = context.exitDirection
         let standDest = context.destinationStand
@@ -7047,10 +7147,12 @@ public final class ScriptGeneratorEngine {
         }
 
         // Turn 1: ATC Vacate instruction
+        let vacTransfer = hasGround ? ", when vacated contact Ground \(gndFreq)" : ", report vacated"
+        let vacReadbackTail = hasGround ? ", contact Ground \(gndFreq)" : ", will report vacated"
         exchanges.append(FilledExchange(
             exchangeID: "LD-VAC-1", templateID: "LD-01", turn: globalTurn, speaker: "ATC",
             isUserTurn: (role == .atc),
-            text: "\(callsign), \(twrUnit), vacate \(exitDir) via \(exitTaxiway), when vacated contact Ground \(gndFreq).",
+            text: "\(callsign), \(twrUnit), vacate \(exitDir) via \(exitTaxiway)\(vacTransfer).",
             criticalSlots: [], severity: .normal, eventTag: "VACATE RUNWAY INSTRUCTION"
         ))
         globalTurn += 1
@@ -7072,10 +7174,13 @@ public final class ScriptGeneratorEngine {
             exchanges.append(FilledExchange(
                 exchangeID: "LD-VAC-2", templateID: "LD-01", turn: globalTurn, speaker: "PILOT",
                 isUserTurn: (role == .pilot),
-                text: "Vacate \(exitDir) via \(exitTaxiway), contact Ground \(gndFreq), \(callsign).",
-                criticalSlots: [
+                text: "Vacate \(exitDir) via \(exitTaxiway)\(vacReadbackTail), \(callsign).",
+                criticalSlots: hasGround ? [
                     CriticalSlot(slot: "VACATE_TAXIWAY", expectedValue: exitTaxiway, type: "mandatoryTaxiway"),
                     CriticalSlot(slot: "GROUND_FREQ", expectedValue: gndFreq, type: "mandatoryFrequency"),
+                    CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
+                ] : [
+                    CriticalSlot(slot: "VACATE_TAXIWAY", expectedValue: exitTaxiway, type: "mandatoryTaxiway"),
                     CriticalSlot(slot: "CALLSIGN", expectedValue: callsign, type: "mandatoryIdentifier")
                 ], severity: .normal, eventTag: "READBACK VACATE"
             ))

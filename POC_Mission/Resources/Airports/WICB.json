@@ -96,6 +96,11 @@
         "id": "CRG1B",
         "name": "Curug One Bravo",
         "runway": "12"
+      },
+      {
+        "id": "PARU1B",
+        "name": "Parung One Bravo Arrival",
+        "runway": "12"
       }
     ],
     "approaches": [
@@ -106,12 +111,46 @@
         "missedApproachAltFt": 2000
       }
     ],
-    "holdings": []
+    "holdings": [],
+    "waypoints": [
+      "CURUG",
+      "PARUNG",
+      "BALARAJA",
+      "SERPONG",
+      "LEGOK",
+      "TANGERANG",
+      "CIBINONG"
+    ]
   },
   "_meta": {
     "curriculumLevel": 1,
     "curriculumCategory": "Flight School & Local Training",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.765)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "CURUG",
+    "PARUNG",
+    "BALARAJA",
+    "SERPONG",
+    "LEGOK",
+    "TANGERANG",
+    "CIBINONG"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 765,
+    "hasTerminalCharts": true,
+    "chartCount": 11,
+    "waypoints": [
+      "CURUG",
+      "PARUNG",
+      "BALARAJA",
+      "SERPONG",
+      "LEGOK",
+      "TANGERANG",
+      "CIBINONG"
+    ]
   }
 }

@@ -70,12 +70,23 @@
         "name": "Solo One Alfa",
         "runway": "08",
         "initialAltFt": 5000
+      },
+      {
+        "id": "PALU1A",
+        "name": "PALUR One Alfa Departure",
+        "runway": "08",
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
         "id": "SOC1B",
         "name": "Solo One Bravo",
+        "runway": "08"
+      },
+      {
+        "id": "MERA1A",
+        "name": "MERAPI One Alfa Arrival",
         "runway": "08"
       }
     ],
@@ -94,12 +105,43 @@
         "turns": "right",
         "altFt": 5500
       }
+    ],
+    "waypoints": [
+      "SOC",
+      "SLO",
+      "PALUR",
+      "MERAPI",
+      "KLATEN",
+      "BOYOLALI"
     ]
   },
   "_meta": {
     "curriculumLevel": 3,
     "curriculumCategory": "Busy Single-Runway & Backtrack",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.277)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "SOC",
+    "SLO",
+    "PALUR",
+    "MERAPI",
+    "KLATEN",
+    "BOYOLALI"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 277,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "SOC",
+      "SLO",
+      "PALUR",
+      "MERAPI",
+      "KLATEN",
+      "BOYOLALI"
+    ]
   }
 }

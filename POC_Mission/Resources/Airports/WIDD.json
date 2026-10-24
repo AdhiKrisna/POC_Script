@@ -74,12 +74,23 @@
         "name": "Batam One Alfa",
         "runway": "04",
         "initialAltFt": 5000
+      },
+      {
+        "id": "AKBI1A",
+        "name": "AKBIG One Alfa Departure",
+        "runway": "04",
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
         "id": "BTH1B",
         "name": "Batam One Bravo",
+        "runway": "04"
+      },
+      {
+        "id": "AKDE1A",
+        "name": "AKDES One Alfa Arrival",
         "runway": "04"
       }
     ],
@@ -98,12 +109,46 @@
         "turns": "right",
         "altFt": 4000
       }
+    ],
+    "waypoints": [
+      "AKBIG",
+      "AKDES",
+      "BTH",
+      "NONGSA",
+      "BATAM",
+      "KABIL",
+      "SEKUPANG"
     ]
   },
   "_meta": {
     "curriculumLevel": 3,
     "curriculumCategory": "Busy Single-Runway & Backtrack",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.563)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "AKBIG",
+    "AKDES",
+    "BTH",
+    "NONGSA",
+    "BATAM",
+    "KABIL",
+    "SEKUPANG"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 563,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "AKBIG",
+      "AKDES",
+      "BTH",
+      "NONGSA",
+      "BATAM",
+      "KABIL",
+      "SEKUPANG"
+    ]
   }
 }

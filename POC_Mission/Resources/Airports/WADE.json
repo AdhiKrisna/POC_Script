@@ -26,8 +26,8 @@
     "apron": null,
     "ground": null,
     "tower": {
-      "callsign": "Wisnu Tower",
-      "frequency": "118.300"
+      "callsign": "Wisnu Information",
+      "frequency": "122.550"
     },
     "approach": {
       "callsign": "Bali Approach",
@@ -64,12 +64,40 @@
         "missedApproachAltFt": 2000
       }
     ],
-    "holdings": []
+    "holdings": [],
+    "waypoints": [
+      "SUMBERKIMA",
+      "TELUK TERIMA",
+      "PULAKI",
+      "MENJANGAN",
+      "BULELENG"
+    ]
   },
   "_meta": {
     "curriculumLevel": 1,
     "curriculumCategory": "Flight School & Local Training",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.149)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "SUMBERKIMA",
+    "TELUK TERIMA",
+    "PULAKI",
+    "MENJANGAN",
+    "BULELENG"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 149,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "SUMBERKIMA",
+      "TELUK TERIMA",
+      "PULAKI",
+      "MENJANGAN",
+      "BULELENG"
+    ]
   }
 }

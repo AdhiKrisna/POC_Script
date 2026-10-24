@@ -71,12 +71,23 @@
         "name": "Grasberg One Alfa",
         "runway": "12",
         "initialAltFt": 5000
+      },
+      {
+        "id": "CARS1A",
+        "name": "Carstensz One Alfa Departure",
+        "runway": "12",
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
         "id": "TIM1B",
         "name": "Carstensz One Arrival",
+        "runway": "12"
+      },
+      {
+        "id": "GRAS1A",
+        "name": "Grasberg One Alfa Arrival",
         "runway": "12"
       }
     ],
@@ -95,12 +106,40 @@
         "turns": "left",
         "altFt": 6000
       }
+    ],
+    "waypoints": [
+      "TIM",
+      "CARSTENSZ",
+      "GRASBERG",
+      "AMAMAPARE",
+      "KILANGIN"
     ]
   },
   "_meta": {
     "curriculumLevel": 5,
     "curriculumCategory": "High-Risk Valley & Extreme Terrain",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.549)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "TIM",
+    "CARSTENSZ",
+    "GRASBERG",
+    "AMAMAPARE",
+    "KILANGIN"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 549,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "TIM",
+      "CARSTENSZ",
+      "GRASBERG",
+      "AMAMAPARE",
+      "KILANGIN"
+    ]
   }
 }

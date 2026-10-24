@@ -71,12 +71,23 @@
         "name": "Tangku One Alfa Departure",
         "runway": "29",
         "initialAltFt": 6000
+      },
+      {
+        "id": "TANG1A",
+        "name": "TANGKUBAN One Alfa Departure",
+        "runway": "29",
+        "initialAltFt": 6000
       }
     ],
     "stars": [
       {
         "id": "BDO1B",
         "name": "Kawah One Arrival",
+        "runway": "29"
+      },
+      {
+        "id": "KAWA1A",
+        "name": "KAWAH One Arrival",
         "runway": "29"
       }
     ],
@@ -95,12 +106,43 @@
         "turns": "right",
         "altFt": 7500
       }
+    ],
+    "waypoints": [
+      "BDO",
+      "LEMBANG",
+      "CILILIN",
+      "SUBANG",
+      "PADALARANG",
+      "SOREANG"
     ]
   },
   "_meta": {
     "curriculumLevel": 5,
     "curriculumCategory": "High-Risk Valley & Extreme Terrain",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.558)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "BDO",
+    "LEMBANG",
+    "CILILIN",
+    "SUBANG",
+    "PADALARANG",
+    "SOREANG"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 558,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "BDO",
+      "LEMBANG",
+      "CILILIN",
+      "SUBANG",
+      "PADALARANG",
+      "SOREANG"
+    ]
   }
 }

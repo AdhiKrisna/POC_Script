@@ -114,12 +114,34 @@
         "name": "Cengkareng Two Alfa Departure",
         "runway": "25R",
         "initialAltFt": 8000
+      },
+      {
+        "id": "DK1A",
+        "name": "Duri Kosambi One Alfa Departure",
+        "runway": "25R",
+        "initialAltFt": 8000
+      },
+      {
+        "id": "CL1A",
+        "name": "Cilincing One Alfa Departure",
+        "runway": "25R",
+        "initialAltFt": 8000
       }
     ],
     "stars": [
       {
         "id": "DOLTA1A",
         "name": "DOLTA One Alfa",
+        "runway": "25R"
+      },
+      {
+        "id": "BUNT1A",
+        "name": "BUNTA One Alfa Arrival",
+        "runway": "25R"
+      },
+      {
+        "id": "NOPO1A",
+        "name": "NOPOK One Alfa Arrival",
         "runway": "25R"
       }
     ],
@@ -138,12 +160,55 @@
         "turns": "right",
         "altFt": 7000
       }
+    ],
+    "waypoints": [
+      "BUNTA",
+      "DOLTA",
+      "NOPOK",
+      "IMBOB",
+      "TOPAN",
+      "KRAKE",
+      "CKG",
+      "BTO",
+      "PLP",
+      "DURIK"
     ]
   },
   "_meta": {
     "curriculumLevel": 4,
     "curriculumCategory": "Major Metropolitan Hub",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.655)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "BUNTA",
+    "DOLTA",
+    "NOPOK",
+    "IMBOB",
+    "TOPAN",
+    "KRAKE",
+    "CKG",
+    "BTO",
+    "PLP",
+    "DURIK"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 655,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "BUNTA",
+      "DOLTA",
+      "NOPOK",
+      "IMBOB",
+      "TOPAN",
+      "KRAKE",
+      "CKG",
+      "BTO",
+      "PLP",
+      "DURIK"
+    ]
   }
 }

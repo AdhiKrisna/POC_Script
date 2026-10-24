@@ -14,13 +14,14 @@ Data operasional penerbangan (**Tier 2**) tidak dapat diambil dari portal profil
    - **AD 2.8 & 2.24:** Aerodrome Ground Movement Chart & Parking Chart (Taxiway & Stand).
    - **AD 2.19 & 2.24:** Radio Navigation Aids, SID, STAR, & Instrument Approach Charts (ILS/RNP/LOC).
 2. **AirNav Nav-Card (Published Database):** Basis data resmi penamaan waypoint 5LNC (*Five-Letter Name Code*) Indonesia ([https://app-pia.airnavindonesia.co.id/navcard/published.php](https://app-pia.airnavindonesia.co.id/navcard/published.php)).
-3. **Open Aviation Charts & Repositories (Public Mirror & Simulator Community):**
+3. **Jeppesen Trip Kit Indonesia (`Waypoints.pdf`, 807 halaman):** Basis data resmi bagan navigasi terminal Jeppesen untuk wilayah udara Indonesia (FIR Jakarta & FIR Ujung Pandang). Digunakan sebagai acuan validasi instrumen RNAV/Conventional SID, STAR, Instrument Approach Charts (ILS/RNP/LOC), Radar Vectoring Altitudes, serta ekstraksi 1.170+ waypoint 5LNC.
+4. **Open Aviation Charts & Repositories (Public Mirror & Simulator Community):**
    - **ChartFox (VATSIM):** `https://chartfox.org/{ICAO}`
    - **OurAirports Database (CC0):** `https://ourairports.com/airports/{ICAO}/`
    - **SkyVector Aeronautical Database:** `https://skyvector.com/airport/{ICAO}` (Format URL kanonikal: `https://skyvector.com/airport/{ICAO}/{Airport-Slug}`)
    - **AC-U-KWIK Airport Directory:** `https://acukwik.com/Airport/{ICAO}`
-   > *Catatan Indeks SkyVector:* Sebagian bandara di SkyVector masih diindeks menggunakan kode ICAO historis/internasional (misal WIRR untuk Budiarto Curug, WAHS untuk Ahmad Yani Semarang, WAHQ untuk Adi Soemarmo Solo, WIEE untuk Minangkabau Padang, WAYY untuk Mozes Kilangin Timika, dan WAQQ untuk Juwata Tarakan). Tautan di bawah telah diverifikasi aktif dan mengarah ke URL slug kanonikal masing-masing (HTTP 200).
-4. **Aerodrome Manual & SOP Sekolah Penerbang (Khusus Level 1):** Kurikulum latih API Banyuwangi, PPI Curug, dan BIFA Buleleng untuk sirkuit visual (*aerodrome traffic circuit*).
+   > *Catatan Indeks SkyVector / Jeppesen:* Sebagian bandara di SkyVector dan Jeppesen Trip Kit masih diindeks menggunakan kode ICAO historis/internasional (misal WIRR untuk Budiarto Curug, WAHS untuk Ahmad Yani Semarang, WAHQ untuk Adi Soemarmo Solo, WIEE untuk Minangkabau Padang, WAYY untuk Mozes Kilangin Timika, dan WAQQ untuk Juwata Tarakan). Tautan di bawah telah diverifikasi aktif dan mengarah ke URL slug kanonikal masing-masing (HTTP 200).
+5. **Aerodrome Manual & SOP Sekolah Penerbang (Khusus Level 1):** Kurikulum latih API Banyuwangi, PPI Curug, dan BIFA Buleleng untuk sirkuit visual (*aerodrome traffic circuit*).
 
 ---
 

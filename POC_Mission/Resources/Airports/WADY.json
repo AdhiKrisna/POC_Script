@@ -71,12 +71,56 @@
         "name": "Banyuwangi One Alfa",
         "runway": "08",
         "initialAltFt": 3000
+      },
+      {
+        "id": "AGUD1C",
+        "name": "AGUDA One Charlie Departure",
+        "runway": "08",
+        "initialAltFt": 3000
+      },
+      {
+        "id": "ENTA1A",
+        "name": "ENTAS One Alfa Departure",
+        "runway": "08",
+        "initialAltFt": 3000
+      },
+      {
+        "id": "ESKO1C",
+        "name": "ESKOG One Charlie Departure",
+        "runway": "08",
+        "initialAltFt": 3000
+      },
+      {
+        "id": "OKAN1G",
+        "name": "OKANG One Golf Departure",
+        "runway": "08",
+        "initialAltFt": 3000
       }
     ],
     "stars": [
       {
         "id": "BWX1B",
         "name": "Banyuwangi One Bravo",
+        "runway": "08"
+      },
+      {
+        "id": "KIDU1C",
+        "name": "KIDUL One Charlie Arrival",
+        "runway": "08"
+      },
+      {
+        "id": "LURS1A",
+        "name": "LURSI One Alfa Arrival",
+        "runway": "08"
+      },
+      {
+        "id": "MOVM2G",
+        "name": "MOVMO Two Golf Arrival",
+        "runway": "08"
+      },
+      {
+        "id": "SASA1K",
+        "name": "SASAX One Kilo Arrival",
         "runway": "08"
       }
     ],
@@ -88,12 +132,145 @@
         "missedApproachAltFt": 2500
       }
     ],
-    "holdings": []
+    "holdings": [],
+    "waypoints": [
+      "AGUDA",
+      "ANGSA",
+      "ARALA",
+      "BAVED",
+      "BAVIG",
+      "BIGIV",
+      "DUKAM",
+      "ENKIM",
+      "ENTAS",
+      "ESKOG",
+      "IDGON",
+      "IKUGA",
+      "KARGU",
+      "KIDUL",
+      "LELES",
+      "LURSI",
+      "LUSPI",
+      "MEXAT",
+      "MIDOL",
+      "MOVMO",
+      "MUGUV",
+      "NISAT",
+      "NOKIV",
+      "NUSKI",
+      "OKANG",
+      "OLMEL",
+      "ORURI",
+      "OTKOP",
+      "PASDO",
+      "PRAYA",
+      "REGUP",
+      "SANOL",
+      "SARLO",
+      "SASAX",
+      "SOTPU",
+      "STRIP",
+      "TOGAP",
+      "UXOGI",
+      "VADRI",
+      "VATNI"
+    ]
   },
   "_meta": {
     "curriculumLevel": 1,
     "curriculumCategory": "Flight School & Local Training",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.171)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "AGUDA",
+    "ANGSA",
+    "ARALA",
+    "BAVED",
+    "BAVIG",
+    "BIGIV",
+    "DUKAM",
+    "ENKIM",
+    "ENTAS",
+    "ESKOG",
+    "IDGON",
+    "IKUGA",
+    "KARGU",
+    "KIDUL",
+    "LELES",
+    "LURSI",
+    "LUSPI",
+    "MEXAT",
+    "MIDOL",
+    "MOVMO",
+    "MUGUV",
+    "NISAT",
+    "NOKIV",
+    "NUSKI",
+    "OKANG",
+    "OLMEL",
+    "ORURI",
+    "OTKOP",
+    "PASDO",
+    "PRAYA",
+    "REGUP",
+    "SANOL",
+    "SARLO",
+    "SASAX",
+    "SOTPU",
+    "STRIP",
+    "TOGAP",
+    "UXOGI",
+    "VADRI",
+    "VATNI"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 171,
+    "hasTerminalCharts": true,
+    "chartCount": 10,
+    "waypoints": [
+      "AGUDA",
+      "ANGSA",
+      "ARALA",
+      "BAVED",
+      "BAVIG",
+      "BIGIV",
+      "DUKAM",
+      "ENKIM",
+      "ENTAS",
+      "ESKOG",
+      "IDGON",
+      "IKUGA",
+      "KARGU",
+      "KIDUL",
+      "LELES",
+      "LURSI",
+      "LUSPI",
+      "MEXAT",
+      "MIDOL",
+      "MOVMO",
+      "MUGUV",
+      "NISAT",
+      "NOKIV",
+      "NUSKI",
+      "OKANG",
+      "OLMEL",
+      "ORURI",
+      "OTKOP",
+      "PASDO",
+      "PRAYA",
+      "REGUP",
+      "SANOL",
+      "SARLO",
+      "SASAX",
+      "SOTPU",
+      "STRIP",
+      "TOGAP",
+      "UXOGI",
+      "VADRI",
+      "VATNI"
+    ]
   }
 }

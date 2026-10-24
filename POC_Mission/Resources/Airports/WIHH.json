@@ -71,12 +71,23 @@
         "name": "Halim One Alfa",
         "runway": "06",
         "initialAltFt": 5000
+      },
+      {
+        "id": "AKNE1A",
+        "name": "AKNER One Alfa Departure",
+        "runway": "06",
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
         "id": "HLP1B",
         "name": "Halim One Bravo",
+        "runway": "06"
+      },
+      {
+        "id": "DEPO1A",
+        "name": "DEPOK One Alfa Arrival",
         "runway": "06"
       }
     ],
@@ -95,12 +106,43 @@
         "turns": "left",
         "altFt": 5000
       }
+    ],
+    "waypoints": [
+      "AKNER",
+      "HLP",
+      "CILILITAN",
+      "DEPOK",
+      "BEKASI",
+      "BOGOR"
     ]
   },
   "_meta": {
     "curriculumLevel": 4,
     "curriculumCategory": "Major Metropolitan Hub",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.651)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "AKNER",
+    "HLP",
+    "CILILITAN",
+    "DEPOK",
+    "BEKASI",
+    "BOGOR"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 651,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "AKNER",
+      "HLP",
+      "CILILITAN",
+      "DEPOK",
+      "BEKASI",
+      "BOGOR"
+    ]
   }
 }

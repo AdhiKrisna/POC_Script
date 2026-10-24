@@ -70,6 +70,11 @@
         "id": "TRT1B",
         "name": "Toraja Ridge One",
         "runway": "04"
+      },
+      {
+        "id": "VENR1J",
+        "name": "VENRU One Juliet Arrival",
+        "runway": "04"
       }
     ],
     "approaches": [
@@ -87,12 +92,40 @@
         "turns": "right",
         "altFt": 8000
       }
+    ],
+    "waypoints": [
+      "VENRU",
+      "EPKAN",
+      "RANTEPAO",
+      "MAKALE",
+      "TORAJA"
     ]
   },
   "_meta": {
     "curriculumLevel": 5,
     "curriculumCategory": "High-Risk Valley & Extreme Terrain",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.216)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "VENRU",
+    "EPKAN",
+    "RANTEPAO",
+    "MAKALE",
+    "TORAJA"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 216,
+    "hasTerminalCharts": true,
+    "chartCount": 3,
+    "waypoints": [
+      "VENRU",
+      "EPKAN",
+      "RANTEPAO",
+      "MAKALE",
+      "TORAJA"
+    ]
   }
 }

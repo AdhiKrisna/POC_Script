@@ -71,12 +71,23 @@
         "name": "Sepinggan One Alfa",
         "runway": "07",
         "initialAltFt": 5000
+      },
+      {
+        "id": "ADPU1A",
+        "name": "ADPUD One Alfa Departure",
+        "runway": "07",
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
         "id": "BPN1B",
         "name": "Sepinggan One Bravo",
+        "runway": "07"
+      },
+      {
+        "id": "SENI1A",
+        "name": "SENIP One Alfa Arrival",
         "runway": "07"
       }
     ],
@@ -95,12 +106,43 @@
         "turns": "right",
         "altFt": 5000
       }
+    ],
+    "waypoints": [
+      "ADPUD",
+      "BPN",
+      "SEPINGGAN",
+      "SENIP",
+      "DUMAS",
+      "SALOD"
     ]
   },
   "_meta": {
     "curriculumLevel": 3,
     "curriculumCategory": "Busy Single-Runway & Backtrack",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.330)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "ADPUD",
+    "BPN",
+    "SEPINGGAN",
+    "SENIP",
+    "DUMAS",
+    "SALOD"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 330,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "ADPUD",
+      "BPN",
+      "SEPINGGAN",
+      "SENIP",
+      "DUMAS",
+      "SALOD"
+    ]
   }
 }
