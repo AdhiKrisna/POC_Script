@@ -70,12 +70,23 @@
         "name": "Martapura One Alfa",
         "runway": "10",
         "initialAltFt": 4000
+      },
+      {
+        "id": "AGSU1A",
+        "name": "AGSUM One Alfa Departure",
+        "runway": "10",
+        "initialAltFt": 4000
       }
     ],
     "stars": [
       {
         "id": "BDJ1B",
         "name": "Martapura One Bravo",
+        "runway": "10"
+      },
+      {
+        "id": "MART1A",
+        "name": "MARTAPURA One Alfa Arrival",
         "runway": "10"
       }
     ],
@@ -94,12 +105,43 @@
         "turns": "right",
         "altFt": 4500
       }
+    ],
+    "waypoints": [
+      "AGSUM",
+      "BDJ",
+      "MARTAPURA",
+      "BARITO",
+      "PLEIHARI",
+      "BANJAR"
     ]
   },
   "_meta": {
     "curriculumLevel": 2,
     "curriculumCategory": "Regional Controlled (Basic Instrument)",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.350)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "AGSUM",
+    "BDJ",
+    "MARTAPURA",
+    "BARITO",
+    "PLEIHARI",
+    "BANJAR"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 350,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "AGSUM",
+      "BDJ",
+      "MARTAPURA",
+      "BARITO",
+      "PLEIHARI",
+      "BANJAR"
+    ]
   }
 }

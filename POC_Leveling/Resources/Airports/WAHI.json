@@ -82,12 +82,23 @@
         "name": "Bantul Two Departure",
         "runway": "11",
         "initialAltFt": 5000
+      },
+      {
+        "id": "BTL1A",
+        "name": "Bantul One Alfa Departure",
+        "runway": "11",
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
         "id": "BL1A",
         "name": "Bantul One Alfa",
+        "runway": "11"
+      },
+      {
+        "id": "WATE1A",
+        "name": "Wates One Alfa Arrival",
         "runway": "11"
       }
     ],
@@ -106,12 +117,46 @@
         "turns": "right",
         "altFt": 6000
       }
+    ],
+    "waypoints": [
+      "AKLUK",
+      "BANTUL",
+      "PRAMB",
+      "JOG",
+      "WATES",
+      "KLATEN",
+      "PURWO"
     ]
   },
   "_meta": {
     "curriculumLevel": 2,
     "curriculumCategory": "Regional Controlled (Basic Instrument)",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.274)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "AKLUK",
+    "BANTUL",
+    "PRAMB",
+    "JOG",
+    "WATES",
+    "KLATEN",
+    "PURWO"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 274,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "AKLUK",
+      "BANTUL",
+      "PRAMB",
+      "JOG",
+      "WATES",
+      "KLATEN",
+      "PURWO"
+    ]
   }
 }

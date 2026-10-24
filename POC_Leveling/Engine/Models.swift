@@ -49,10 +49,28 @@ public struct Airport: Codable, Equatable, Sendable {
     public let taxiways: [Taxiway]
     public let stands: [Stand]
     public let procedures: Procedures
+    public let waypoints: [String]?
+    public let reference: AirportReference?
 
     enum CodingKeys: String, CodingKey {
-        case level, icao, iata, name, city, profile, runways, units, taxiways, stands, procedures
+        case level, icao, iata, name, city, profile, runways, units, taxiways, stands, procedures, waypoints, reference
         case elevationFt = "elevation_ft"
+    }
+}
+
+public struct AirportReference: Codable, Equatable, Sendable {
+    public let source: String?
+    public let tripKitPage: Int?
+    public let hasTerminalCharts: Bool?
+    public let chartCount: Int?
+    public let waypoints: [String]?
+
+    public init(source: String? = nil, tripKitPage: Int? = nil, hasTerminalCharts: Bool? = nil, chartCount: Int? = nil, waypoints: [String]? = nil) {
+        self.source = source
+        self.tripKitPage = tripKitPage
+        self.hasTerminalCharts = hasTerminalCharts
+        self.chartCount = chartCount
+        self.waypoints = waypoints
     }
 }
 
@@ -100,6 +118,15 @@ public struct Procedures: Codable, Equatable, Sendable {
     public let stars: [STAR]
     public let approaches: [ApproachProcedure]
     public let holdings: [Holding]
+    public let waypoints: [String]?
+
+    public init(sids: [SID], stars: [STAR], approaches: [ApproachProcedure], holdings: [Holding], waypoints: [String]? = nil) {
+        self.sids = sids
+        self.stars = stars
+        self.approaches = approaches
+        self.holdings = holdings
+        self.waypoints = waypoints
+    }
 }
 
 public struct SID: Codable, Equatable, Sendable {

@@ -70,12 +70,23 @@
         "name": "Juwata One Alfa",
         "runway": "06",
         "initialAltFt": 5000
+      },
+      {
+        "id": "BUNY1A",
+        "name": "BUNYU One Alfa Departure",
+        "runway": "06",
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
         "id": "TRK1B",
         "name": "Border One Bravo",
+        "runway": "06"
+      },
+      {
+        "id": "JUWA1A",
+        "name": "JUWATA One Alfa Arrival",
         "runway": "06"
       }
     ],
@@ -94,12 +105,43 @@
         "turns": "right",
         "altFt": 5000
       }
+    ],
+    "waypoints": [
+      "TRK",
+      "JUWATA",
+      "BUNYU",
+      "MALINAU",
+      "SEBATIK",
+      "TARAKAN"
     ]
   },
   "_meta": {
     "curriculumLevel": 5,
     "curriculumCategory": "High-Risk Valley & Extreme Terrain",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.403)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "TRK",
+    "JUWATA",
+    "BUNYU",
+    "MALINAU",
+    "SEBATIK",
+    "TARAKAN"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 403,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "TRK",
+      "JUWATA",
+      "BUNYU",
+      "MALINAU",
+      "SEBATIK",
+      "TARAKAN"
+    ]
   }
 }

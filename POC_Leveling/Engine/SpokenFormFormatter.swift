@@ -59,7 +59,10 @@ public enum SpokenFormFormatter {
     public static func frequency(_ value: String) -> String {
         let parts = value.split(separator: ".", maxSplits: 1).map(String.init)
         guard parts.count == 2 else { return digitWords(value) }
-        let fractional = parts[1].trimmingCharacters(in: CharacterSet(charactersIn: "0"))
+        var fractional = parts[1].trimmingCharacters(in: CharacterSet(charactersIn: "0"))
+        if fractional.isEmpty {
+            fractional = "0"
+        }
         return [digitWords(parts[0]), "decimal", digitWords(fractional)].filter { !$0.isEmpty }.joined(separator: " ")
     }
 

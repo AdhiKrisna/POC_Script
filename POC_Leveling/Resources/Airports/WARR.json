@@ -79,12 +79,34 @@
         "name": "Surabaya One Alfa Departure",
         "runway": "10",
         "initialAltFt": 5000
+      },
+      {
+        "id": "GAND1A",
+        "name": "GANDI One Alfa Departure",
+        "runway": "10",
+        "initialAltFt": 5000
+      },
+      {
+        "id": "PASR1A",
+        "name": "PASRI One Alfa Departure",
+        "runway": "10",
+        "initialAltFt": 5000
       }
     ],
     "stars": [
       {
         "id": "SUR1B",
         "name": "Surabaya One Bravo",
+        "runway": "10"
+      },
+      {
+        "id": "SURB1A",
+        "name": "SURBA One Alfa Arrival",
+        "runway": "10"
+      },
+      {
+        "id": "KEDI1A",
+        "name": "KEDIS One Alfa Arrival",
         "runway": "10"
       }
     ],
@@ -103,12 +125,46 @@
         "turns": "right",
         "altFt": 5000
       }
+    ],
+    "waypoints": [
+      "SURBA",
+      "GANDI",
+      "SUR",
+      "KEDIS",
+      "PASRI",
+      "POXOT",
+      "BEKSO"
     ]
   },
   "_meta": {
     "curriculumLevel": 4,
     "curriculumCategory": "Major Metropolitan Hub",
     "datasetCycle": "2026-AIRAC",
-    "source": "AIP Indonesia / KONSEP_MAPPING_CIA.pdf"
+    "source": "AIP Indonesia / Jeppesen Trip Kit (Waypoints.pdf, P.412)",
+    "validatedProcedures": true
+  },
+  "waypoints": [
+    "SURBA",
+    "GANDI",
+    "SUR",
+    "KEDIS",
+    "PASRI",
+    "POXOT",
+    "BEKSO"
+  ],
+  "reference": {
+    "source": "Jeppesen Trip Kit Indonesia (Waypoints.pdf, 807 pages) & DGCA AIP Indonesia",
+    "tripKitPage": 412,
+    "hasTerminalCharts": false,
+    "chartCount": 0,
+    "waypoints": [
+      "SURBA",
+      "GANDI",
+      "SUR",
+      "KEDIS",
+      "PASRI",
+      "POXOT",
+      "BEKSO"
+    ]
   }
 }
