@@ -526,6 +526,8 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
     public let plainEnglishTrigger: String?
     /// Educational goal / operational context for this speaking turn (especially for user turns)
     public let objective: String?
+    /// Operational situation unfolding around the aircraft during this turn (what is happening now)
+    public let situationContext: String?
 
     // MARK: - Embedded Scaffolding Payloads
     public let scaffoldingType: ScaffoldingType?
@@ -550,6 +552,7 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         languageLayer: LanguageLayer = .standardPhraseology,
         plainEnglishTrigger: String? = nil,
         objective: String? = nil,
+        situationContext: String? = nil,
         scaffoldingType: ScaffoldingType? = nil,
         fourSlotPayload: FourSlotCardPayload? = nil,
         clozePayload: ClozeMaskedPayload? = nil,
@@ -587,6 +590,18 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         } else {
             self.objective = nil
         }
+
+        if let ctx = situationContext {
+            self.situationContext = ctx
+        } else {
+            self.situationContext = Self.resolveDefaultSituation(
+                tag: eventTag,
+                severity: severity,
+                speaker: speaker,
+                isUserTurn: isUserTurn,
+                text: text
+            )
+        }
     }
 
     public func withScaffolding(
@@ -612,6 +627,7 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
             languageLayer: self.languageLayer,
             plainEnglishTrigger: self.plainEnglishTrigger,
             objective: self.objective,
+            situationContext: self.situationContext,
             scaffoldingType: type,
             fourSlotPayload: fourSlot ?? self.fourSlotPayload,
             clozePayload: cloze ?? self.clozePayload,
@@ -621,6 +637,81 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
             partylinePayload: partyline ?? self.partylinePayload,
             hazardPayload: hazard ?? self.hazardPayload
         )
+    }
+
+    /// Derives the operational situation context from tag, severity, speaker, and transmission text.
+    ///
+    /// Mirrors `Domain/Mission/Models/MissionModels.swift` in the PracticeRadiotelephony app
+    /// so both POCs stay in parallel. Keep both copies in sync when editing the heuristics.
+    private static func resolveDefaultSituation(
+        tag: String?,
+        severity: EventSeverity,
+        speaker: String,
+        isUserTurn: Bool,
+        text: String
+    ) -> String? {
+        let lower = text.lowercased()
+        let t = (tag ?? "").uppercased()
+
+        // 1. Emergency and urgency situations take highest context priority
+        switch severity {
+        case .distress:
+            return "DISTRESS — Life is in immediate danger. The frequency is fully prioritised for your aircraft; ATC halts other traffic."
+        case .urgency:
+            return "URGENCY — The situation needs priority handling without immediate danger to life. ATC gives your aircraft special attention."
+        case .abnormal:
+            if t.contains("WIND SHEAR") || lower.contains("wind shear") {
+                return "Wind shear detected on the approach path. Aircraft performance is degraded and demands an immediate recovery manoeuvre."
+            }
+            if t.contains("GPWS") || t.contains("TERRAIN") || lower.contains("terrain") {
+                return "Terrain warning active in the cockpit. The current ATC instruction conflicts with terrain safety."
+            }
+            if t.contains("WEATHER") || lower.contains("weather") || lower.contains("cumulonimbus") {
+                return "Significant weather detected on route. A track deviation is required to avoid the storm cell."
+            }
+            return "An abnormal situation is unfolding. Cockpit workload is elevated and demands concise, accurate communication."
+        case .normal:
+            break
+        }
+
+        // 2. Other aircraft transmissions are checked before text heuristics, because their
+        // content is an instruction for that aircraft and would otherwise be misread as yours.
+        let speakerUpper = speaker.uppercased()
+        if speakerUpper.contains("TRAFFIC") {
+            return "This transmission belongs to another aircraft on the same frequency. Listen selectively and do not respond to calls not addressed to you."
+        }
+
+        // 3. Normal situations: derive context from transmission content
+        if lower.contains("say again") || t.contains("SAY AGAIN") {
+            return "Radio signal quality has dropped. Part of the instruction was unreadable and needs confirmation."
+        }
+        if lower.contains("contact") && lower.contains("on") {
+            return "The aircraft is approaching the boundary of the current ATC unit's area. A frequency change will be instructed shortly."
+        }
+        if lower.contains("hold short") || lower.contains("holding point") {
+            return "The aircraft is on the ground manoeuvring area near an active runway. The taxi clearance limit must be obeyed absolutely."
+        }
+        if lower.contains("line up") || lower.contains("cleared for take-off") || lower.contains("cleared for takeoff") {
+            return "The aircraft is on the active runway or holding point. This is the critical phase with the highest runway incursion risk."
+        }
+        if lower.contains("cleared to land") || lower.contains("final") {
+            return "The aircraft is on final approach. Landing configuration is set and cockpit workload is high."
+        }
+        if lower.contains("descend") || lower.contains("climb") {
+            return "The aircraft is in a vertical transition. A flight level change is in progress under ATC control."
+        }
+        if lower.contains("information") && lower.contains("qnh") {
+            return "The automatic terminal information service (ATIS) broadcast is being received before first contact with ATC."
+        }
+        if lower.contains("taxi") {
+            return "The aircraft is moving on the ground movement area following the cleared taxi route."
+        }
+
+        // 4. Generic context based on speaker
+        if isUserTurn {
+            return "The frequency is clear and ready to receive your transmission."
+        }
+        return "Routine communication is proceeding normally on the active frequency."
     }
 
     private static func resolveDefaultObjective(tag: String?, text: String, templateID: String) -> String? {
