@@ -1,9 +1,12 @@
 import Foundation
 
 public enum SpokenFormFormatter {
+    /// Bentuk ucapan digit per ICAO Doc 9432 Tabel 2.4.1 (ZE-RO, WUN, TOO, TREE, FOW-er, FIFE, SIX, SEV-en, AIT, NIN-er).
+    /// Ejaan disederhanakan tanpa tanda hubung/kapital agar natural dibaca TTS, tetapi tetap mempertahankan
+    /// fonem khas ICAO yang membedakannya dari bahasa Inggris biasa (tree/fower/fife/ait/niner).
     private static let digits: [Character: String] = [
-        "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
-        "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "niner"
+        "0": "zero", "1": "one", "2": "two", "3": "tree", "4": "fower",
+        "5": "fife", "6": "six", "7": "seven", "8": "ait", "9": "niner"
     ]
 
     private static let phoneticAlphabet: [Character: String] = [
@@ -63,7 +66,7 @@ public enum SpokenFormFormatter {
         if fractional.isEmpty {
             fractional = "0"
         }
-        return [digitWords(parts[0]), "decimal", digitWords(fractional)].filter { !$0.isEmpty }.joined(separator: " ")
+        return [digitWords(parts[0]), "day see mal", digitWords(fractional)].filter { !$0.isEmpty }.joined(separator: " ")
     }
 
     public static func qnh(_ value: Int) -> String { digitWords(String(value)) }
@@ -105,8 +108,40 @@ public enum SpokenFormFormatter {
         value.compactMap { digits[$0] }.joined(separator: " ")
     }
 
+    /// Kata-kata digit bahasa Inggris biasa yang harus diganti bentuk ucapan ICAO Doc 9432 2.4.1.
+    /// Hanya 5 digit yang berbeda; zero/one/two/six/seven sudah identik.
+    private static let icaoDigitSubstitutions: [(pattern: NSRegularExpression, replacement: String)] = {
+        let pairs = [
+            ("three", "tree"), ("four", "fower"), ("five", "fife"),
+            ("eight", "ait"), ("nine", "niner"), ("decimal", "day see mal")
+        ]
+        return pairs.compactMap { word, replacement in
+            // \b mencegah kecocokan di dalam kata (threshold, fourth, eighty, ninety, nineteen).
+            guard let regex = try? NSRegularExpression(pattern: "\\b\(word)\\b", options: [.caseInsensitive]) else {
+                return nil
+            }
+            return (regex, replacement)
+        }
+    }()
+
+    /// Mengubah kata digit bahasa Inggris biasa di dalam teks transmisi menjadi bentuk ucapan ICAO.
+    /// Dipakai sebagai jaring pengaman terpusat agar seluruh teks yang diucapkan konsisten,
+    /// tanpa harus menyentuh ratusan string literal satu per satu.
+    /// Catatan: "nine" -> "niner" dilewati bila sudah berbentuk "niner".
+    public static func normalizeToICAOSpokenForm(_ text: String) -> String {
+        var result = text
+        for (regex, replacement) in icaoDigitSubstitutions {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                options: [],
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: replacement
+            )
+        }
+        return result
+    }
+
     private static func cardinal(_ value: Int) -> String {
-        let values = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-        return value >= 0 && value < values.count ? values[value] : digitWords(String(value))
+        digitWords(String(value))
     }
 }

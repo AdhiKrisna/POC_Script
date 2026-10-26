@@ -39,7 +39,8 @@ public struct CriticalSlot: Equatable, Codable, Sendable {
 
     public init(slot: String, expectedValue: String, type: String, position: String? = nil) {
         self.slot = slot
-        self.expectedValue = expectedValue
+        // Harus senada dengan teks transmisi yang sudah dinormalisasi, agar pencocokan skoring tidak putus.
+        self.expectedValue = SpokenFormFormatter.normalizeToICAOSpokenForm(expectedValue)
         self.type = type
         self.position = position
     }
@@ -563,7 +564,8 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         self.turn = turn
         self.speaker = speaker
         self.isUserTurn = isUserTurn
-        self.text = text
+        // Normalisasi terpusat: semua teks transmisi RTF wajib berbentuk ucapan ICAO Doc 9432 2.4.1.
+        self.text = SpokenFormFormatter.normalizeToICAOSpokenForm(text)
         self.criticalSlots = criticalSlots
         self.severity = severity
         self.eventTag = eventTag
@@ -2175,7 +2177,7 @@ public struct CanonicalMissionRegistry: Sendable {
             subtitle: "Multi-Runway Holding Points & Stop Bar",
             originICAO: "WICB",
             destinationICAO: "WICB",
-            defaultAircraft: "Piper Archer PA-two eight",
+            defaultAircraft: "Piper Archer",
             defaultCallsign: "PK-WIC",
             primaryContingency: .routineOnly,
             secondaryContingency: nil,

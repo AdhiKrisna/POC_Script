@@ -121,40 +121,43 @@ public enum CallsignGenerator {
 }
 
 public enum AircraftGenerator {
+    // Doc 9432 2.7.2.1 Type a) Note: hanya SATU prefix radiotelephony (nama manufaktur ATAU model),
+    // bukan keduanya sekaligus. "Piper Archer PA-two eight" diperbaiki menjadi "Piper Archer".
+    // Digit mengikuti bentuk ucapan ICAO Doc 9432 2.4.1 (tree/fower/fife/ait/niner).
     private static let level1Aircraft = [
-        "Cessna one seven two Skyhawk",
-        "Piper Archer PA-two eight",
-        "Diamond four zero"
+        "Cessna one seven two",
+        "Piper Archer",
+        "Diamond fower zero"
     ]
 
     private static let level2Aircraft = [
-        "ATR seven two six hundred",
-        "Cessna two zero eight Grand Caravan"
+        "ATR seven two",
+        "Cessna Grand Caravan"
     ]
 
     private static let level3Aircraft = [
-        "Airbus A three two zero",
-        "Boeing seven three seven eight hundred"
+        "Airbus A tree two zero",
+        "Boeing seven tree seven"
     ]
 
     private static let level4Aircraft = [
         "Boeing seven seven seven Heavy",
-        "Airbus A three three zero Heavy",
-        "Airbus A three two zero",
-        "Boeing seven three seven eight hundred"
+        "Airbus A tree tree zero Heavy",
+        "Airbus A tree two zero",
+        "Boeing seven tree seven"
     ]
 
     // Level 5: Extreme Terrain & STOL Jet / Commuter
     private static let level5Aircraft = [
-        "Boeing seven three seven five hundred STOL",
-        "ATR seven two six hundred",
-        "Twin Otter DHC six"
+        "Boeing seven tree seven",
+        "ATR seven two",
+        "Twin Otter"
     ]
 
     // Toraja Buntu Kunik (WAFB): Cliff runway, STOL turboprop only
     private static let torajaAircraft = [
-        "ATR seven two six hundred",
-        "Twin Otter DHC six"
+        "ATR seven two",
+        "Twin Otter"
     ]
 
     public static func generate(profile: FlightProfile, level: CurriculumLevel? = nil, airportICAO: String? = nil, seed: Int) -> String {
