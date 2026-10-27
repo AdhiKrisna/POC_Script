@@ -1013,20 +1013,24 @@ public final class ScriptGeneratorEngine {
             return (only, only)
         }
         if let local = localVisualWaypoints[airport.icao] {
-            return local
+            return (SpokenFormFormatter.waypointSpoken(local.curr), SpokenFormFormatter.waypointSpoken(local.next))
         }
         let navaid = airport.procedures.holdings.first?.fix
             ?? airport.waypoints?.first
             ?? airport.icao
-        return (navaid, navaid)
+        let spokenNavaid = SpokenFormFormatter.waypointSpoken(navaid)
+        return (spokenNavaid, spokenNavaid)
     }
 
     /// Single en-route fix used for STAR crossing restrictions at the destination.
     public static func arrivalCrossingFix(for airport: Airport, seed: Int = 0) -> String {
-        if let holdFix = airport.procedures.holdings.first?.fix, holdFix.count == 5 {
-            return holdFix
+        let raw: String
+        if let holdFix = airport.procedures.holdings.first?.fix, holdFix.count >= 4 {
+            raw = holdFix
+        } else {
+            raw = airportWaypoints(for: airport, seed: seed).curr
         }
-        return airportWaypoints(for: airport, seed: seed).curr
+        return SpokenFormFormatter.waypointSpoken(raw)
     }
 
     /// True when the aerodrome is served by an AFIS / Information station instead of a
@@ -1039,29 +1043,29 @@ public final class ScriptGeneratorEngine {
 
     public static func resolveWaypoints(originICAO: String, destinationICAO: String) -> (curr: String, next: String) {
         switch originICAO {
-        case "WAAA": return ("UPG VOR", "MAROS")
+        case "WAAA": return ("Uniform Papa Golf VOR", "MAROS")
         case "WABP": return ("TIMIKA", "CARSTENSZ")
-        case "WADD": return ("POSOP", "BLI VOR")
+        case "WADD": return ("POSOP", "Bravo Lima India VOR")
         case "WADE": return ("Sumberkima", "Teluk Terima")
         case "WADL": return ("PRAYA", "GILI")
         case "WADY": return ("Point Alfa", "Point Charlie")
         case "WAFB": return ("RANTEPAO", "MAKALE")
-        case "WAHI": return ("JOG VOR", "PRAMB")
-        case "WALL": return ("BPN VOR", "SEPINGGAN")
+        case "WAHI": return ("Juliett Oscar Golf VOR", "PRAMB")
+        case "WALL": return ("Bravo Papa November VOR", "SEPINGGAN")
         case "WALR": return ("JUWATA", "TARAKAN")
-        case "WAOO": return ("BDJ VOR", "MARTAPURA")
-        case "WARQ": return ("SLO VOR", "PALUR")
+        case "WAOO": return ("Bravo Delta Juliett VOR", "MARTAPURA")
+        case "WARQ": return ("Sierra Lima Oscar VOR", "PALUR")
         case "WARR": return ("SURBA", "GANDI")
-        case "WARS": return ("ANY VOR", "KENDAL")
+        case "WARS": return ("Alpha November Yankee VOR", "KENDAL")
         case "WAVV": return ("BALIEM", "TIOM")
         case "WICB": return ("CURUG", "Area Alfa")
-        case "WICC": return ("BDO VOR", "LEMBANG")
-        case "WIDD": return ("BTH VOR", "NONGSA")
-        case "WIHH": return ("HLP VOR", "CILILITAN")
+        case "WICC": return ("Bravo Delta Oscar VOR", "LEMBANG")
+        case "WIDD": return ("Bravo Tango Hotel VOR", "NONGSA")
+        case "WIHH": return ("Hotel Lima Papa VOR", "CILILITAN")
         case "WIII": return ("BUNTA", "DOLTA")
-        case "WIMM": return ("KNO VOR", "DELI")
-        case "WIPP": return ("PLM VOR", "MUSI")
-        case "WIPT": return ("PDG VOR", "PARIAMAN")
+        case "WIMM": return ("Kilo November Oscar VOR", "DELI")
+        case "WIPP": return ("Papa Lima Mike VOR", "MUSI")
+        case "WIPT": return ("Papa Delta Golf VOR", "PARIAMAN")
         default: return ("BUNTA", "DOLTA")
         }
     }
@@ -5250,10 +5254,11 @@ public final class ScriptGeneratorEngine {
 
             // EN-ROUTE CONTINGENCIES (Levels 3, 4, 5)
             if let holdCont = contingencies.first(where: { $0.title.contains("Holding Pattern & EAT") }) {
+                let holdTarget = nextPos.hasSuffix(" VOR") ? nextPos : "\(nextPos) VOR"
                 exchanges.append(FilledExchange(
                     exchangeID: "ABN-HLD-1", templateID: "ABN-HLD", turn: globalTurn, speaker: "ATC",
                     isUserTurn: (role == .atc),
-                    text: "\(callsign), \(ctrlUnit), hold at \(nextPos) VOR, inbound track two seven zero degrees, right hand pattern, flight level two five zero, expected approach time zero two four five.",
+                    text: "\(callsign), \(ctrlUnit), hold at \(holdTarget), inbound track two seven zero degrees, right hand pattern, flight level two fife zero, expected approach time zero two fower fife.",
                     criticalSlots: [], severity: .abnormal, eventTag: "HOLD AT VOR WITH EAT"
                 ))
                 globalTurn += 1
@@ -5261,7 +5266,7 @@ public final class ScriptGeneratorEngine {
                 exchanges.append(FilledExchange(
                     exchangeID: "ABN-HLD-2", templateID: "ABN-HLD", turn: globalTurn, speaker: "PILOT",
                     isUserTurn: (role == .pilot),
-                    text: "Hold at \(nextPos), inbound track two seven zero, right hand pattern, flight level two five zero, expected approach time zero two four five, \(callsign).",
+                    text: "Hold at \(nextPos), inbound track two seven zero, right hand pattern, flight level two fife zero, expected approach time zero two fower fife, \(callsign).",
                     criticalSlots: [
                         CriticalSlot(slot: "WAYPOINT", expectedValue: nextPos, type: "mandatoryWaypoint"),
                         CriticalSlot(slot: "HOLD", expectedValue: "hold at", type: "mandatoryKeyword"),

@@ -108,20 +108,81 @@ public enum SpokenFormFormatter {
         value.compactMap { digits[$0] }.joined(separator: " ")
     }
 
-    /// Kata-kata digit bahasa Inggris biasa yang harus diganti bentuk ucapan ICAO Doc 9432 2.4.1.
-    /// Hanya 5 digit yang berbeda; zero/one/two/six/seven sudah identik.
+    /// Kamus pelafalan fonetik ICAO untuk kode fasilitas navigasi radio (VOR/NDB) 2-3 huruf di Indonesia.
+    /// Kode fasilitas radio navigasi wajib dieja alfabet fonetik ICAO per huruf (Doc 9432 Bab 2.4.1),
+    /// sedangkan waypoint 5LNC (seperti DOLTA, BUNTA) diucapkan sebagai satu kata utuh.
+    public static let navaidPhoneticNames: [String: String] = [
+        "KNO": "Kilo November Oscar",
+        "UPG": "Uniform Papa Golf",
+        "BLI": "Bravo Lima India",
+        "JOG": "Juliett Oscar Golf",
+        "BPN": "Bravo Papa November",
+        "BDJ": "Bravo Delta Juliett",
+        "SLO": "Sierra Lima Oscar",
+        "BDO": "Bravo Delta Oscar",
+        "BTH": "Bravo Tango Hotel",
+        "HLP": "Hotel Lima Papa",
+        "PLM": "Papa Lima Mike",
+        "PDG": "Papa Delta Golf",
+        "SUP": "Sierra Uniform Papa",
+        "CKG": "Charlie Kilo Golf",
+        "TRK": "Tango Romeo Kilo",
+        "SRG": "Sierra Romeo Golf",
+        "SOC": "Sierra Oscar Charlie",
+        "SUR": "Sierra Uniform Romeo",
+        "TIM": "Tango India Mike",
+        "BTO": "Bravo Tango Oscar",
+        "PLP": "Papa Lima Papa",
+        "MLVOR": "Mike Lima VOR"
+    ]
+
+    /// Mengonversi nama waypoint atau navaid menjadi bentuk lisan ICAO literal.
+    /// Kode navaid 2-3 huruf dieja alfabet fonetik ICAO; waypoint 5LNC kata utuh dipertahankan.
+    public static func waypointSpoken(_ name: String) -> String {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasSuffix(" VOR") {
+            let code = String(trimmed.dropLast(4)).trimmingCharacters(in: .whitespaces)
+            return "\(waypointSpoken(code)) VOR"
+        }
+        if let mapped = navaidPhoneticNames[trimmed.uppercased()] {
+            return mapped
+        }
+        if trimmed.uppercased() == "ANY" {
+            return "Alpha November Yankee"
+        }
+        // Kode navaid 2-3 huruf kapital murni dieja per huruf
+        if trimmed.count >= 2 && trimmed.count <= 3 && trimmed.allSatisfy({ $0.isLetter && $0.isUppercase }) {
+            return trimmed.compactMap { phoneticAlphabet[$0] }.joined(separator: " ")
+        }
+        return trimmed
+    }
+
+    /// Kata-kata digit bahasa Inggris biasa dan kode navaid yang harus diganti bentuk ucapan ICAO.
     private static let icaoDigitSubstitutions: [(pattern: NSRegularExpression, replacement: String)] = {
-        let pairs = [
+        var result: [(pattern: NSRegularExpression, replacement: String)] = []
+
+        let digitPairs: [(String, String)] = [
             ("three", "tree"), ("four", "fower"), ("five", "fife"),
             ("eight", "ait"), ("nine", "niner"), ("decimal", "day see mal")
         ]
-        return pairs.compactMap { word, replacement in
-            // \b mencegah kecocokan di dalam kata (threshold, fourth, eighty, ninety, nineteen).
-            guard let regex = try? NSRegularExpression(pattern: "\\b\(word)\\b", options: [.caseInsensitive]) else {
-                return nil
+        for (word, replacement) in digitPairs {
+            if let regex = try? NSRegularExpression(pattern: "\\b\(word)\\b", options: [.caseInsensitive]) {
+                result.append((regex, replacement))
             }
-            return (regex, replacement)
         }
+
+        // Navaid codes: ANY VOR khusus agar kata bahasa Inggris 'any' tidak terganggu
+        if let regex = try? NSRegularExpression(pattern: "\\bANY VOR\\b", options: [.caseInsensitive]) {
+            result.append((regex, "Alpha November Yankee VOR"))
+        }
+
+        for (code, spoken) in navaidPhoneticNames {
+            if let regex = try? NSRegularExpression(pattern: "\\b\(code)\\b", options: []) {
+                result.append((regex, spoken))
+            }
+        }
+
+        return result
     }()
 
     /// Mengubah kata digit bahasa Inggris biasa di dalam teks transmisi menjadi bentuk ucapan ICAO.

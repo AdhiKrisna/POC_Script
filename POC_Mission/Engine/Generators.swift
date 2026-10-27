@@ -218,17 +218,17 @@ public enum SquawkGenerator {
 
 public enum FlightLevelGenerator {
     private static let eastboundFLs = [
-        "flight level three one zero",
-        "flight level three three zero",
-        "flight level three five zero",
-        "flight level three seven zero"
+        "flight level tree one zero",
+        "flight level tree tree zero",
+        "flight level tree fife zero",
+        "flight level tree seven zero"
     ]
 
     private static let westboundFLs = [
-        "flight level three two zero",
-        "flight level three four zero",
-        "flight level three six zero",
-        "flight level three eight zero"
+        "flight level tree two zero",
+        "flight level tree fower zero",
+        "flight level tree six zero",
+        "flight level tree ait zero"
     ]
 
     public static func cruisingLevel(level: CurriculumLevel, headingTrack: Int, seed: Int) -> String {
@@ -238,30 +238,30 @@ public enum FlightLevelGenerator {
         switch level {
         case .level1:
             // 1.000 s/d 1.500 ft AGL local circuit
-            return (absSeed % 2 == 0) ? "one thousand feet" : "one thousand five hundred feet"
+            return (absSeed % 2 == 0) ? "one thousand feet" : "one thousand fife hundred feet"
 
         case .level2:
             // FL140 s/d FL180 (Regional turboprop)
-            let fls = isEastbound ? ["flight level one five zero", "flight level one seven zero"]
-                                  : ["flight level one four zero", "flight level one six zero", "flight level one eight zero"]
+            let fls = isEastbound ? ["flight level one fife zero", "flight level one seven zero"]
+                                  : ["flight level one fower zero", "flight level one six zero", "flight level one ait zero"]
             return fls[absSeed % fls.count]
 
         case .level3:
             // FL240 s/d FL280 (Domestic jet)
-            let fls = isEastbound ? ["flight level two five zero", "flight level two seven zero"]
-                                  : ["flight level two four zero", "flight level two six zero", "flight level two eight zero"]
+            let fls = isEastbound ? ["flight level two fife zero", "flight level two seven zero"]
+                                  : ["flight level two fower zero", "flight level two six zero", "flight level two ait zero"]
             return fls[absSeed % fls.count]
 
         case .level4:
             // FL300 s/d FL380 (Heavy & metro jet)
-            let fls = isEastbound ? ["flight level three one zero", "flight level three three zero", "flight level three five zero", "flight level three seven zero"]
-                                  : ["flight level three zero zero", "flight level three two zero", "flight level three four zero", "flight level three six zero", "flight level three eight zero"]
+            let fls = isEastbound ? ["flight level tree one zero", "flight level tree tree zero", "flight level tree fife zero", "flight level tree seven zero"]
+                                  : ["flight level tree zero zero", "flight level tree two zero", "flight level tree fower zero", "flight level tree six zero", "flight level tree ait zero"]
             return fls[absSeed % fls.count]
 
         case .level5:
             // FL160 s/d FL240 (Extreme terrain / mountain crossing)
-            let fls = isEastbound ? ["flight level one seven zero", "flight level one nine zero", "flight level two one zero", "flight level two three zero"]
-                                  : ["flight level one six zero", "flight level one eight zero", "flight level two zero zero", "flight level two two zero", "flight level two four zero"]
+            let fls = isEastbound ? ["flight level one seven zero", "flight level one niner zero", "flight level two one zero", "flight level two tree zero"]
+                                  : ["flight level one six zero", "flight level one ait zero", "flight level two zero zero", "flight level two two zero", "flight level two fower zero"]
             return fls[absSeed % fls.count]
         }
     }
@@ -277,23 +277,23 @@ public enum FlightLevelGenerator {
         let absSeed = abs(seed)
         switch level {
         case .level1:
-            return (absSeed % 2 == 0) ? "one thousand feet" : "one thousand five hundred feet"
+            return (absSeed % 2 == 0) ? "one thousand feet" : "one thousand fife hundred feet"
         case .level2:
-            return (absSeed % 2 == 0) ? "altitude four thousand feet" : "altitude five thousand feet"
+            return (absSeed % 2 == 0) ? "altitude fower thousand feet" : "altitude fife thousand feet"
         case .level3:
             return "flight level one zero zero"
         case .level4:
             return (absSeed % 2 == 0) ? "flight level one zero zero" : "flight level one one zero"
         case .level5:
-            return (absSeed % 2 == 0) ? "altitude eight thousand feet" : "flight level one zero zero"
+            return (absSeed % 2 == 0) ? "altitude ait thousand feet" : "flight level one zero zero"
         }
     }
 
     public static func initialAltitude(seed: Int) -> String {
         let altitudes = [
-            "altitude four thousand feet",
-            "altitude five thousand feet",
-            "flight level zero eight zero",
+            "altitude fower thousand feet",
+            "altitude fife thousand feet",
+            "flight level zero ait zero",
             "flight level one zero zero"
         ]
         return altitudes[abs(seed) % altitudes.count]
