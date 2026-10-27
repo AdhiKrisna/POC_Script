@@ -7977,36 +7977,36 @@ public final class ScriptGeneratorEngine {
 
         if isPapua {
             trafficPool = [
-                RegionalTraffic(callsign: "Smart one zero two", aircraft: "DHC-6 Twin Otter"),
-                RegionalTraffic(callsign: "Susi Air one one four", aircraft: "C208B Grand Caravan"),
-                RegionalTraffic(callsign: "Trigana two four one", aircraft: "B737-500 STOL"),
-                RegionalTraffic(callsign: "Asian One three one zero", aircraft: "C208B Grand Caravan"),
-                RegionalTraffic(callsign: "Rimbun Air five zero two", aircraft: "DHC-6 Twin Otter")
+                RegionalTraffic(callsign: "Smart one zero two", aircraft: "Twin Otter"),
+                RegionalTraffic(callsign: "Susi Air one one fower", aircraft: "Cessna Grand Caravan"),
+                RegionalTraffic(callsign: "Trigana two fower one", aircraft: "Boeing seven tree seven"),
+                RegionalTraffic(callsign: "Asian One tree one zero", aircraft: "Cessna Grand Caravan"),
+                RegionalTraffic(callsign: "Rimbun Air fife zero two", aircraft: "Twin Otter")
             ]
         } else if isToraja {
             trafficPool = [
-                RegionalTraffic(callsign: "Wings Air one eight five five", aircraft: "ATR 72-600"),
-                RegionalTraffic(callsign: "Smart one zero five", aircraft: "DHC-6 Twin Otter"),
-                RegionalTraffic(callsign: "Susi Air one two zero", aircraft: "C208B Grand Caravan")
+                RegionalTraffic(callsign: "Wings Air one ait fife fife", aircraft: "ATR seven two"),
+                RegionalTraffic(callsign: "Smart one zero fife", aircraft: "Twin Otter"),
+                RegionalTraffic(callsign: "Susi Air one two zero", aircraft: "Cessna Grand Caravan")
             ]
         } else if isBandung {
             trafficPool = [
-                RegionalTraffic(callsign: "Wings Air one eight five two", aircraft: "ATR 72-600"),
-                RegionalTraffic(callsign: "Batik four zero two", aircraft: "Airbus A320"),
-                RegionalTraffic(callsign: "Lion Air seven one two", aircraft: "Boeing 737-800"),
-                RegionalTraffic(callsign: "Supergreen four two six", aircraft: "ATR 72-600")
+                RegionalTraffic(callsign: "Wings Air one ait fife two", aircraft: "ATR seven two"),
+                RegionalTraffic(callsign: "Batik fower zero two", aircraft: "Airbus A tree two zero"),
+                RegionalTraffic(callsign: "Lion Air seven one two", aircraft: "Boeing seven tree seven"),
+                RegionalTraffic(callsign: "Supergreen fower two six", aircraft: "ATR seven two")
             ]
         } else if isTarakan {
             trafficPool = [
-                RegionalTraffic(callsign: "Smart one one eight", aircraft: "DHC-6 Twin Otter"),
-                RegionalTraffic(callsign: "Wings Air one eight five zero", aircraft: "ATR 72-600"),
-                RegionalTraffic(callsign: "Batik four one two", aircraft: "Boeing 737-800")
+                RegionalTraffic(callsign: "Smart one one ait", aircraft: "Twin Otter"),
+                RegionalTraffic(callsign: "Wings Air one ait fife zero", aircraft: "ATR seven two"),
+                RegionalTraffic(callsign: "Batik fower one two", aircraft: "Boeing seven tree seven")
             ]
         } else {
             trafficPool = [
-                RegionalTraffic(callsign: "Smart two zero four", aircraft: "C208B Grand Caravan"),
-                RegionalTraffic(callsign: "Wings Air one eight zero two", aircraft: "ATR 72-600"),
-                RegionalTraffic(callsign: "Trigana one seven two", aircraft: "ATR 42-300")
+                RegionalTraffic(callsign: "Smart two zero fower", aircraft: "Cessna Grand Caravan"),
+                RegionalTraffic(callsign: "Wings Air one ait zero two", aircraft: "ATR seven two"),
+                RegionalTraffic(callsign: "Trigana one seven two", aircraft: "ATR fower two")
             ]
         }
 
