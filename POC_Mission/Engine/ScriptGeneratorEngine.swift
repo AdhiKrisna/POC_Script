@@ -7985,27 +7985,27 @@ public final class ScriptGeneratorEngine {
             ]
         } else if isToraja {
             trafficPool = [
-                RegionalTraffic(callsign: "Wings Air one ait fife fife", aircraft: "ATR seven two"),
+                RegionalTraffic(callsign: "Wings Air one eight fife fife", aircraft: "ATR seven two"),
                 RegionalTraffic(callsign: "Smart one zero fife", aircraft: "Twin Otter"),
                 RegionalTraffic(callsign: "Susi Air one two zero", aircraft: "Cessna Grand Caravan")
             ]
         } else if isBandung {
             trafficPool = [
-                RegionalTraffic(callsign: "Wings Air one ait fife two", aircraft: "ATR seven two"),
+                RegionalTraffic(callsign: "Wings Air one eight fife two", aircraft: "ATR seven two"),
                 RegionalTraffic(callsign: "Batik fower zero two", aircraft: "Airbus A tree two zero"),
                 RegionalTraffic(callsign: "Lion Air seven one two", aircraft: "Boeing seven tree seven"),
                 RegionalTraffic(callsign: "Supergreen fower two six", aircraft: "ATR seven two")
             ]
         } else if isTarakan {
             trafficPool = [
-                RegionalTraffic(callsign: "Smart one one ait", aircraft: "Twin Otter"),
-                RegionalTraffic(callsign: "Wings Air one ait fife zero", aircraft: "ATR seven two"),
+                RegionalTraffic(callsign: "Smart one one eight", aircraft: "Twin Otter"),
+                RegionalTraffic(callsign: "Wings Air one eight fife zero", aircraft: "ATR seven two"),
                 RegionalTraffic(callsign: "Batik fower one two", aircraft: "Boeing seven tree seven")
             ]
         } else {
             trafficPool = [
                 RegionalTraffic(callsign: "Smart two zero fower", aircraft: "Cessna Grand Caravan"),
-                RegionalTraffic(callsign: "Wings Air one ait zero two", aircraft: "ATR seven two"),
+                RegionalTraffic(callsign: "Wings Air one eight zero two", aircraft: "ATR seven two"),
                 RegionalTraffic(callsign: "Trigana one seven two", aircraft: "ATR fower two")
             ]
         }

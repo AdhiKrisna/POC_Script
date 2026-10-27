@@ -123,7 +123,7 @@ public enum CallsignGenerator {
 public enum AircraftGenerator {
     // Doc 9432 2.7.2.1 Type a) Note: hanya SATU prefix radiotelephony (nama manufaktur ATAU model),
     // bukan keduanya sekaligus. "Piper Archer PA-two eight" diperbaiki menjadi "Piper Archer".
-    // Digit mengikuti bentuk ucapan ICAO Doc 9432 2.4.1 (tree/fower/fife/ait/niner).
+    // Digit mengikuti bentuk ucapan ICAO Doc 9432 2.4.1 (tree/fower/fife/eight/niner).
     private static let level1Aircraft = [
         "Cessna one seven two",
         "Piper Archer",
@@ -228,7 +228,7 @@ public enum FlightLevelGenerator {
         "flight level tree two zero",
         "flight level tree fower zero",
         "flight level tree six zero",
-        "flight level tree ait zero"
+        "flight level tree eight zero"
     ]
 
     public static func cruisingLevel(level: CurriculumLevel, headingTrack: Int, seed: Int) -> String {
@@ -243,25 +243,25 @@ public enum FlightLevelGenerator {
         case .level2:
             // FL140 s/d FL180 (Regional turboprop)
             let fls = isEastbound ? ["flight level one fife zero", "flight level one seven zero"]
-                                  : ["flight level one fower zero", "flight level one six zero", "flight level one ait zero"]
+                                  : ["flight level one fower zero", "flight level one six zero", "flight level one eight zero"]
             return fls[absSeed % fls.count]
 
         case .level3:
             // FL240 s/d FL280 (Domestic jet)
             let fls = isEastbound ? ["flight level two fife zero", "flight level two seven zero"]
-                                  : ["flight level two fower zero", "flight level two six zero", "flight level two ait zero"]
+                                  : ["flight level two fower zero", "flight level two six zero", "flight level two eight zero"]
             return fls[absSeed % fls.count]
 
         case .level4:
             // FL300 s/d FL380 (Heavy & metro jet)
             let fls = isEastbound ? ["flight level tree one zero", "flight level tree tree zero", "flight level tree fife zero", "flight level tree seven zero"]
-                                  : ["flight level tree zero zero", "flight level tree two zero", "flight level tree fower zero", "flight level tree six zero", "flight level tree ait zero"]
+                                  : ["flight level tree zero zero", "flight level tree two zero", "flight level tree fower zero", "flight level tree six zero", "flight level tree eight zero"]
             return fls[absSeed % fls.count]
 
         case .level5:
             // FL160 s/d FL240 (Extreme terrain / mountain crossing)
             let fls = isEastbound ? ["flight level one seven zero", "flight level one niner zero", "flight level two one zero", "flight level two tree zero"]
-                                  : ["flight level one six zero", "flight level one ait zero", "flight level two zero zero", "flight level two two zero", "flight level two fower zero"]
+                                  : ["flight level one six zero", "flight level one eight zero", "flight level two zero zero", "flight level two two zero", "flight level two fower zero"]
             return fls[absSeed % fls.count]
         }
     }
@@ -285,7 +285,7 @@ public enum FlightLevelGenerator {
         case .level4:
             return (absSeed % 2 == 0) ? "flight level one zero zero" : "flight level one one zero"
         case .level5:
-            return (absSeed % 2 == 0) ? "altitude ait thousand feet" : "flight level one zero zero"
+            return (absSeed % 2 == 0) ? "altitude eight thousand feet" : "flight level one zero zero"
         }
     }
 
@@ -293,7 +293,7 @@ public enum FlightLevelGenerator {
         let altitudes = [
             "altitude fower thousand feet",
             "altitude fife thousand feet",
-            "flight level zero ait zero",
+            "flight level zero eight zero",
             "flight level one zero zero"
         ]
         return altitudes[abs(seed) % altitudes.count]

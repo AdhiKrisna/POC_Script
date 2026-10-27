@@ -1,12 +1,12 @@
 import Foundation
 
 public enum SpokenFormFormatter {
-    /// Bentuk ucapan digit per ICAO Doc 9432 Tabel 2.4.1 (ZE-RO, WUN, TOO, TREE, FOW-er, FIFE, SIX, SEV-en, AIT, NIN-er).
+    /// Bentuk ucapan digit per ICAO Doc 9432 Tabel 2.4.1 (ZE-RO, WUN, TOO, TREE, FOW-er, FIFE, SIX, SEV-en, EIGHT, NIN-er).
     /// Ejaan disederhanakan tanpa tanda hubung/kapital agar natural dibaca TTS, tetapi tetap mempertahankan
-    /// fonem khas ICAO yang membedakannya dari bahasa Inggris biasa (tree/fower/fife/ait/niner).
+    /// fonem khas ICAO yang membedakannya dari bahasa Inggris biasa (tree/fower/fife/eight/niner).
     private static let digits: [Character: String] = [
         "0": "zero", "1": "one", "2": "two", "3": "tree", "4": "fower",
-        "5": "fife", "6": "six", "7": "seven", "8": "ait", "9": "niner"
+        "5": "fife", "6": "six", "7": "seven", "8": "eight", "9": "niner"
     ]
 
     private static let phoneticAlphabet: [Character: String] = [
@@ -163,7 +163,7 @@ public enum SpokenFormFormatter {
 
         let digitPairs: [(String, String)] = [
             ("three", "tree"), ("four", "fower"), ("five", "fife"),
-            ("eight", "ait"), ("nine", "niner"), ("decimal", "day see mal")
+            ("nine", "niner"), ("decimal", "day see mal")
         ]
         for (word, replacement) in digitPairs {
             if let regex = try? NSRegularExpression(pattern: "\\b\(word)\\b", options: [.caseInsensitive]) {
