@@ -185,12 +185,59 @@ public enum SpokenFormFormatter {
         return result
     }()
 
+    /// Registrasi pesawat Indonesia `PK-XYZ` dieja penuh per huruf (Doc 9432 2.7.2.1 Type a):
+    /// callsign berupa registrasi diucapkan huruf demi huruf, bukan sebagai suku kata.
+    private static let registrationRegex = try? NSRegularExpression(
+        pattern: "\\bPK-([A-Z]{3})\\b",
+        options: []
+    )
+
+    /// Singkatan non-prosedural yang bocor ke dialog dan harus ditulis literal sebagaimana diucapkan.
+    /// Dibedakan dari singkatan prosedural resmi (QNH, ILS, IFR, VOR, ATIS) yang memang
+    /// diucapkan sebagai inisial oleh pilot dan tidak boleh diubah.
+    private static let literalPhraseSubstitutions: [(pattern: NSRegularExpression, replacement: String)] = {
+        let pairs: [(String, String)] = [
+            ("\\bGA apron\\b", "general aviation apron"),
+            ("\\bGA Apron\\b", "general aviation apron"),
+            ("\\bBadaruddin II\\b", "Badaruddin the Second")
+        ]
+        return pairs.compactMap { pattern, replacement in
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return nil }
+            return (regex, replacement)
+        }
+    }()
+
     /// Mengubah kata digit bahasa Inggris biasa di dalam teks transmisi menjadi bentuk ucapan ICAO.
     /// Dipakai sebagai jaring pengaman terpusat agar seluruh teks yang diucapkan konsisten,
     /// tanpa harus menyentuh ratusan string literal satu per satu.
     /// Catatan: "nine" -> "niner" dilewati bila sudah berbentuk "niner".
     public static func normalizeToICAOSpokenForm(_ text: String) -> String {
         var result = text
+
+        // Registrasi dieja lebih dulu agar huruf hasil ejaan tidak tertangkap aturan navaid.
+        if let registrationRegex {
+            let matches = registrationRegex.matches(
+                in: result,
+                options: [],
+                range: NSRange(result.startIndex..., in: result)
+            )
+            for match in matches.reversed() {
+                guard let letterRange = Range(match.range(at: 1), in: result),
+                      let fullRange = Range(match.range, in: result) else { continue }
+                let spelled = result[letterRange].compactMap { phoneticAlphabet[$0] }.joined(separator: " ")
+                result.replaceSubrange(fullRange, with: "Papa Kilo \(spelled)")
+            }
+        }
+
+        for (regex, replacement) in literalPhraseSubstitutions {
+            result = regex.stringByReplacingMatches(
+                in: result,
+                options: [],
+                range: NSRange(result.startIndex..., in: result),
+                withTemplate: replacement
+            )
+        }
+
         for (regex, replacement) in icaoDigitSubstitutions {
             result = regex.stringByReplacingMatches(
                 in: result,
