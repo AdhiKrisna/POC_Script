@@ -1849,6 +1849,21 @@ public struct FlightMissionContext: Equatable, Sendable {
     public let weatherDeviationDistance: String?
     public let weatherDeviationDirection: String?
 
+    /// Bentuk angka cruising level untuk panel instrumen, mis. "FL150" atau "1500 ft".
+    ///
+    /// Diturunkan dari `cruisingLevel`; bentuk fonetik tetap sumber tunggal naskah ucapan
+    /// sehingga ATC tidak pernah mengucapkan "maintain FL150".
+    public var cruisingLevelDisplay: String { FlightLevelGenerator.displayForm(cruisingLevel) }
+
+    /// Bentuk angka initial climb untuk panel instrumen, mis. "4000 ft".
+    public var initialAltDisplay: String { FlightLevelGenerator.displayForm(initialAlt) }
+
+    /// Bentuk angka kode transponder untuk panel instrumen, mis. "1200".
+    public var squawkCodeDisplay: String {
+        let digits = SpokenNumberParser.digits(in: squawkCode)
+        return digits.isEmpty ? squawkCode : digits
+    }
+
     public var depAtisBroadcastText: String {
         let infoName = originAirport.name.components(separatedBy: " ").first ?? originAirport.name
         let windSpoken = SpokenFormFormatter.wind(direction: depWeather.windDirection, knots: depWeather.windSpeed)

@@ -298,6 +298,75 @@ public enum FlightLevelGenerator {
         ]
         return altitudes[abs(seed) % altitudes.count]
     }
+
+    /// Mengubah bentuk ucapan ketinggian menjadi bentuk angka instrumen.
+    ///
+    /// Nilai fonetik tetap menjadi sumber tunggal untuk naskah ucapan ATC; fungsi ini
+    /// hanya menurunkan bentuk bacanya untuk panel data. Contoh:
+    /// `"flight level one fife zero"` -> `"FL150"`,
+    /// `"altitude fower thousand feet"` -> `"4000 ft"`,
+    /// `"one thousand fife hundred feet"` -> `"1500 ft"`.
+    ///
+    /// - Parameter spoken: Bentuk ucapan ICAO hasil generator.
+    /// - Returns: Bentuk angka untuk tampilan instrumen.
+    public static func displayForm(_ spoken: String) -> String {
+        let lower = spoken.lowercased()
+
+        if lower.contains("flight level") {
+            let digits = SpokenNumberParser.digits(in: lower.replacingOccurrences(of: "flight level", with: ""))
+            return digits.isEmpty ? spoken : "FL" + digits
+        }
+
+        let feet = SpokenNumberParser.magnitude(in: lower)
+        return feet > 0 ? "\(feet) ft" : spoken
+    }
+}
+
+/// Pengurai bentuk ucapan angka ICAO menjadi bentuk numerik.
+///
+/// Dipakai hanya untuk menurunkan tampilan instrumen; naskah ucapan tidak pernah
+/// dibangun dari hasil fungsi-fungsi di sini.
+public enum SpokenNumberParser {
+    /// Peta kata angka ICAO ke digitnya, termasuk varian fonetik radio.
+    private static let digitMap: [String: String] = [
+        "zero": "0", "one": "1", "two": "2", "three": "3", "tree": "3",
+        "four": "4", "fower": "4", "five": "5", "fife": "5", "six": "6",
+        "seven": "7", "eight": "8", "ait": "8", "nine": "9", "niner": "9"
+    ]
+
+    /// Merangkai digit dari deretan kata angka, mengabaikan kata lain.
+    ///
+    /// - Parameter text: Teks ucapan yang memuat kata angka.
+    /// - Returns: Deretan digit, atau string kosong bila tidak ada kata angka.
+    public static func digits(in text: String) -> String {
+        text.lowercased()
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .compactMap { digitMap[$0] }
+            .joined()
+    }
+
+    /// Menghitung nilai ketinggian dari bentuk ucapan bersatuan ribuan dan ratusan.
+    ///
+    /// - Parameter text: Teks ucapan seperti `"fower thousand fife hundred feet"`.
+    /// - Returns: Nilai dalam kaki, atau 0 bila pola tidak dikenali.
+    public static func magnitude(in text: String) -> Int {
+        let words = text.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted)
+        var total = 0
+        var pending = 0
+
+        for word in words {
+            if let digit = digitMap[word] {
+                pending = pending * 10 + (Int(digit) ?? 0)
+            } else if word == "thousand" {
+                total += max(pending, 1) * 1000
+                pending = 0
+            } else if word == "hundred" {
+                total += max(pending, 1) * 100
+                pending = 0
+            }
+        }
+        return total
+    }
 }
 
 public enum StandGenerator {
