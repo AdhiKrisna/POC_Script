@@ -1127,7 +1127,7 @@ struct FlightBriefingSheet: View {
                 Text(mission.originAirport.icao)
                     .font(.system(size: 24, weight: .black, design: .monospaced))
                     .foregroundColor(.primary)
-                Text(mission.originAirport.name)
+                Text(mission.originAirport.shortName)
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -1150,7 +1150,7 @@ struct FlightBriefingSheet: View {
                 Text(mission.destinationAirport.icao)
                     .font(.system(size: 24, weight: .black, design: .monospaced))
                     .foregroundColor(.primary)
-                Text(mission.destinationAirport.name)
+                Text(mission.destinationAirport.shortName)
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
@@ -1198,9 +1198,9 @@ struct FlightBriefingSheet: View {
 
                 GridRow {
                     Text("Cruising").font(.caption).foregroundColor(.secondary)
-                    Text(mission.missionContext.cruisingLevel).font(.caption).bold().foregroundColor(.primary)
+                    Text(mission.missionContext.cruisingLevelDisplay).font(.caption).bold().foregroundColor(.primary)
                     Text("Initial Climb").font(.caption).foregroundColor(.secondary)
-                    Text(mission.missionContext.initialAlt).font(.caption).bold().foregroundColor(.primary)
+                    Text(mission.missionContext.initialAltDisplay).font(.caption).bold().foregroundColor(.primary)
                 }
 
                 GridRow {
@@ -1212,7 +1212,7 @@ struct FlightBriefingSheet: View {
 
                 GridRow {
                     Text("Squawk Code").font(.caption).foregroundColor(.secondary)
-                    Text(mission.missionContext.squawkCode).font(.caption).bold().foregroundColor(.purple)
+                    Text(mission.missionContext.squawkCodeDisplay).font(.caption).bold().foregroundColor(.purple)
                     Text("Dep Runway").font(.caption).foregroundColor(.secondary)
                     Text("RWY \(mission.missionContext.depRunway.designator)").font(.caption).bold().foregroundColor(.primary)
                 }

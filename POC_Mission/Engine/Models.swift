@@ -41,6 +41,41 @@ public struct Airport: Codable, Equatable, Sendable {
     public let icao: String
     public let iata: String?
     public let name: String
+
+    /// Nama ringkas bandara untuk tampilan antarmuka (maksimal ~32 karakter).
+    ///
+    /// Menghindari pemotongan teks di kartu rute dan ATIS dengan meringkas gelar
+    /// militer (Lt. Col.), status internasional (Intl. Airport), dan akronim AIP.
+    /// Nama lisan (`name`) tetap utuh untuk sintesis suara radio dan naskah dialog.
+    public var shortName: String {
+        switch icao.uppercased() {
+        case "WAAA": return "Sultan Hasanuddin Intl. Airport"
+        case "WABP": return "Mozes Kilangin Airport"
+        case "WADD": return "I Gusti Ngurah Rai Intl. Airport"
+        case "WADE": return "Lt. Col. Wisnu Airfield"
+        case "WADL": return "Lombok Intl. Airport"
+        case "WADY": return "Banyuwangi Airport"
+        case "WAFB": return "Toraja Airport"
+        case "WAHI": return "Yogyakarta Intl. Airport"
+        case "WALL": return "SAMS Sepinggan Intl. Airport"
+        case "WALR": return "Juwata Intl. Airport"
+        case "WAOO": return "Syamsudin Noor Intl. Airport"
+        case "WARQ": return "Adisoemarmo Intl. Airport"
+        case "WARR": return "Juanda Intl. Airport"
+        case "WARS": return "Jend. Ahmad Yani Airport"
+        case "WAVV": return "Wamena Airport"
+        case "WICB": return "Budiarto Airport"
+        case "WICC": return "Husein Sastranegara Intl. Airport"
+        case "WIDD": return "Hang Nadim Intl. Airport"
+        case "WIHH": return "Halim Perdanakusuma Intl. Airport"
+        case "WIII": return "Soekarno-Hatta Intl. Airport"
+        case "WIMM": return "Kualanamu Intl. Airport"
+        case "WIPP": return "SMB II Airport"
+        case "WIPT": return "Minangkabau Intl. Airport"
+        default: return name
+        }
+    }
+
     public let city: String?
     public let profile: FlightProfile
     public let elevationFt: Int

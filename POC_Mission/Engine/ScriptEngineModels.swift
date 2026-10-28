@@ -2020,13 +2020,13 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
 
         var output = """
         FLIGHT SCRIPT: \(origIata) → \(destIata) (\(lvlTitle))
-        Callsign: \(callsign) | Aircraft: \(missionContext.aircraftType) | Squawk: \(missionContext.squawkCode)
+        Callsign: \(callsign) | Aircraft: \(missionContext.aircraftType) | Squawk: \(missionContext.squawkCodeDisplay)
         Seed: \(seed) | Total Turns: \(totalExchanges) | Duration: ~\(String(format: "%.1f", totalEstimatedDurationMinutes)) mins
 
         [OPERATIONAL FLIGHT PLAN (OFP)]
-        • Departure: \(missionContext.originAirport.icao) (\(missionContext.originAirport.name)) | Stand: \(missionContext.standOrigin) | Dep RWY: \(missionContext.depRunway.designator)
-        • Destination: \(missionContext.destinationAirport.icao) (\(missionContext.destinationAirport.name)) | Stand: \(missionContext.standDestination) | Arr RWY: \(missionContext.arrRunway.designator)
-        • Cruising: \(missionContext.cruisingLevel) | Initial: \(missionContext.initialAlt)
+        • Departure: \(missionContext.originAirport.icao) (\(missionContext.originAirport.shortName)) | Stand: \(missionContext.standOrigin) | Dep RWY: \(missionContext.depRunway.designator)
+        • Destination: \(missionContext.destinationAirport.icao) (\(missionContext.destinationAirport.shortName)) | Stand: \(missionContext.standDestination) | Arr RWY: \(missionContext.arrRunway.designator)
+        • Cruising: \(missionContext.cruisingLevelDisplay) | Initial: \(missionContext.initialAltDisplay)
         • Routing: SID \(missionContext.sidProcedure) | STAR \(missionContext.starProcedure)
 
         [DEPARTURE ATIS - \(missionContext.originAirport.icao)]

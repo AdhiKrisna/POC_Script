@@ -1769,7 +1769,8 @@ public final class ScriptGeneratorEngine {
                 // 1. Squawk code: Turn 1 is "-", reveals ONLY in turns AFTER readback is completed
                 let currentSquawk: String
                 if let readbackTurn = squawkReadbackTurn, ex.turn > readbackTurn {
-                    currentSquawk = squawkCode
+                    let digits = SpokenNumberParser.digits(in: squawkCode)
+                    currentSquawk = digits.isEmpty ? squawkCode : digits
                 } else {
                     currentSquawk = "-"
                 }
@@ -1811,7 +1812,7 @@ public final class ScriptGeneratorEngine {
 
                 case .enRoute:
                     hasTakenOff = true
-                    currentAltitude = (level == .level1) ? "3,000 ft" : cruisingLevel
+                    currentAltitude = (level == .level1) ? "3,000 ft" : FlightLevelGenerator.displayForm(cruisingLevel)
                     currentSpeed = (level == .level1) ? "110 kt" : ((level == .level2) ? "240 kt" : "320 kt")
                     currentHeading = String(format: "%03d°", enrouteHdgDeg)
                     currentQNH = "1013"
