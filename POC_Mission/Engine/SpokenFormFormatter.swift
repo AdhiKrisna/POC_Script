@@ -66,7 +66,7 @@ public enum SpokenFormFormatter {
         if fractional.isEmpty {
             fractional = "0"
         }
-        return [digitWords(parts[0]), "day see mal", digitWords(fractional)].filter { !$0.isEmpty }.joined(separator: " ")
+        return [digitWords(parts[0]), "decimal", digitWords(fractional)].filter { !$0.isEmpty }.joined(separator: " ")
     }
 
     public static func qnh(_ value: Int) -> String { digitWords(String(value)) }
@@ -163,7 +163,7 @@ public enum SpokenFormFormatter {
 
         let digitPairs: [(String, String)] = [
             ("three", "tree"), ("four", "fower"), ("five", "fife"),
-            ("nine", "niner"), ("decimal", "day see mal")
+            ("nine", "niner")
         ]
         for (word, replacement) in digitPairs {
             if let regex = try? NSRegularExpression(pattern: "\\b\(word)\\b", options: [.caseInsensitive]) {

@@ -1652,14 +1652,24 @@ struct ExchangeRowView: View {
                     }
                 }
 
-                // Objective Banner
+                // Cockpit Telemetry Bar (Shown on all turns)
+                if let cockpit = exchange.cockpitState {
+                    cockpitTelemetryView(cockpit: cockpit)
+                }
+
+                // Situation Card (For Initiate Calls)
+                if exchange.isInitiateCall, let sit = exchange.situationContext {
+                    initiateSituationView(situation: sit)
+                }
+
+                // Objective / Task Banner
                 if let obj = exchange.objective {
                     HStack(alignment: .top, spacing: 6) {
                         Image(systemName: "target")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.blue)
                             .padding(.top, 1)
-                        Text("Objective: \(obj)")
+                        Text(exchange.isInitiateCall ? "TASK: \(obj)" : "Objective: \(obj)")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.primary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -1739,9 +1749,7 @@ struct ExchangeRowView: View {
     private func scaffoldingCardView(type: ScaffoldingType) -> some View {
         switch type {
         case .fourSlotCard:
-            if let p = exchange.fourSlotPayload {
-                FourSlotCardView(payload: p)
-            }
+            EmptyView()
         case .clozeMasked:
             if let p = exchange.clozePayload {
                 ClozeMaskedView(payload: p, fullSpeechText: exchange.text, isExam: mode == .exam)
@@ -1759,6 +1767,61 @@ struct ExchangeRowView: View {
                 PartylineHUDStripView(payload: p, partyline: exchange.partylinePayload, hazard: exchange.hazardPayload)
             }
         }
+    }
+
+    // MARK: - Cockpit Telemetry & ATC Hint Panels
+    @ViewBuilder
+    private func cockpitTelemetryView(cockpit: CockpitState) -> some View {
+        HStack(spacing: 4) {
+            telemetryPill(label: "HDG", value: cockpit.heading)
+            telemetryPill(label: "ALT", value: cockpit.altitude)
+            telemetryPill(label: "SPD", value: cockpit.speed)
+            telemetryPill(label: "QNH", value: cockpit.qnh)
+            telemetryPill(label: "SQWK", value: cockpit.squawk)
+            telemetryPill(label: "STBY", value: cockpit.standbyFrequency)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(Color.black.opacity(0.85))
+        .cornerRadius(6)
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.white.opacity(0.12), lineWidth: 0.5))
+    }
+
+    private func telemetryPill(label: String, value: String) -> some View {
+        VStack(spacing: 1) {
+            Text(label)
+                .font(.system(size: 8, weight: .bold))
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundColor(value == "-" ? .gray : .green)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private func initiateSituationView(situation: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 4) {
+                Image(systemName: "airplane")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.teal)
+                Text("SITUATION (Zero ATC Audio Leak)")
+                    .font(.system(size: 8, weight: .black))
+                    .foregroundColor(.teal)
+            }
+            Text(situation)
+                .font(.system(size: 10))
+                .foregroundColor(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.teal.opacity(0.08))
+        .cornerRadius(6)
+        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.teal.opacity(0.25), lineWidth: 0.8))
     }
 
     private var speakerColor: Color {

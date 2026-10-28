@@ -398,6 +398,28 @@ public final class ScriptGeneratorEngine {
             )
         }
 
+        phaseScripts = Self.enrichMissionTelemetryAndSituations(
+            phaseScripts: phaseScripts,
+            level: .level1,
+            depWeather: missionContext.depWeather,
+            arrWeather: missionContext.arrWeather,
+            originAirport: originAirport,
+            destinationAirport: destinationAirport,
+            cruisingLevel: missionContext.cruisingLevel,
+            initialAlt: missionContext.initialAlt,
+            squawkCode: missionContext.squawkCode,
+            aircraftType: missionContext.aircraftType,
+            callsign: callsign,
+            selectedRunway: missionContext.depRunway,
+            arrRunway: missionContext.arrRunway,
+            standOrigin: missionContext.standOrigin,
+            standDest: missionContext.standDestination,
+            holdingPoint: depHoldingPoint,
+            sidName: missionContext.sidProcedure,
+            depAtisId: missionContext.depAtisId,
+            arrAtisId: missionContext.arrAtisId
+        )
+
         let story = generateMissionStoryBriefing(
             level: nil,
             origin: originAirport,
@@ -1116,7 +1138,8 @@ public final class ScriptGeneratorEngine {
         seed: Int? = nil,
         selectedContingencies: Set<ContingencySelection> = [],
         retryAct: MissionAct? = nil,
-        forceExplicitContingencies: Bool = false
+        forceExplicitContingencies: Bool = false,
+        missionCode: String? = nil
     ) throws -> FlightMissionScript {
         let chosenSeed = seed ?? Int.random(in: 1000...9999)
         let resolvedDestICAO: String
@@ -1346,6 +1369,7 @@ public final class ScriptGeneratorEngine {
 
             phaseExchanges = Self.enrichExchangesWithScaffolding(
                 exchanges: phaseExchanges,
+                missionCode: missionCode,
                 level: level,
                 phase: phase,
                 context: slotContext,
@@ -1362,6 +1386,28 @@ public final class ScriptGeneratorEngine {
                 )
             )
         }
+
+        phaseScripts = Self.enrichMissionTelemetryAndSituations(
+            phaseScripts: phaseScripts,
+            level: level,
+            depWeather: depWeather,
+            arrWeather: arrWeather,
+            originAirport: originAirport,
+            destinationAirport: destinationAirport,
+            cruisingLevel: cruisingLevel,
+            initialAlt: initialAlt,
+            squawkCode: squawkCode,
+            aircraftType: aircraftType,
+            callsign: callsign,
+            selectedRunway: depRunway,
+            arrRunway: arrRunway,
+            standOrigin: standOrigin,
+            standDest: standDest,
+            holdingPoint: depHoldingPoint,
+            sidName: sidName,
+            depAtisId: depAtisId,
+            arrAtisId: arrAtisId
+        )
 
         // Generate 3-Act Diagnostic Report with ICAO Checkpoints
         let act1Score = 86 + (abs(chosenSeed) % 11)      // 86..96%
@@ -1648,28 +1694,529 @@ public final class ScriptGeneratorEngine {
             mode: mode,
             seed: seed,
             selectedContingencies: set,
-            forceExplicitContingencies: !set.isEmpty
+            forceExplicitContingencies: !set.isEmpty,
+            missionCode: mission.code
         )
     }
 
+    // MARK: - Cockpit Telemetry & Scaffolding Synchronization
+    public static func enrichMissionTelemetryAndSituations(
+        phaseScripts: [PhaseScript],
+        level: CurriculumLevel,
+        depWeather: AlignedWeather,
+        arrWeather: AlignedWeather,
+        originAirport: Airport,
+        destinationAirport: Airport,
+        cruisingLevel: String,
+        initialAlt: String,
+        squawkCode: String,
+        aircraftType: String,
+        callsign: String,
+        selectedRunway: Runway,
+        arrRunway: Runway,
+        standOrigin: String,
+        standDest: String,
+        holdingPoint: String,
+        sidName: String,
+        depAtisId: String,
+        arrAtisId: String
+    ) -> [PhaseScript] {
+        var enrichedPhaseScripts: [PhaseScript] = []
+
+        let depHdgDeg = Int(selectedRunway.headingDegT)
+        let arrHdgDeg = Int(arrRunway.headingDegT)
+        let enrouteHdgDeg = (depHdgDeg + 40) % 360
+
+        var currentHeading = String(format: "%03d°", depHdgDeg)
+        var currentAltitude = "0 ft"
+        var currentSpeed = "0 kt"
+        var currentQNH = "\(depWeather.qnh)"
+
+        var hasTakenOff = false
+        var hasLanded = false
+
+        // Track handoff events and squawk readbacks across the entire mission
+        struct HandoffEvent {
+            let atcTurn: Int
+            let readbackTurn: Int
+            let frequency: String
+        }
+
+        let allExchanges = phaseScripts.flatMap { $0.exchanges }
+
+        let squawkReadbackTurn = allExchanges.first(where: {
+            $0.isUserTurn && ($0.criticalSlots.contains { $0.slot.contains("SQUAWK") } || $0.text.lowercased().contains("squawk"))
+        })?.turn
+
+        var handoffEvents: [HandoffEvent] = []
+        for (idx, ex) in allExchanges.enumerated() {
+            guard !ex.isUserTurn else { continue }
+            let lower = ex.text.lowercased()
+            guard (lower.contains("contact") || lower.contains("monitor")) && !lower.contains("radar contact") else { continue }
+            guard let freq = Self.extractFrequencyFromText(ex.text) else { continue }
+            let remaining = allExchanges.suffix(from: idx + 1)
+            let readback = remaining.first(where: { $0.isUserTurn })?.turn ?? ex.turn
+            handoffEvents.append(HandoffEvent(atcTurn: ex.turn, readbackTurn: readback, frequency: freq))
+        }
+
+        for phaseScript in phaseScripts {
+            var updatedExchanges: [FilledExchange] = []
+            let phase = phaseScript.phase
+
+            for ex in phaseScript.exchanges {
+                let lowerText = ex.text.lowercased()
+
+                // 1. Squawk code: Turn 1 is "-", reveals ONLY in turns AFTER readback is completed
+                let currentSquawk: String
+                if let readbackTurn = squawkReadbackTurn, ex.turn > readbackTurn {
+                    currentSquawk = squawkCode
+                } else {
+                    currentSquawk = "-"
+                }
+
+                // 2. Standby frequency: reveals ONLY in turns AFTER readback is completed (tidak jadi contekan saat readback)
+                let currentStandbyFreq: String
+                let completedHandoffs = handoffEvents.filter { $0.readbackTurn < ex.turn }
+                currentStandbyFreq = completedHandoffs.last?.frequency ?? "-"
+
+                // 3. Altitude, Speed, Heading, QNH
+                switch phase {
+                case .preDeparture:
+                    currentAltitude = "0 ft"
+                    if lowerText.contains("taxi") && !lowerText.contains("hold short") {
+                        currentSpeed = "15 kt"
+                    } else {
+                        currentSpeed = "0 kt"
+                    }
+                    currentHeading = String(format: "%03d°", depHdgDeg)
+                    currentQNH = "\(depWeather.qnh)"
+
+                case .departure:
+                    if lowerText.contains("cleared for take-off") || lowerText.contains("cleared for takeoff") || lowerText.contains("airborne") {
+                        hasTakenOff = true
+                    }
+                    if hasTakenOff {
+                        currentAltitude = "1,500 ft"
+                        currentSpeed = (level == .level1) ? "75 kt" : ((level == .level2) ? "140 kt" : "160 kt")
+                        if lowerText.contains("departure") || lowerText.contains("climbing") || lowerText.contains("passing") {
+                            currentAltitude = "3,000 ft"
+                            currentSpeed = (level == .level1) ? "90 kt" : ((level == .level2) ? "170 kt" : "210 kt")
+                        }
+                    } else {
+                        currentAltitude = "0 ft"
+                        currentSpeed = "0 kt"
+                    }
+                    currentHeading = String(format: "%03d°", depHdgDeg)
+                    currentQNH = "\(depWeather.qnh)"
+
+                case .enRoute:
+                    hasTakenOff = true
+                    currentAltitude = (level == .level1) ? "3,000 ft" : cruisingLevel
+                    currentSpeed = (level == .level1) ? "110 kt" : ((level == .level2) ? "240 kt" : "320 kt")
+                    currentHeading = String(format: "%03d°", enrouteHdgDeg)
+                    currentQNH = "1013"
+
+                case .arrival:
+                    if lowerText.contains("descend") || lowerText.contains("arrival") {
+                        currentAltitude = "6,000 ft"
+                    } else {
+                        currentAltitude = "10,000 ft"
+                    }
+                    currentSpeed = (level == .level1) ? "100 kt" : ((level == .level2) ? "200 kt" : "240 kt")
+                    currentHeading = String(format: "%03d°", arrHdgDeg)
+                    currentQNH = "\(arrWeather.qnh)"
+
+                case .approach:
+                    if lowerText.contains("established") || lowerText.contains("localizer") || lowerText.contains("final") {
+                        currentAltitude = "1,500 ft"
+                        currentSpeed = (level == .level1) ? "65 kt" : ((level == .level2) ? "120 kt" : "140 kt")
+                    } else {
+                        currentAltitude = "3,000 ft"
+                        currentSpeed = (level == .level1) ? "80 kt" : ((level == .level2) ? "150 kt" : "180 kt")
+                    }
+                    currentHeading = String(format: "%03d°", arrHdgDeg)
+                    currentQNH = "\(arrWeather.qnh)"
+
+                case .landing:
+                    if lowerText.contains("cleared to land") {
+                        currentAltitude = "200 ft"
+                        currentSpeed = (level == .level1) ? "65 kt" : ((level == .level2) ? "115 kt" : "135 kt")
+                    } else if lowerText.contains("vacated") || lowerText.contains("taxi") || lowerText.contains("apron") {
+                        hasLanded = true
+                        currentAltitude = "0 ft"
+                        currentSpeed = "10 kt"
+                    } else if hasLanded {
+                        currentAltitude = "0 ft"
+                        currentSpeed = "0 kt"
+                    } else {
+                        currentAltitude = "0 ft"
+                        currentSpeed = "0 kt"
+                    }
+                    currentHeading = String(format: "%03d°", arrHdgDeg)
+                    currentQNH = "\(arrWeather.qnh)"
+                }
+
+                let cockpit = CockpitState(
+                    heading: currentHeading,
+                    altitude: currentAltitude,
+                    speed: currentSpeed,
+                    qnh: currentQNH,
+                    squawk: currentSquawk,
+                    standbyFrequency: currentStandbyFreq
+                )
+
+                // 4. ATC Hint: Managed directly via Cloze Text (Teks Rumpang)
+                let hintPayload: ATCHintPayload? = nil
+
+                // 5. Initiate Call & Situation / Task formulas
+                let isInitCall: Bool
+                if ex.isUserTurn {
+                    if ex.turn == 1 {
+                        isInitCall = true
+                    } else if lowerText.contains("request") || lowerText.contains("ready") || lowerText.contains("passing") ||
+                              lowerText.contains("established") || lowerText.contains("vacated") || lowerText.contains("unable") ||
+                              lowerText.contains("going around") || lowerText.contains("mayday") || lowerText.contains("pan pan") {
+                        isInitCall = true
+                    } else {
+                        isInitCall = false
+                    }
+                } else {
+                    isInitCall = false
+                }
+
+                var situationText = ex.situationContext
+                var objectiveText = ex.objective
+
+                if isInitCall {
+                    let targetStation = resolveInitiateStation(phase: phase, origin: originAirport, dest: destinationAirport, text: ex.text)
+                    let formulas = formatInitiateFormulas(
+                        phase: phase,
+                        text: ex.text,
+                        targetStation: targetStation,
+                        selectedRunway: selectedRunway,
+                        arrRunway: arrRunway,
+                        standOrigin: standOrigin,
+                        standDest: standDest,
+                        holdingPoint: holdingPoint,
+                        initialAlt: initialAlt,
+                        cruisingLevel: cruisingLevel,
+                        depAtisId: depAtisId,
+                        arrAtisId: arrAtisId,
+                        depHeading: depHdgDeg,
+                        severity: ex.severity,
+                        eventTag: ex.eventTag
+                    )
+                    situationText = formulas.situation
+                    objectiveText = formulas.task
+                }
+
+                let updatedEx = ex.withUpdatedTelemetry(
+                    cockpitState: cockpit,
+                    atcHint: hintPayload,
+                    isInitiateCall: isInitCall,
+                    situationContext: situationText,
+                    objective: objectiveText
+                )
+                updatedExchanges.append(updatedEx)
+            }
+
+            enrichedPhaseScripts.append(
+                PhaseScript(
+                    phase: phaseScript.phase,
+                    title: phaseScript.title,
+                    educationalGoal: phaseScript.educationalGoal,
+                    exchanges: updatedExchanges
+                )
+            )
+        }
+
+        return enrichedPhaseScripts
+    }
+
+    /// Mengekstraksi angka frekuensi radio VHF dari naskah kata fonetik ICAO maupun format desimal numerik.
+    public static func extractFrequencyFromText(_ text: String) -> String? {
+        let phoneticDigits: [String: Character] = [
+            "zero": "0", "ziro": "0", "zeero": "0",
+            "one": "1", "wun": "1", "won": "1",
+            "two": "2", "too": "2",
+            "tree": "3", "three": "3",
+            "fower": "4", "four": "4",
+            "fife": "5", "five": "5",
+            "six": "6",
+            "seven": "7",
+            "eight": "8", "ait": "8",
+            "niner": "9", "nine": "9"
+        ]
+
+        let tokens = text.lowercased().components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
+
+        var index = 0
+        while index < tokens.count {
+            let isSingleDecimal = tokens[index] == "decimal"
+            let isDaySeeMal = (index + 2 < tokens.count && tokens[index] == "day" && tokens[index + 1] == "see" && tokens[index + 2] == "mal")
+            guard isSingleDecimal || isDaySeeMal else {
+                index += 1
+                continue
+            }
+
+            var integerDigits: [Character] = []
+            var back = index - 1
+            while back >= 0, let digit = phoneticDigits[tokens[back]] {
+                integerDigits.insert(digit, at: 0)
+                back -= 1
+            }
+
+            var fractionDigits: [Character] = []
+            var forward = isDaySeeMal ? (index + 3) : (index + 1)
+            while forward < tokens.count, let digit = phoneticDigits[tokens[forward]] {
+                fractionDigits.append(digit)
+                forward += 1
+            }
+
+            if integerDigits.count == 3, !fractionDigits.isEmpty,
+               let value = Double("\(String(integerDigits)).\(String(fractionDigits))"),
+               (118.0...136.999).contains(value) {
+                return String(format: "%.3f", value)
+            }
+            index = forward
+        }
+
+        let pattern = #"\b(1[1-3][0-9])[.,](\d{1,3})\b"#
+        if let regex = try? NSRegularExpression(pattern: pattern) {
+            let ns = text as NSString
+            if let m = regex.firstMatch(in: text, range: NSRange(location: 0, length: ns.length)) {
+                let whole = ns.substring(with: m.range).replacingOccurrences(of: ",", with: ".")
+                if let value = Double(whole), (118.0...136.999).contains(value) {
+                    return String(format: "%.3f", value)
+                }
+            }
+        }
+
+        return nil
+    }
+
+    private static func resolveInitiateStation(
+        phase: Phase,
+        origin: Airport,
+        dest: Airport,
+        text: String
+    ) -> String {
+        let lower = text.lowercased()
+        if lower.contains("ground") {
+            return origin.units.ground?.callsign ?? "\(origin.name) Ground"
+        }
+        if lower.contains("delivery") {
+            return origin.units.delivery?.callsign ?? "\(origin.name) Delivery"
+        }
+        if lower.contains("tower") {
+            let unit = (phase == .arrival || phase == .approach || phase == .landing) ? dest.units.tower : origin.units.tower
+            return unit?.callsign ?? "Tower"
+        }
+        if lower.contains("departure") {
+            return origin.units.departure?.callsign ?? "\(origin.name) Departure"
+        }
+        if lower.contains("control") {
+            return origin.units.center?.callsign ?? dest.units.center?.callsign ?? "Area Control"
+        }
+        if lower.contains("approach") {
+            return dest.units.approach?.callsign ?? "\(dest.name) Approach"
+        }
+        if lower.contains("information") {
+            return origin.units.atis?.callsign ?? "\(origin.name) Information"
+        }
+        switch phase {
+        case .preDeparture:
+            return origin.units.ground?.callsign ?? origin.units.delivery?.callsign ?? "Ground"
+        case .departure:
+            return origin.units.tower?.callsign ?? "Tower"
+        case .enRoute:
+            return origin.units.center?.callsign ?? "Control"
+        case .arrival:
+            return dest.units.approach?.callsign ?? "Approach"
+        case .approach, .landing:
+            return dest.units.tower?.callsign ?? "Tower"
+        }
+    }
+
+    private static func formatInitiateFormulas(
+        phase: Phase,
+        text: String,
+        targetStation: String,
+        selectedRunway: Runway,
+        arrRunway: Runway,
+        standOrigin: String,
+        standDest: String,
+        holdingPoint: String,
+        initialAlt: String,
+        cruisingLevel: String,
+        depAtisId: String,
+        arrAtisId: String,
+        depHeading: Int,
+        severity: EventSeverity,
+        eventTag: String?
+    ) -> (situation: String, task: String) {
+        let lower = text.lowercased()
+
+        // 1. Emergency Distress (MAYDAY)
+        if lower.contains("mayday") || severity == .distress {
+            let sit = "[AIRCRAFT STATE] Severe in-flight malfunction with imminent threat to aircraft safety. [TRIGGER CUE] Cockpit master warning bell blares and emergency checklist initiated. [GIVEN PARAMETER] Emergency landing required, minimum safe terrain clearance."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Declare Distress [REQUIRED PAYLOAD] MAYDAY MAYDAY MAYDAY, state emergency and request immediate landing."
+            return (sit, tsk)
+        }
+
+        // 2. Urgency (PAN PAN)
+        if lower.contains("pan pan") || severity == .urgency {
+            let sit = "[AIRCRAFT STATE] Technical anomaly requiring priority handling without immediate danger to life. [TRIGGER CUE] Fuel reserves reach minimum diversion threshold / system advisory alert annunciates. [GIVEN PARAMETER] Priority routing and expedited approach required."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Declare Urgency [REQUIRED PAYLOAD] PAN PAN PAN PAN, state urgency condition and request priority approach."
+            return (sit, tsk)
+        }
+
+        // 3. Discontinue / Go-Around
+        if lower.contains("going around") {
+            let sit = "[AIRCRAFT STATE] Short final at 200 ft AGL on stabilized approach. [TRIGGER CUE] Active runway obstructed by preceding traffic or ground vehicle. [GIVEN PARAMETER] Missed approach procedure requires immediate climbing straight ahead to 3,000 ft."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Discontinue [REQUIRED PAYLOAD] going around, climbing straight ahead to 3,000 ft."
+            return (sit, tsk)
+        }
+
+        // 4. Refuse / Unable
+        if lower.contains("unable") {
+            let sit = "[AIRCRAFT STATE] Aircraft operating at operational envelope limits. [TRIGGER CUE] ATC climb instruction exceeds aircraft climb gradient performance envelope. [GIVEN PARAMETER] Performance limits maximum ceiling to \(cruisingLevel)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Refuse [REQUIRED PAYLOAD] unable instruction due performance, and request alternative."
+            return (sit, tsk)
+        }
+
+        // 5. Radio Check / First turn
+        if lower.contains("radio check") || (phase == .preDeparture && lower.contains("information")) {
+            let sit = "[AIRCRAFT STATE] Parked at Apron Stand \(standOrigin) with engines running. [TRIGGER CUE] Pre-flight cockpit checks completed and Information \(depAtisId) copied. [GIVEN PARAMETER] Radio readability test scale 1 to 5, departure planned via Runway \(selectedRunway.designator)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] radio check and taxi clearance to holding point Runway \(selectedRunway.designator)."
+            return (sit, tsk)
+        }
+
+        // 6. Pushback Request
+        if lower.contains("pushback") {
+            let sit = "[AIRCRAFT STATE] Parked at Apron Stand \(standOrigin) with doors armed and beacon light ON. [TRIGGER CUE] Ground crew connected towbar and reports bypass pin inserted. [GIVEN PARAMETER] Towbar and pushback tug connected, nose heading \(depHeading)°."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] pushback and start approval."
+            return (sit, tsk)
+        }
+
+        // 7. Taxi Request
+        if lower.contains("taxi") && phase == .preDeparture {
+            let sit = "[AIRCRAFT STATE] At Apron Stand \(standOrigin), engines stabilized and parking brake SET. [TRIGGER CUE] Pushback tug disconnected and ground marshaller signals all-clear. [GIVEN PARAMETER] Assigned Runway \(selectedRunway.designator), taxi via Taxiway \(holdingPoint)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] taxi clearance to holding point Runway \(selectedRunway.designator)."
+            return (sit, tsk)
+        }
+
+        // 8. Ready for Departure
+        if lower.contains("ready") && phase == .departure {
+            let sit = "[AIRCRAFT STATE] Holding short of Runway \(selectedRunway.designator) at Holding Point \(holdingPoint). [TRIGGER CUE] Pre-takeoff checklist complete, cabin secure, and approach sector visually clear. [GIVEN PARAMETER] Departure runway heading \(depHeading)°, initial climb to \(initialAlt)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] ready for departure."
+            return (sit, tsk)
+        }
+
+        // 9. Departure Check-in / Airborne
+        if phase == .departure || (lower.contains("climbing") && lower.contains("passing")) {
+            let sit = "[AIRCRAFT STATE] Airborne passing 1,500 ft on runway heading in clean climb configuration. [TRIGGER CUE] Tower instructed handoff to Departure Control. [GIVEN PARAMETER] Initial climb clearance to \(initialAlt), departure tracking on runway heading."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] passing 1,500 ft climbing to \(initialAlt)."
+            return (sit, tsk)
+        }
+
+        // 10. En-Route Check-in
+        if phase == .enRoute {
+            let sit = "[AIRCRAFT STATE] Cruising at assigned level \(cruisingLevel) over route corridor. [TRIGGER CUE] Crossing airway boundary into control sector. [GIVEN PARAMETER] Maintaining \(cruisingLevel), airway routing direct to destination."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] maintaining \(cruisingLevel) and position tracking."
+            return (sit, tsk)
+        }
+
+        // 11. Arrival Check-in
+        if phase == .arrival {
+            let sit = "[AIRCRAFT STATE] Descending passing 8,000 ft inbound to terminal area. [TRIGGER CUE] Center hands off to Approach Control; Arrival ATIS Information \(arrAtisId) copied. [GIVEN PARAMETER] Cleared descent to 4,000 ft, arrival ATIS information \(arrAtisId)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] passing 8,000 ft descending to 4,000 ft with Information \(arrAtisId)."
+            return (sit, tsk)
+        }
+
+        // 12. Localizer / Final Report
+        if lower.contains("established") || lower.contains("localizer") || phase == .approach {
+            let sit = "[AIRCRAFT STATE] Wings level on final approach at 1,500 ft AGL, landing gear down and flaps set. [TRIGGER CUE] ILS localizer beam alive and centered on cockpit flight instruments. [GIVEN PARAMETER] Active Runway \(arrRunway.designator), approach target speed 140 knots."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] established on ILS localizer Runway \(arrRunway.designator)."
+            return (sit, tsk)
+        }
+
+        // 13. Runway Vacated
+        if lower.contains("vacated") || phase == .landing {
+            let sit = "[AIRCRAFT STATE] Rollout complete, aircraft turned off runway onto taxiway. [TRIGGER CUE] Entire aircraft has visually crossed the runway holding point boundary marking. [GIVEN PARAMETER] Runway vacated, destination parking at Stand \(standDest)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] runway vacated, request taxi to apron stand."
+            return (sit, tsk)
+        }
+
+        // Default fallback
+        let sit = "[AIRCRAFT STATE] Aircraft in operational flight configuration. [TRIGGER CUE] Radio frequency clear and operational checkpoint reached. [GIVEN PARAMETER] Current operational profile complies with active ATC clearance."
+        let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] operational status and intentions."
+        return (sit, tsk)
+    }
+
     // MARK: - Scaffolding Payload Generator Engine (MAPPING_SCAFFOLDING.pdf & Doc 9835)
+    public enum ClozeStage {
+        /// M-101 s/d M-102: Full modeling, 100% revealed, no blanks
+        case fullModeling
+        /// M-103 s/d M-104: Callsign, Frequency, Transponder, Runway Designator Hidden
+        case introCloze
+        /// M-105 s/d M-201: Callsign, Freq, Transponder, Runway, Alt, QNH, Runway Action verbs Hidden
+        case intermediateCloze
+        /// M-202 s/d M-204: All operational parameters Hidden
+        case advancedCloze
+        /// M-301+ (Level 3-5): Audio only (no cloze)
+        case audioOnly
+    }
+
     public static func enrichExchangesWithScaffolding(
         exchanges: [FilledExchange],
+        missionCode: String? = nil,
         level: CurriculumLevel,
         phase: Phase,
         context: SlotContext,
         seed: Int,
         contingencies: [InjectedContingency]
     ) -> [FilledExchange] {
-        if level == .level2 {
-            return enrichLevel2Exchanges(exchanges: exchanges, context: context)
+        let code = missionCode?.uppercased() ?? ""
+
+        // Determine Scaffolding Cloze Stage based on Notion Table:
+        // 101-102: Full modeling (All Revealed, no blanks, no 4-slot card)
+        // 103-104: Cloze Intro (Callsign, Frequency, Transponder, Runway Designator Hidden)
+        // 105-201: Intermediate Cloze (Callsign, Freq, Transponder, Runway, Alt, QNH, Runway Action verbs Hidden)
+        // 202-204: Advanced Cloze (All parameters Hidden)
+        // 301-505 (Level 3-5): Audio-only / no teleprompter script
+
+        let clozeStage: ClozeStage
+        if code == "M-101" || code == "M-102" {
+            clozeStage = .fullModeling
+        } else if code == "M-103" || code == "M-104" {
+            clozeStage = .introCloze
+        } else if code == "M-105" || code == "M-201" {
+            clozeStage = .intermediateCloze
+        } else if code == "M-202" || code == "M-203" || code == "M-204" {
+            clozeStage = .advancedCloze
+        } else if level == .level1 {
+            // Default Level 1 fallback
+            clozeStage = (code == "M-101" || code == "M-102") ? .fullModeling : .introCloze
+        } else if level == .level2 {
+            // Default Level 2 fallback
+            clozeStage = .intermediateCloze
+        } else {
+            clozeStage = .audioOnly
         }
+
+        if clozeStage != .fullModeling && clozeStage != .audioOnly {
+            return enrichClozeExchanges(exchanges: exchanges, stage: clozeStage, context: context)
+        }
+
+        // For full modeling (M-101, M-102) and audio-only (Level 3..5):
         return exchanges.map { ex in
             switch level {
             case .level1:
-                return enrichLevel1(exchange: ex, phase: phase, context: context)
+                // No 4-slot card anymore: clean full speech modeling
+                return ex.withScaffolding(type: nil, fourSlot: nil, cloze: nil)
             case .level2:
-                return ex // handled in enrichLevel2Exchanges
+                return ex.withScaffolding(type: nil, fourSlot: nil, cloze: nil)
             case .level3:
                 return enrichLevel3(exchange: ex, phase: phase, context: context)
             case .level4:
@@ -1680,63 +2227,26 @@ public final class ScriptGeneratorEngine {
         }
     }
 
-    private static func enrichLevel1(exchange: FilledExchange, phase: Phase, context: SlotContext) -> FilledExchange {
-        let rwy = context.selectedRunway.designator
-        let pos: String
-        switch phase {
-        case .preDeparture:
-            pos = exchange.turn <= 2 ? "Apron Stand \(context.stand)" : "Holding Point \(context.holdingPoint)"
-        case .departure:
-            pos = "Holding Point \(context.holdingPoint) Runway \(rwy)"
-        case .enRoute:
-            pos = "Local Training Area, \(context.initialAlt)"
-        case .arrival:
-            pos = "Overhead Aerodrome, \(context.initialAlt)"
-        case .approach:
-            let lower = exchange.text.lowercased()
-            if lower.contains("downwind") {
-                pos = "Left Downwind Runway \(rwy)"
-            } else if lower.contains("final") {
-                pos = "Final Runway \(rwy)"
-            } else {
-                pos = "Visual Circuit Runway \(rwy)"
-            }
-        case .landing:
-            pos = "Runway \(rwy) Vacated"
-        }
-
-        let action = exchange.objective ?? (exchange.eventTag ?? "Transmit message to ATC")
-        let phoneticGuide = "RWY \(rwy) [\(SpokenFormFormatter.digitWords(rwy))], QNH \(context.weather.qnh) [\(SpokenFormFormatter.digitWords(String(context.weather.qnh)))]"
-        let numbersGuide: [String: String] = [
-            "0": "ZE-RO", "1": "WUN", "2": "TOO", "3": "TREE", "4": "FOW-ER",
-            "5": "FIFE", "6": "SIX", "7": "SEV-EN", "8": "AIT", "9": "NIN-ER"
-        ]
-
-        let stationName = context.unitTower?.callsign ?? "\(context.airport.name) Tower"
-        let payload = FourSlotCardPayload(
-            station: stationName,
-            callsign: context.callsign,
-            position: pos,
-            action: action,
-            phoneticGuide: phoneticGuide,
-            numbersGuide: numbersGuide
-        )
-        return exchange.withScaffolding(type: .fourSlotCard, fourSlot: payload)
-    }
-
-    // MARK: - Level 2 Scaffolding: Cloze Masked on ATC Transmissions (Anti-Teleprompter)
-    private static func enrichLevel2Exchanges(exchanges: [FilledExchange], context: SlotContext) -> [FilledExchange] {
+    private static func enrichClozeExchanges(
+        exchanges: [FilledExchange],
+        stage: ClozeStage,
+        context: SlotContext
+    ) -> [FilledExchange] {
         var enriched: [FilledExchange] = []
 
         for (idx, ex) in exchanges.enumerated() {
             if ex.isUserTurn {
-                // User pilot turn: Cloze is NOT for the pilot!
-                // Pilot receives clean exchange with objective, and NO cloze template.
-                enriched.append(ex.withScaffolding(type: nil, cloze: nil))
+                // User pilot turn does NOT get cloze mask
+                enriched.append(ex.withScaffolding(type: nil, fourSlot: nil, cloze: nil))
             } else {
-                // ATC turn: In Level 1, ATC was full. In Level 2, ATC transmission is cloze-masked!
+                // ATC turn: Mask parameters according to clozeStage!
                 let nextPilotTurn = (idx + 1 < exchanges.count && exchanges[idx + 1].isUserTurn) ? exchanges[idx + 1] : nil
-                let atcExchange = enrichATCLevel2Cloze(exchange: ex, nextPilotTurn: nextPilotTurn, context: context)
+                let atcExchange = enrichATCCloze(
+                    exchange: ex,
+                    stage: stage,
+                    nextPilotTurn: nextPilotTurn,
+                    context: context
+                )
                 enriched.append(atcExchange)
             }
         }
@@ -1744,45 +2254,129 @@ public final class ScriptGeneratorEngine {
         return enriched
     }
 
-    private static func enrichATCLevel2Cloze(
+    private static func enrichATCCloze(
         exchange: FilledExchange,
+        stage: ClozeStage,
         nextPilotTurn: FilledExchange?,
         context: SlotContext
     ) -> FilledExchange {
         var maskedText = exchange.text
         var maskedSlots: [MaskedSlot] = []
 
-        // 1. Gather candidate slot values to mask from subsequent pilot readback
+        // Candidates to mask: (value to match in text, slot label / type)
         var candidates: [(value: String, type: String)] = []
 
-        if let next = nextPilotTurn, !next.criticalSlots.isEmpty {
-            for slot in next.criticalSlots {
-                if slot.slot.contains("CALLSIGN") || slot.type.contains("Identifier") {
-                    continue
-                }
-                candidates.append((value: slot.expectedValue, type: slot.type))
+        // --- STAGE: introCloze (M-103, M-104) ---
+        // Hidden: Callsign, Frequency, Transponder (Squawk), Runway Designator
+        // Revealed: Altitude, Heading, Speed, QNH, Waypoint, Stand, ATIS, Action Verbs
+
+        // 1. Callsign
+        if !context.callsign.isEmpty {
+            candidates.append((value: context.callsign, type: "CALLSIGN"))
+        }
+
+        // 2. Frequency (e.g. "one one niner decimal fife")
+        if let next = nextPilotTurn {
+            for slot in next.criticalSlots where slot.slot.contains("FREQ") {
+                candidates.append((value: slot.expectedValue, type: "FREQUENCY"))
+            }
+        }
+        let freqPattern = #"\b(one [a-z ]+decimal [a-z ]+)\b"#
+        if let regex = try? NSRegularExpression(pattern: freqPattern, options: .caseInsensitive) {
+            let nsText = exchange.text as NSString
+            let matches = regex.matches(in: exchange.text, range: NSRange(location: 0, length: nsText.length))
+            for m in matches {
+                candidates.append((value: nsText.substring(with: m.range), type: "FREQUENCY"))
             }
         }
 
-        // 2. Also check common critical parameters if present in ATC's text
-        let qnhStr = SpokenFormFormatter.qnh(context.weather.qnh)
-        candidates.append((value: qnhStr, type: "mandatoryQnh"))
-
+        // 3. Transponder (Squawk)
         if !context.squawk.isEmpty {
-            candidates.append((value: context.squawk, type: "mandatorySquawk"))
+            candidates.append((value: context.squawk, type: "SQUAWK"))
+        }
+        if let next = nextPilotTurn {
+            for slot in next.criticalSlots where slot.slot.contains("SQUAWK") {
+                candidates.append((value: slot.expectedValue, type: "SQUAWK"))
+            }
         }
 
-        let rwyStr = SpokenFormFormatter.runway(context.selectedRunway.designator)
-        candidates.append((value: rwyStr, type: "mandatoryRunway"))
-
-        let arrRwyStr = context.arrRunway
-        if !arrRwyStr.isEmpty {
-            candidates.append((value: arrRwyStr, type: "mandatoryRunway"))
+        // 4. Runway Designator (e.g. "zero eight", "one two")
+        let rwySpoken = SpokenFormFormatter.runway(context.selectedRunway.designator)
+        candidates.append((value: rwySpoken, type: "RUNWAY"))
+        if !context.arrRunway.isEmpty {
+            let arrRwySpoken = SpokenFormFormatter.runway(context.arrRunway)
+            candidates.append((value: arrRwySpoken, type: "RUNWAY"))
         }
 
-        let hpStr = context.holdingPoint
-        if !hpStr.isEmpty {
-            candidates.append((value: hpStr, type: "mandatoryHoldingPoint"))
+        // --- STAGE: intermediateCloze (M-105, M-201) and advancedCloze (M-202..204) ---
+        if stage == .intermediateCloze || stage == .advancedCloze {
+            // Hidden: Altitude, QNH, Runway Action Verbs
+
+            // 5. Altitude / Flight Level
+            if let next = nextPilotTurn {
+                for slot in next.criticalSlots where slot.slot.contains("ALT") || slot.slot.contains("LEVEL") {
+                    candidates.append((value: slot.expectedValue, type: "ALTITUDE"))
+                }
+            }
+            if !context.initialAlt.isEmpty {
+                candidates.append((value: context.initialAlt, type: "ALTITUDE"))
+            }
+            if !context.currentLevel.isEmpty {
+                candidates.append((value: context.currentLevel, type: "FLIGHT_LEVEL"))
+            }
+
+            // 6. QNH
+            let qnhSpoken = SpokenFormFormatter.qnh(context.weather.qnh)
+            candidates.append((value: qnhSpoken, type: "QNH"))
+            if let next = nextPilotTurn {
+                for slot in next.criticalSlots where slot.slot.contains("QNH") {
+                    candidates.append((value: slot.expectedValue, type: "QNH"))
+                }
+            }
+
+            // 7. Runway Action Verbs
+            let actionVerbs = [
+                "line up and wait",
+                "cleared for take-off",
+                "cleared for takeoff",
+                "cleared to land",
+                "cleared touch-and-go",
+                "cleared touch and go",
+                "hold short",
+                "backtrack and line up",
+                "backtrack",
+                "stop pushback immediately",
+                "vacate left",
+                "vacate right"
+            ]
+            for act in actionVerbs {
+                candidates.append((value: act, type: "RUNWAY_ACTION"))
+            }
+
+            // Stand and ATIS
+            if !context.stand.isEmpty {
+                candidates.append((value: "stand \(context.stand.lowercased())", type: "STAND"))
+            }
+            if !context.atisId.isEmpty {
+                candidates.append((value: "information \(context.atisId.lowercased())", type: "ATIS"))
+            }
+        }
+
+        // --- STAGE: advancedCloze (M-202..204) ---
+        if stage == .advancedCloze {
+            // Hidden: Heading, Speed, Waypoint/Route, everything else!
+            let hdgSpoken = SpokenFormFormatter.heading(context.heading)
+            candidates.append((value: hdgSpoken, type: "HEADING"))
+
+            if !context.sidProcedure.isEmpty {
+                candidates.append((value: context.sidProcedure, type: "ROUTE"))
+            }
+            if !context.starProcedure.isEmpty {
+                candidates.append((value: context.starProcedure, type: "ROUTE"))
+            }
+            if !context.holdingPoint.isEmpty {
+                candidates.append((value: context.holdingPoint, type: "HOLDING_POINT"))
+            }
         }
 
         // Sort candidates by length descending to match full multi-word phrases first
@@ -1790,49 +2384,41 @@ public final class ScriptGeneratorEngine {
 
         var blankIdx = 1
         for cand in candidates {
-            guard !cand.value.isEmpty else { continue }
-            if maskedText.contains(cand.value) && !maskedSlots.contains(where: { $0.correctValue == cand.value }) {
-                maskedText = maskedText.replacingOccurrences(of: cand.value, with: "[ ___ ]")
-                maskedSlots.append(MaskedSlot(slotId: "BLANK_\(blankIdx)", correctValue: cand.value, type: cand.type))
+            let val = cand.value.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard val.count >= 2 else { continue }
+            guard !maskedSlots.contains(where: { $0.correctValue.lowercased() == val.lowercased() }) else { continue }
+
+            let pattern = "\\b" + NSRegularExpression.escapedPattern(for: val) + "\\b"
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { continue }
+            let nsText = maskedText as NSString
+            if let m = regex.firstMatch(in: maskedText, range: NSRange(location: 0, length: nsText.length)) {
+                let actual = nsText.substring(with: m.range)
+                maskedText = (maskedText as NSString).replacingCharacters(in: m.range, with: "[ _____ ]")
+                maskedSlots.append(MaskedSlot(slotId: "BLANK_\(blankIdx)", correctValue: actual, type: cand.type))
                 blankIdx += 1
             }
         }
 
-        // 3. Fallback: mask digit words if no candidate matched
-        if maskedSlots.isEmpty {
-            let words = exchange.text.components(separatedBy: " ")
-            var newWords: [String] = []
-            var maskedAny = false
-            for (wIdx, w) in words.enumerated() {
-                let lower = w.lowercased()
-                if (lower == "flight" && wIdx + 1 < words.count && words[wIdx + 1].lowercased() == "level") ||
-                   (lower == "heading" && wIdx + 1 < words.count) ||
-                   (lower == "speed" && wIdx + 1 < words.count) {
-                    newWords.append(w)
-                } else if !maskedAny && (w.rangeOfCharacter(from: .decimalDigits) != nil || lower == "one" || lower == "two" || lower == "three" || lower == "four" || lower == "five" || lower == "six" || lower == "seven" || lower == "eight" || lower == "niner" || lower == "zero") {
-                    newWords.append("[ ___ ]")
-                    maskedSlots.append(MaskedSlot(slotId: "BLANK_\(blankIdx)", correctValue: w, type: "CRITICAL_VALUE"))
+        // Fallback: mask any critical slot from next pilot turn if still empty
+        if maskedSlots.isEmpty, let next = nextPilotTurn, !next.criticalSlots.isEmpty {
+            for slot in next.criticalSlots {
+                if let range = maskedText.range(of: slot.expectedValue, options: .caseInsensitive) {
+                    let actualMatched = String(maskedText[range])
+                    maskedText.replaceSubrange(range, with: "[ _____ ]")
+                    maskedSlots.append(MaskedSlot(slotId: "BLANK_\(blankIdx)", correctValue: actualMatched, type: slot.slot))
                     blankIdx += 1
-                    maskedAny = true
-                } else {
-                    newWords.append(w)
+                    break
                 }
-            }
-            if maskedAny {
-                maskedText = newWords.joined(separator: " ")
             }
         }
 
         guard !maskedSlots.isEmpty else {
-            return exchange.withScaffolding(type: nil, cloze: nil)
+            return exchange.withScaffolding(type: nil, fourSlot: nil, cloze: nil)
         }
 
-        let payload = ClozeMaskedPayload(
-            displayTemplate: maskedText,
-            maskedSlots: maskedSlots,
-            timeoutSeconds: 8.0
-        )
-        return exchange.withScaffolding(type: .clozeMasked, cloze: payload)
+        let timeout = (stage == .introCloze) ? 10.0 : 8.0
+        let payload = ClozeMaskedPayload(displayTemplate: maskedText, maskedSlots: maskedSlots, timeoutSeconds: timeout)
+        return exchange.withScaffolding(type: .clozeMasked, fourSlot: nil, cloze: payload)
     }
 
     private static func enrichLevel3(exchange: FilledExchange, phase: Phase, context: SlotContext) -> FilledExchange {

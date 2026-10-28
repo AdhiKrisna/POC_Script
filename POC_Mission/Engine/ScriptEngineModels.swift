@@ -509,6 +509,55 @@ public struct MissionStoryBriefing: Equatable, Codable, Sendable {
     }
 }
 
+/// Kondisi instrumen telemetri kokpit per turn yang ditampilkan di layar simulator.
+public struct CockpitState: Equatable, Codable, Sendable {
+    public let heading: String
+    public let altitude: String
+    public let speed: String
+    public let qnh: String
+    public let squawk: String
+    public let standbyFrequency: String
+
+    public init(
+        heading: String = "-",
+        altitude: String = "0 ft",
+        speed: String = "0 kt",
+        qnh: String = "-",
+        squawk: String = "-",
+        standbyFrequency: String = "-"
+    ) {
+        self.heading = heading
+        self.altitude = altitude
+        self.speed = speed
+        self.qnh = qnh
+        self.squawk = squawk
+        self.standbyFrequency = standbyFrequency
+    }
+}
+
+/// Butir petunjuk (hint) dari transmisi ATC sesuai matriks scaffolding kognitif Level 1 & 2.
+public struct ATCHintItem: Equatable, Codable, Sendable, Identifiable {
+    public var id: String { label }
+    public let label: String
+    public let value: String
+    public let isRevealed: Bool
+
+    public init(label: String, value: String, isRevealed: Bool = true) {
+        self.label = label
+        self.value = value
+        self.isRevealed = isRevealed
+    }
+}
+
+/// Kumpulan hint ATC yang ditampilkan pada kartu bantuan visual Level 1 & 2.
+public struct ATCHintPayload: Equatable, Codable, Sendable {
+    public let items: [ATCHintItem]
+
+    public init(items: [ATCHintItem] = []) {
+        self.items = items
+    }
+}
+
 public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
     public var id: String { exchangeID }
     public let exchangeID: String
@@ -528,6 +577,14 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
     public let objective: String?
     /// Operational situation unfolding around the aircraft during this turn (what is happening now)
     public let situationContext: String?
+
+    // MARK: - Cockpit Telemetry & Scaffolding Hints
+    /// Informasi instrumen kokpit terkini pada giliran bicara ini
+    public let cockpitState: CockpitState?
+    /// Petunjuk teks ATC terdistribusi sesuai scaffolding Level 1 & 2
+    public let atcHint: ATCHintPayload?
+    /// Menandakan apakah giliran bicara ini berupa inisiasi panggilan oleh pilot
+    public let isInitiateCall: Bool
 
     // MARK: - Embedded Scaffolding Payloads
     public let scaffoldingType: ScaffoldingType?
@@ -553,6 +610,9 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         plainEnglishTrigger: String? = nil,
         objective: String? = nil,
         situationContext: String? = nil,
+        cockpitState: CockpitState? = nil,
+        atcHint: ATCHintPayload? = nil,
+        isInitiateCall: Bool = false,
         scaffoldingType: ScaffoldingType? = nil,
         fourSlotPayload: FourSlotCardPayload? = nil,
         clozePayload: ClozeMaskedPayload? = nil,
@@ -574,6 +634,9 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
         self.eventTag = eventTag
         self.languageLayer = languageLayer
         self.plainEnglishTrigger = plainEnglishTrigger
+        self.cockpitState = cockpitState
+        self.atcHint = atcHint
+        self.isInitiateCall = isInitiateCall
         self.scaffoldingType = scaffoldingType
         self.fourSlotPayload = fourSlotPayload
         self.clozePayload = clozePayload
@@ -628,6 +691,9 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
             plainEnglishTrigger: self.plainEnglishTrigger,
             objective: self.objective,
             situationContext: self.situationContext,
+            cockpitState: self.cockpitState,
+            atcHint: self.atcHint,
+            isInitiateCall: self.isInitiateCall,
             scaffoldingType: type,
             fourSlotPayload: fourSlot ?? self.fourSlotPayload,
             clozePayload: cloze ?? self.clozePayload,
@@ -636,6 +702,42 @@ public struct FilledExchange: Equatable, Codable, Sendable, Identifiable {
             baitPayload: bait ?? self.baitPayload,
             partylinePayload: partyline ?? self.partylinePayload,
             hazardPayload: hazard ?? self.hazardPayload
+        )
+    }
+
+    /// Salinan giliran pertukaran komunikasi dengan pembaruan telemetri kokpit dan konteks situasi.
+    public func withUpdatedTelemetry(
+        cockpitState: CockpitState?,
+        atcHint: ATCHintPayload?,
+        isInitiateCall: Bool,
+        situationContext: String? = nil,
+        objective: String? = nil
+    ) -> FilledExchange {
+        FilledExchange(
+            exchangeID: self.exchangeID,
+            templateID: self.templateID,
+            turn: self.turn,
+            speaker: self.speaker,
+            isUserTurn: self.isUserTurn,
+            text: self.text,
+            criticalSlots: self.criticalSlots,
+            severity: self.severity,
+            eventTag: self.eventTag,
+            languageLayer: self.languageLayer,
+            plainEnglishTrigger: self.plainEnglishTrigger,
+            objective: objective ?? self.objective,
+            situationContext: situationContext ?? self.situationContext,
+            cockpitState: cockpitState ?? self.cockpitState,
+            atcHint: atcHint ?? self.atcHint,
+            isInitiateCall: isInitiateCall,
+            scaffoldingType: self.scaffoldingType,
+            fourSlotPayload: self.fourSlotPayload,
+            clozePayload: self.clozePayload,
+            intentPayload: self.intentPayload,
+            hudPayload: self.hudPayload,
+            baitPayload: self.baitPayload,
+            partylinePayload: self.partylinePayload,
+            hazardPayload: self.hazardPayload
         )
     }
 
@@ -1957,16 +2059,23 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                 }
                 output += "Turn \(ex.turn) | \(speakerLabel):\n"
 
+                if let c = ex.cockpitState {
+                    output += "  [Cockpit] HDG: \(c.heading) | ALT: \(c.altitude) | SPD: \(c.speed) | QNH: \(c.qnh) | SQWK: \(c.squawk) | STBY: \(c.standbyFrequency)\n"
+                }
+
                 if ex.speaker.contains("TRAFFIC") {
                     let obj = ex.objective ?? "[MONITOR ONLY] Listen to traffic on the same frequency. STAND BY and hold transmissions until frequency is clear."
                     output += "  Objective: \(obj)\n"
                 } else if ex.isUserTurn {
-                    let obj = ex.objective ?? (ex.intentPayload?.primaryIntent ?? "Deliver standard ICAO radiotelephony transmission.")
-                    output += "  Objective: \(obj)\n"
-
-                    if let fourSlot = ex.fourSlotPayload, level == .level1 {
-                        output += "  [4-Slot Helper] Station: \(fourSlot.station) | Callsign: \(fourSlot.callsign) | Position: \(fourSlot.position) | Action: \(fourSlot.action)\n"
+                    if ex.isInitiateCall, let sit = ex.situationContext {
+                        output += "  [SITUATION] \(sit)\n"
+                        if let obj = ex.objective {
+                            output += "  [TASK] \(obj)\n"
+                        }
+                    } else if let obj = ex.objective {
+                        output += "  Objective: \(obj)\n"
                     }
+
                     if let hud = ex.hudPayload, level == .level4 {
                         var hudItems: [String] = []
                         if let hdg = hud.headingDeg { hudItems.append("HDG: \(String(format: "%03d", hdg))") }
@@ -1988,7 +2097,7 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
                         }
                     }
                 } else {
-                    if let cloze = ex.clozePayload, level == .level2 {
+                    if let cloze = ex.clozePayload {
                         output += "  [ATC Cloze Masked] \"\(cloze.displayTemplate)\"\n"
                     }
                 }
