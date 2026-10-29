@@ -1352,7 +1352,7 @@ struct FlightBriefingSheet: View {
 
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("EXPECTED RUNWAY")
+                    Text("RUNWAY AKTIF")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundColor(.secondary)
                     Text("RWY \(mission.missionContext.arrRunway.designator)")
