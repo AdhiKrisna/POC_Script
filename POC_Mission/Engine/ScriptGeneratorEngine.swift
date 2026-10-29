@@ -2057,6 +2057,7 @@ public final class ScriptGeneratorEngine {
         eventTag: String?
     ) -> (situation: String, task: String) {
         let lower = text.lowercased()
+        let tag = eventTag?.uppercased() ?? ""
 
         // 1. Emergency Distress (MAYDAY)
         if lower.contains("mayday") || severity == .distress {
@@ -2072,80 +2073,157 @@ public final class ScriptGeneratorEngine {
             return (sit, tsk)
         }
 
-        // 3. Discontinue / Go-Around
-        if lower.contains("going around") {
-            let sit = "[AIRCRAFT STATE] Short final at 200 ft AGL on stabilized approach. [TRIGGER CUE] Active runway obstructed by preceding traffic or ground vehicle. [GIVEN PARAMETER] Missed approach procedure requires immediate climbing straight ahead to 3,000 ft."
+        // 3. Rejected Take-Off: Berhenti Darurat di Runway (RTO / Hot Brakes)
+        if tag.contains("STOPPED ON RUNWAY") || lower.contains("stopped on runway") {
+            let sit = "[AIRCRAFT STATE] Aircraft brought to full stop on Runway \(selectedRunway.designator) after high-speed rejected take-off. [TRIGGER CUE] Maximum braking applied, thrust reversers stowed, aircraft stationary on runway centerline. [GIVEN PARAMETER] Brakes hot, tires intact, no ground evacuation required."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] stopped on runway \(selectedRunway.designator), brakes hot, tires intact, no assistance required."
+            return (sit, tsk)
+        }
+
+        // 4. Aborting Take-off (Below V1)
+        if tag.contains("ABORT") || lower.contains("stopping, aborting") || lower.contains("aborting take-off") {
+            let sit = "[AIRCRAFT STATE] Accelerating on takeoff roll passing 60 knots. [TRIGGER CUE] Master caution alerts system malfunction below decision speed V1. [GIVEN PARAMETER] Immediate takeoff abort initiated, throttle idle, maximum brakes."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Declare Distress [REQUIRED PAYLOAD] STOPPING, ABORTING TAKE-OFF."
+            return (sit, tsk)
+        }
+
+        // 5. Pembatalan Pendaratan (Going Around / Discontinue)
+        if lower.contains("going around") || tag.contains("GO-AROUND") {
+            let sit = "[AIRCRAFT STATE] Short final at 200 ft AGL on approach to Runway \(arrRunway.designator). [TRIGGER CUE] Runway centerline obstructed by traffic or ground vehicle. [GIVEN PARAMETER] Missed approach procedure requires immediate climbing straight ahead to 3,000 ft."
             let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Discontinue [REQUIRED PAYLOAD] going around, climbing straight ahead to 3,000 ft."
             return (sit, tsk)
         }
 
-        // 4. Refuse / Unable
+        // 6. Missed Approach Check-in ke Approach Control
+        if tag.contains("MISSED APPROACH") || (lower.contains("missed approach") && lower.contains("climbing")) {
+            let sit = "[AIRCRAFT STATE] Clean climb configuration passing 2,000 ft on published missed approach procedure. [TRIGGER CUE] Establishing radio contact with Approach Control after aborted landing. [GIVEN PARAMETER] Missed approach climb to 4,000 ft, Runway \(arrRunway.designator)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] passing 2,000 ft climbing to 4,000 ft, missed approach runway \(arrRunway.designator)."
+            return (sit, tsk)
+        }
+
+        // 7. Deviasi Cuaca / Abu Vulkanik (Weather / Ash Avoidance)
+        if tag.contains("DEVIATION") || lower.contains("volcanic ash") || lower.contains("deviation") {
+            let sit = "[AIRCRAFT STATE] Cruising in en-route sector at assigned level \(cruisingLevel). [TRIGGER CUE] Airborne weather radar detects hazardous storm / volcanic ash cloud directly on airway ahead. [GIVEN PARAMETER] Left sector clear of traffic and terrain, 30° lateral deviation for 20 miles required."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] volcanic ash cloud sighted ahead, request immediate deviation left 30 degrees, 20 miles."
+            return (sit, tsk)
+        }
+
+        // 8. Penolakan Instruksi Berbahaya / Envelope Limits (Unable / Refuse)
         if lower.contains("unable") {
             let sit = "[AIRCRAFT STATE] Aircraft operating at operational envelope limits. [TRIGGER CUE] ATC climb instruction exceeds aircraft climb gradient performance envelope. [GIVEN PARAMETER] Performance limits maximum ceiling to \(cruisingLevel)."
             let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Refuse [REQUIRED PAYLOAD] unable instruction due performance, and request alternative."
             return (sit, tsk)
         }
 
-        // 5. Radio Check / First turn
-        if lower.contains("radio check") || (phase == .preDeparture && lower.contains("information")) {
-            let sit = "[AIRCRAFT STATE] Parked at Apron Stand \(standOrigin) with engines running. [TRIGGER CUE] Pre-flight cockpit checks completed and Information \(depAtisId) copied. [GIVEN PARAMETER] Radio readability test scale 1 to 5, departure planned via Runway \(selectedRunway.designator)."
-            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] radio check and taxi clearance to holding point Runway \(selectedRunway.designator)."
+        // 9. Penutupan Rencana Terbang di Stand (Close Flight Plan)
+        if tag.contains("CLOSE") || lower.contains("close flight plan") || lower.contains("engines shut down") {
+            let sit = "[AIRCRAFT STATE] Parked at Stand \(standDest) with engines shut down and parking brake SET. [TRIGGER CUE] Post-flight checklist complete, ground power connected, flight operations finished. [GIVEN PARAMETER] Safe arrival at Stand \(standDest), flight plan closure required."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] on \(standDest), parking brake set, engines shut down, request close flight plan."
             return (sit, tsk)
         }
 
-        // 6. Pushback Request
+        // 10. Laporan Selesai Manuver Latihan VFR (Request Inbound)
+        if tag.contains("INBOUND") || lower.contains("maneuvers completed") || lower.contains("inbound for full-stop") {
+            let sit = "[AIRCRAFT STATE] Cadet visual maneuvers completed in designated local training sector at 1,000 ft. [TRIGGER CUE] Tower queries intentions for aerodrome circuit rejoin and landing. [GIVEN PARAMETER] Visual pattern entry planned, full-stop landing on Runway \(selectedRunway.designator)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] training maneuvers completed, request inbound for full-stop landing."
+            return (sit, tsk)
+        }
+
+        // 11. Pelaporan Visual Circuit Touch-and-Go (M-102)
+        if lower.contains("touch-and-go") {
+            if lower.contains("downwind") {
+                let sit = "[AIRCRAFT STATE] Wings level on downwind leg at 1,000 ft pattern altitude, airspeed 80 knots. [TRIGGER CUE] Abeam runway threshold with visual spacing established behind preceding circuit traffic. [GIVEN PARAMETER] Active visual circuit Runway \(selectedRunway.designator), touch-and-go practice."
+                let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] downwind runway \(selectedRunway.designator), touch-and-go."
+                return (sit, tsk)
+            } else {
+                let sit = "[AIRCRAFT STATE] Established on final approach leg at 400 ft AGL, stabilized on visual glidepath. [TRIGGER CUE] Runway centerline aligned visually, landing clearance required before touchdown. [GIVEN PARAMETER] Visual approach to Runway \(selectedRunway.designator), touch-and-go practice."
+                let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] final runway \(selectedRunway.designator), touch-and-go."
+                return (sit, tsk)
+            }
+        }
+
+        // 12. Uji Radio & Izin Taxi Awal (Level 1 VFR GA Apron)
+        if lower.contains("general aviation apron") || (phase == .preDeparture && lower.contains("local visual circuit")) {
+            let sit = "[AIRCRAFT STATE] Parked at General Aviation (GA) Apron, Stand \(standOrigin) with engines running. [TRIGGER CUE] Pre-flight cockpit checks completed and Information \(depAtisId) copied. [GIVEN PARAMETER] Radio readability test scale 1 to 5, departure planned via Runway \(selectedRunway.designator)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] radio check and taxi clearance from GA apron to holding point Runway \(selectedRunway.designator)."
+            return (sit, tsk)
+        }
+
+        // 13. Izin IFR / Uji Radio Pre-Departure Maskapai
+        if lower.contains("radio check") || (phase == .preDeparture && lower.contains("information")) {
+            let sit = "[AIRCRAFT STATE] Parked at Apron Stand \(standOrigin) with engines running. [TRIGGER CUE] Pre-flight cockpit checks completed and Information \(depAtisId) copied. [GIVEN PARAMETER] Radio readability test scale 1 to 5, departure planned via Runway \(selectedRunway.designator)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] IFR clearance to destination, information \(depAtisId) received."
+            return (sit, tsk)
+        }
+
+        // 14. Permintaan Pushback
         if lower.contains("pushback") {
             let sit = "[AIRCRAFT STATE] Parked at Apron Stand \(standOrigin) with doors armed and beacon light ON. [TRIGGER CUE] Ground crew connected towbar and reports bypass pin inserted. [GIVEN PARAMETER] Towbar and pushback tug connected, nose heading \(depHeading)°."
             let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] pushback and start approval."
             return (sit, tsk)
         }
 
-        // 7. Taxi Request
+        // 15. Permintaan Taxi
         if lower.contains("taxi") && phase == .preDeparture {
             let sit = "[AIRCRAFT STATE] At Apron Stand \(standOrigin), engines stabilized and parking brake SET. [TRIGGER CUE] Pushback tug disconnected and ground marshaller signals all-clear. [GIVEN PARAMETER] Assigned Runway \(selectedRunway.designator), taxi via Taxiway \(holdingPoint)."
             let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Request [REQUIRED PAYLOAD] taxi clearance to holding point Runway \(selectedRunway.designator)."
             return (sit, tsk)
         }
 
-        // 8. Ready for Departure
+        // 16. Laporan Siap Berangkat (Ready for Departure)
         if lower.contains("ready") && phase == .departure {
             let sit = "[AIRCRAFT STATE] Holding short of Runway \(selectedRunway.designator) at Holding Point \(holdingPoint). [TRIGGER CUE] Pre-takeoff checklist complete, cabin secure, and approach sector visually clear. [GIVEN PARAMETER] Departure runway heading \(depHeading)°, initial climb to \(initialAlt)."
             let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] ready for departure."
             return (sit, tsk)
         }
 
-        // 9. Departure Check-in / Airborne
-        if phase == .departure || (lower.contains("climbing") && lower.contains("passing")) {
+        // 17. Check-in Udara Lepas Landas (Airborne Check-in)
+        if tag.contains("DEPARTURE CHECK-IN") || (phase == .departure && lower.contains("climbing")) || (lower.contains("airborne") && lower.contains("passing")) {
             let sit = "[AIRCRAFT STATE] Airborne passing 1,500 ft on runway heading in clean climb configuration. [TRIGGER CUE] Tower instructed handoff to Departure Control. [GIVEN PARAMETER] Initial climb clearance to \(initialAlt), departure tracking on runway heading."
             let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] passing 1,500 ft climbing to \(initialAlt)."
             return (sit, tsk)
         }
 
-        // 10. En-Route Check-in
+        // 18. Area Control Check-in (En-Route Climb & Waypoint)
+        if tag.contains("AREA CONTROL") || (phase == .enRoute && lower.contains("direct")) {
+            var wpName = "destination corridor"
+            if let directRange = lower.range(of: "direct ") {
+                let afterDirect = text[directRange.upperBound...].trimmingCharacters(in: .whitespacesAndNewlines)
+                let candidate = afterDirect.components(separatedBy: CharacterSet.alphanumerics.inverted).first ?? ""
+                if !candidate.isEmpty {
+                    wpName = candidate.uppercased()
+                }
+            }
+            let sit = "[AIRCRAFT STATE] Climbing through FL 100 on airway corridor. [TRIGGER CUE] Handoff from terminal departure to Area Control Center. [GIVEN PARAMETER] Cruising altitude \(cruisingLevel), navigation tracking direct to \(wpName)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] passing FL 100 climbing to \(cruisingLevel), direct \(wpName)."
+            return (sit, tsk)
+        }
+
+        // 19. Check-in Jelajah Standar (En-Route)
         if phase == .enRoute {
             let sit = "[AIRCRAFT STATE] Cruising at assigned level \(cruisingLevel) over route corridor. [TRIGGER CUE] Crossing airway boundary into control sector. [GIVEN PARAMETER] Maintaining \(cruisingLevel), airway routing direct to destination."
             let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] maintaining \(cruisingLevel) and position tracking."
             return (sit, tsk)
         }
 
-        // 11. Arrival Check-in
-        if phase == .arrival {
-            let sit = "[AIRCRAFT STATE] Descending passing 8,000 ft inbound to terminal area. [TRIGGER CUE] Center hands off to Approach Control; Arrival ATIS Information \(arrAtisId) copied. [GIVEN PARAMETER] Cleared descent to 4,000 ft, arrival ATIS information \(arrAtisId)."
-            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] passing 8,000 ft descending to 4,000 ft with Information \(arrAtisId)."
+        // 20. Check-in Kedatangan (Approach Check-in)
+        if tag.contains("APPROACH CHECK-IN") || ((phase == .arrival || phase == .approach) && lower.contains("information")) {
+            let sit = "[AIRCRAFT STATE] Inbound to terminal area, passing 10,000 ft (FL 100) descending to 5,000 ft. [TRIGGER CUE] Area Control hands off to Approach Control; Arrival ATIS Information \(arrAtisId) copied. [GIVEN PARAMETER] Cleared descent to 5,000 ft, arrival ATIS Information \(arrAtisId)."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] passing FL 100 descending to 5,000 ft with Information \(arrAtisId)."
             return (sit, tsk)
         }
 
-        // 12. Localizer / Final Report
+        // 21. Laporan Localizer / Final Approach
         if lower.contains("established") || lower.contains("localizer") || phase == .approach {
             let sit = "[AIRCRAFT STATE] Wings level on final approach at 1,500 ft AGL, landing gear down and flaps set. [TRIGGER CUE] ILS localizer beam alive and centered on cockpit flight instruments. [GIVEN PARAMETER] Active Runway \(arrRunway.designator), approach target speed 140 knots."
             let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] established on ILS localizer Runway \(arrRunway.designator)."
             return (sit, tsk)
         }
 
-        // 13. Runway Vacated
+        // 22. Laporan Keluar Landas Pacu (Runway Vacated)
         if lower.contains("vacated") || phase == .landing {
             let sit = "[AIRCRAFT STATE] Rollout complete, aircraft turned off runway onto taxiway. [TRIGGER CUE] Entire aircraft has visually crossed the runway holding point boundary marking. [GIVEN PARAMETER] Runway vacated, destination parking at Stand \(standDest)."
-            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] runway vacated, request taxi to apron stand."
+            let tsk = "[TARGET STATION] \(targetStation) [ACTION VERB] Report [REQUIRED PAYLOAD] runway vacated, request taxi to gate."
             return (sit, tsk)
         }
 

@@ -1191,9 +1191,9 @@ struct FlightBriefingSheet: View {
 
                 GridRow {
                     Text("Stand Asal").font(.caption).foregroundColor(.secondary)
-                    Text(mission.missionContext.standOrigin).font(.caption).bold().foregroundColor(.primary)
+                    Text((mission.level?.levelNumber ?? 1) == 1 ? "GA Apron (Stand \(mission.missionContext.standOrigin))" : mission.missionContext.standOrigin).font(.caption).bold().foregroundColor(.primary)
                     Text("Stand Tujuan").font(.caption).foregroundColor(.secondary)
-                    Text(mission.missionContext.standDestination).font(.caption).bold().foregroundColor(.primary)
+                    Text((mission.level?.levelNumber ?? 1) == 1 ? "GA Apron (Stand \(mission.missionContext.standDestination))" : mission.missionContext.standDestination).font(.caption).bold().foregroundColor(.primary)
                 }
 
                 GridRow {

@@ -2018,14 +2018,18 @@ public struct FlightMissionScript: Identifiable, Equatable, Sendable {
         let destIata = missionContext.destinationAirport.iata ?? missionContext.destinationAirport.icao
         let lvlTitle = level?.title ?? "Level \(level?.rawValue ?? 1)"
 
+        let isLvl1 = (level?.levelNumber ?? 1) == 1
+        let standOrigDisplay = isLvl1 ? "GA Apron (Stand \(missionContext.standOrigin))" : missionContext.standOrigin
+        let standDestDisplay = isLvl1 ? "GA Apron (Stand \(missionContext.standDestination))" : missionContext.standDestination
+
         var output = """
         FLIGHT SCRIPT: \(origIata) → \(destIata) (\(lvlTitle))
         Callsign: \(callsign) | Aircraft: \(missionContext.aircraftType) | Squawk: \(missionContext.squawkCodeDisplay)
         Seed: \(seed) | Total Turns: \(totalExchanges) | Duration: ~\(String(format: "%.1f", totalEstimatedDurationMinutes)) mins
 
         [OPERATIONAL FLIGHT PLAN (OFP)]
-        • Departure: \(missionContext.originAirport.icao) (\(missionContext.originAirport.shortName)) | Stand: \(missionContext.standOrigin) | Dep RWY: \(missionContext.depRunway.designator)
-        • Destination: \(missionContext.destinationAirport.icao) (\(missionContext.destinationAirport.shortName)) | Stand: \(missionContext.standDestination) | Arr RWY: \(missionContext.arrRunway.designator)
+        • Departure: \(missionContext.originAirport.icao) (\(missionContext.originAirport.shortName)) | Stand: \(standOrigDisplay) | Dep RWY: \(missionContext.depRunway.designator)
+        • Destination: \(missionContext.destinationAirport.icao) (\(missionContext.destinationAirport.shortName)) | Stand: \(standDestDisplay) | Arr RWY: \(missionContext.arrRunway.designator)
         • Cruising: \(missionContext.cruisingLevelDisplay) | Initial: \(missionContext.initialAltDisplay)
         • Routing: SID \(missionContext.sidProcedure) | STAR \(missionContext.starProcedure)
 
